@@ -172,15 +172,24 @@ function open(k){const p=cur;
   if(p==='photo'){let i=P.photo.items.indexOf(k);const v=$('#ov');const f=()=>{v.innerHTML=`<button class="x" onclick="closeM()">✕</button><button class="nv" style="left:0" id="pv">‹</button><img src="IMG/${encodeURIComponent(P.photo.items[i])}"><button class="nv" style="right:0" id="nx">›</button>`;
     $('#pv').onclick=e=>{e.stopPropagation();i=(i-1+P.photo.items.length)%P.photo.items.length;f()};$('#nx').onclick=e=>{e.stopPropagation();i=(i+1)%P.photo.items.length;f()}};v.onclick=null;v.classList.add('on');f();
     let x0;v.ontouchstart=e=>x0=e.touches[0].clientX;v.ontouchend=e=>{const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>60){i=(i+(d<0?1:-1)+P.photo.items.length)%P.photo.items.length;f()}}}
-  if(p==='music'){const u='MUSIC/'+encodeURIComponent(k),x=k.split('.').pop().toLowerCase();
-    if(x==='mid'||x==='midi'){modal(`<h3>${esc(k)}</h3><midi-player src="${u}" sound-font></midi-player><p>MIDI 재생 엔진을 불러오는 중… (인터넷 필요)</p>`);loadMidi()}
-    else if(x==='wma')modal(`<h3>${esc(k)}</h3><p>WMA는 대부분의 브라우저에서 재생되지 않습니다. 다운로드해서 들어주세요.</p><div class="r"><button class="btn" onclick="dlAll(['${u}'])">⬇ 다운로드</button></div>`);
-    else modal(`<h3>${esc(k)}</h3><audio controls autoplay src="${u}" style="width:100%"></audio>`)}
+  if(p==='music')playMusic(k);
   if(p==='video'){const v=P.video.items.find(x=>x.id===k),e=emb(v.u);
     if(e.e)modal(`<h3>${esc(v.t||e.p)}</h3><iframe src="${esc(e.e)}" allow="autoplay;fullscreen;encrypted-media" allowfullscreen></iframe>`);
     else if(e.v)modal(`<h3>${esc(v.t||'영상')}</h3><video src="${esc(e.v)}" controls autoplay playsinline></video>`);
     else window.open(v.u,'_blank')}}
-let midiLoaded;function loadMidi(){if(midiLoaded)return;midiLoaded=1;const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0';document.head.appendChild(s)}
+let midiP;function loadMidi(){return midiP||(midiP=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0';s.onload=()=>Promise.race([customElements.whenDefined('midi-player'),sleep(8000).then(()=>no())]).then(ok);s.onerror=()=>{midiP=null;no()};document.head.appendChild(s)}))}
+async function playMusic(k){const u='MUSIC/'+encodeURIComponent(k),x=k.split('.').pop().toLowerCase();
+  const dl=`<div class="r"><a class="pill" style="color:inherit;text-decoration:none" href="${u}" download>⬇ 다운로드</a></div>`;
+  const why=async()=>{const r=await fetch(u,{method:'HEAD',cache:'no-store'}).catch(()=>null);return!r?'네트워크 오류로 파일을 가져오지 못했습니다.':r.status===404?'서버에 이 파일이 없습니다. (방금 올렸다면 1~2분 뒤 다시 시도하세요. 파일 이름·폴더도 확인)':!r.ok?'파일을 가져올 수 없습니다 (오류 '+r.status+').':'이 브라우저에서 재생할 수 없는 형식이거나 파일이 손상되었습니다. 다운로드해서 들어주세요.'};
+  if(x==='wma'){modal(`<h3>${esc(k)}</h3><p>WMA는 크롬·사파리 등 대부분의 브라우저가 재생하지 못합니다. 다운로드 후 기기의 음악 앱으로 들어주세요.</p>${dl}`);return}
+  if(x==='mid'||x==='midi'){modal(`<h3>${esc(k)}</h3><div id="mp"></div><p id="ms">재생 엔진을 불러오는 중… (인터넷 필요)</p>${dl}`);
+    try{await loadMidi();const el=$('#mp');if(!el)return;const p=document.createElement('midi-player');p.setAttribute('src',abs(u));p.setAttribute('sound-font','');el.appendChild(p);
+      p.addEventListener('load',()=>{const m=$('#ms');if(m)m.textContent='▶ 재생 버튼을 누르세요.'});
+      p.addEventListener('error',async()=>{const m=$('#ms');if(m)m.textContent=await why()});
+      const m=$('#ms');if(m)m.textContent='▶ 재생 버튼을 누르세요. (처음엔 음색을 받느라 몇 초 걸립니다)'}
+    catch{const m=$('#ms');if(m)m.textContent='재생 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하거나 다운로드해서 들어주세요.'}return}
+  modal(`<h3>${esc(k)}</h3><audio id="au" controls preload="auto" src="${u}" style="width:100%"></audio><p id="ms"></p>${dl}`);
+  const a=$('#au');a.onerror=async()=>{const m=$('#ms');if(m)m.textContent=await why()};a.play().catch(()=>{})}
 function emb(u){let m;
   if(m=u.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/))return{p:'YouTube',e:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1',th:'https://img.youtube.com/vi/'+m[1]+'/hqdefault.jpg'};
   if(m=u.match(/tiktok\.com\/.*video\/(\d+)/))return{p:'TikTok',e:'https://www.tiktok.com/embed/v2/'+m[1]};
