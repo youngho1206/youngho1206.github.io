@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>최영호의 게임에뮬레이터</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+:root{--bg:#07070a;--fg:#f3efe6;--mut:#8d8a80;--acc:#d4af6a;--acc2:#f1d9a0;--line:rgba(212,175,106,.18);--card:rgba(255,255,255,.035);--serif:"Cormorant Garamond","Noto Serif KR",Georgia,serif;--sans:Inter,-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans);font-weight:400}
+body{overflow-x:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at 50% -10%,#1d1a12 0,#0b0a0c 45%,#050507 100%)}
+.bg:after{content:"";position:absolute;inset:0;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.bg i{position:absolute;border-radius:50%;filter:blur(110px);opacity:.16;animation:drift 22s ease-in-out infinite alternate}
+.bg i:nth-child(1){width:46vmax;height:46vmax;background:#d4af6a;left:-18vmax;top:-22vmax}
+.bg i:nth-child(2){width:36vmax;height:36vmax;background:#6a7bd4;right:-14vmax;top:30vmax;animation-delay:-8s;opacity:.1}
+.bg i:nth-child(3){width:40vmax;height:40vmax;background:#b0563e;left:20vmax;bottom:-28vmax;animation-delay:-14s;opacity:.09}
+@keyframes drift{to{transform:translate(6vmax,5vmax) scale(1.15)}}
+header{text-align:center;padding:clamp(36px,8vw,84px) 20px 10px}
+.eyebrow{font-size:clamp(10px,1.6vw,12px);letter-spacing:.42em;text-transform:uppercase;color:var(--acc);opacity:0;animation:rise .9s .1s forwards}
+h1{margin:14px 0 0;font-family:var(--serif);font-weight:600;font-size:clamp(34px,7.5vw,76px);line-height:1.05;letter-spacing:.01em;background:linear-gradient(100deg,#9c7a3c 0,#f6e2b0 30%,#d4af6a 50%,#f6e2b0 70%,#9c7a3c 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 7s linear infinite,rise .9s .25s backwards}
+@keyframes shine{to{background-position:-250% 0}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.orn{display:flex;align-items:center;justify-content:center;gap:14px;margin:20px auto 0;max-width:340px;color:var(--acc);font-size:10px;opacity:0;animation:rise .9s .45s forwards}
+.orn:before,.orn:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--acc))}
+.orn:after{transform:scaleX(-1)}
+header p{color:var(--mut);margin:18px 0 0;font-size:clamp(12px,2vw,15px);font-weight:300;letter-spacing:.04em;opacity:0;animation:rise .9s .6s forwards}
+.tabs{display:flex;width:max-content;max-width:calc(100% - 24px);margin:26px auto 14px;padding:4px;gap:2px;border:1px solid var(--line);border-radius:99px;background:rgba(255,255,255,.03);backdrop-filter:blur(14px);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:0;background:none;color:var(--mut);padding:9px clamp(12px,3vw,22px);border-radius:99px;font:500 13px var(--sans);letter-spacing:.06em;cursor:pointer;transition:.3s;white-space:nowrap}
+.tabs button:hover{color:var(--fg)}
+.tabs button.on{color:#1a1409;background:linear-gradient(135deg,var(--acc2),var(--acc));box-shadow:0 4px 18px rgba(212,175,106,.35)}
+main{max-width:1180px;margin:0 auto;padding:14px 18px 50px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(104px,26vw,176px),1fr));gap:clamp(12px,2.2vw,22px)}
+.app{position:relative;border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.015));color:inherit;cursor:pointer;text-align:center;padding:clamp(12px,2.2vw,20px) clamp(8px,1.5vw,14px) clamp(12px,2vw,18px);border-radius:22px;font:inherit;opacity:0;animation:pop .7s cubic-bezier(.2,.9,.3,1) forwards;backdrop-filter:blur(10px);transition:border-color .4s,box-shadow .4s,transform .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes pop{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:none}}
+.app:hover{transform:translateY(-6px);border-color:rgba(212,175,106,.6);box-shadow:0 22px 50px rgba(0,0,0,.65),0 0 40px rgba(212,175,106,.12)}
+.app .ico{display:block;width:100%;max-width:120px;margin:0 auto;aspect-ratio:1;border-radius:22.5%;overflow:hidden;position:relative;box-shadow:0 12px 26px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .45s cubic-bezier(.2,1.3,.4,1)}
+.app .ico svg,.app .ico img{width:100%;height:100%;display:block}
+.app .ico:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.5) 50%,transparent 62%);transform:translateX(-130%)}
+.app:hover .ico{transform:scale(1.07)}
+.app:hover .ico:after{transition:transform .9s;transform:translateX(130%)}
+.app:active{transform:scale(.97)}
+.app b{display:block;margin-top:14px;font:500 clamp(12px,1.8vw,14px) var(--sans);letter-spacing:.02em}
+.app small{display:block;margin-top:3px;color:var(--acc);font:italic 500 clamp(13px,1.8vw,15px) var(--serif);letter-spacing:.08em}
+/* 검색 */
+.filters{position:relative;z-index:5;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin:26px auto 14px;padding:0 12px}
+.filters .tabs{margin:0;max-width:100%}
+.srch{position:relative;width:min(100%,280px)}
+.srch .box{display:flex;align-items:center;gap:8px;padding:0 14px;height:44px;border:1px solid var(--line);border-radius:99px;background:rgba(255,255,255,.03);backdrop-filter:blur(14px);transition:border-color .3s,box-shadow .3s}
+.srch .box:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px rgba(212,175,106,.14)}
+.srch .box svg{flex:none;width:16px;height:16px;stroke:var(--acc);fill:none;stroke-width:2;stroke-linecap:round}
+.srch input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--fg);font:400 16px var(--sans);letter-spacing:.02em}
+.srch input::placeholder{color:var(--mut)}
+.srch .clr{display:none;flex:none;border:0;background:rgba(255,255,255,.1);color:var(--fg);width:20px;height:20px;border-radius:50%;font-size:12px;line-height:20px;padding:0;cursor:pointer}
+.srch.has .clr{display:block}
+.sres{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;min-width:270px;max-height:min(58vh,420px);overflow-y:auto;padding:6px;border:1px solid var(--line);border-radius:20px;background:rgba(18,16,12,.97);backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.7);text-align:left}
+.srch.open .sres{display:block}
+.sres .it{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;color:var(--fg);font:inherit;text-align:left;padding:8px 10px;border-radius:14px;cursor:pointer}
+.sres .it.on,.sres .it:hover{background:rgba(212,175,106,.13)}
+.sres .it .si{flex:none;width:38px;height:38px;border-radius:22.5%;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.sres .it .si img{width:100%;height:100%;display:block}
+.sres .it .nm{flex:1;min-width:0;font:500 14px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sres .it .nm mark{background:none;color:var(--acc2);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.sres .it .tg{flex:none;color:var(--acc);font:italic 500 13px var(--serif)}
+.sres .none,.sres .hint{padding:12px 14px;color:var(--mut);font-size:13px}
+.sres .hint{padding:6px 14px 4px;font-size:11px;letter-spacing:.08em}
+footer{text-align:center;color:var(--mut);font-size:11px;font-weight:300;padding:10px 20px 34px;line-height:1.9;letter-spacing:.03em;border-top:1px solid var(--line);max-width:640px;margin:0 auto}
+/* emulator */
+#emu{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#emu.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
+@keyframes zoom{from{opacity:0;transform:scale(.94)}}
+#bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(14,13,12,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);overflow-x:auto;scrollbar-width:none;transition:margin .35s}
+#bar::-webkit-scrollbar{display:none}
+#bar.hide{margin-top:-70px}
+#bar .t{flex:1;min-width:90px;font:600 18px var(--serif);letter-spacing:.04em;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:8px 13px;border-radius:99px;font:500 12px var(--sans);letter-spacing:.04em;cursor:pointer;white-space:nowrap;transition:.25s}
+#bar button:hover{border-color:var(--acc);color:var(--acc2);background:rgba(212,175,106,.08)}
+#bar button:active{transform:scale(.94)}
+#bar button:disabled{opacity:.3;pointer-events:none}
+#stage{flex:1;position:relative;min-height:0}
+#fr{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+#drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 38%,#1d1a12,#060608 70%);z-index:2}
+#drop.hidden{display:none}
+#drop .big{width:min(36vw,132px);aspect-ratio:1;border-radius:22.5%;overflow:hidden;animation:bob 3.2s ease-in-out infinite;box-shadow:0 24px 50px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.15),0 0 60px rgba(212,175,106,.18)}
+#drop .big svg,#drop .big img{width:100%;height:100%;display:block}
+@keyframes bob{50%{transform:translateY(-9px)}}
+#drop h2{margin:6px 0 0;font:600 clamp(24px,4vw,36px) var(--serif);letter-spacing:.04em;color:var(--acc2)}
+#drop p{margin:0;color:var(--mut);font-size:12.5px;font-weight:300;letter-spacing:.03em;max-width:420px;line-height:1.7}
+.btn{border:0;background:linear-gradient(135deg,var(--acc2),var(--acc) 60%,#a98240);color:#1a1409;font:600 14px var(--sans);letter-spacing:.08em;padding:14px 32px;border-radius:99px;cursor:pointer;box-shadow:0 10px 30px rgba(212,175,106,.3),inset 0 1px 0 rgba(255,255,255,.5);transition:.3s;margin-top:6px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(212,175,106,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+#drop.over{outline:1px dashed var(--acc);outline-offset:-16px}
+#fab{display:none;position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;z-index:5;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:rgba(14,13,12,.7);color:var(--acc2);font-size:17px;backdrop-filter:blur(8px)}
+#emu.nobar #fab{display:block}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,30px);background:rgba(18,16,12,.9);border:1px solid var(--line);color:var(--acc2);padding:11px 22px;border-radius:99px;font-size:12.5px;letter-spacing:.04em;opacity:0;transition:.4s;z-index:50;backdrop-filter:blur(12px);pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#rot{display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.88);color:var(--acc2);align-items:center;justify-content:center;flex-direction:column;gap:10px;font:600 20px var(--serif);letter-spacing:.06em}
+#rot span{font-size:54px;animation:rt 2s ease-in-out infinite}
+@keyframes rt{50%{transform:rotate(-90deg)}}
+body.mob.fs.port #rot{display:flex}
+#emu.pfs{z-index:1000}
+@media (max-width:520px){#bar button{padding:8px 11px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.app,.eyebrow,.orn,header p{opacity:1}}
+#pc{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#pc.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
+#pbar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(14,13,12,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);overflow-x:auto;scrollbar-width:none;transition:margin .35s}
+#pbar::-webkit-scrollbar{display:none}
+#pbar.hide{margin-top:-70px}
+#pbar .t{flex:1;min-width:90px;font:600 18px var(--serif);letter-spacing:.04em;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pbar button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:8px 13px;border-radius:99px;font:500 12px var(--sans);letter-spacing:.04em;cursor:pointer;white-space:nowrap;transition:.25s}
+#pbar button:hover{border-color:var(--acc);color:var(--acc2);background:rgba(212,175,106,.08)}
+#pbar button:active{transform:scale(.94)}
+#pbar button:disabled{opacity:.3;pointer-events:none}
+#pc.nobar #fab{display:block}
+#pc.pfs{z-index:1000}
+@media (max-width:520px){#pbar button{padding:8px 11px}}
+#pstage{flex:1;position:relative;min-height:0;background:#000}
+#vscreen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#vscreen canvas{width:100%!important;height:100%!important;object-fit:contain}
+#pmsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 38%,#1d1a12,#060608 70%);z-index:2}
+#pmsg.hidden{display:none}
+#pmsg .big{width:min(34vw,120px);aspect-ratio:1;border-radius:22.5%;overflow:hidden;animation:bob 3.2s ease-in-out infinite;box-shadow:0 24px 50px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.15),0 0 60px rgba(212,175,106,.18)}
+#pmsg .big svg,#pmsg .big img{width:100%;height:100%;display:block}
+#pmsg h2{margin:4px 0 0;font:600 clamp(24px,4vw,34px) var(--serif);color:var(--acc2)}
+#pmsg p{margin:0;color:var(--mut);font-size:13px;font-weight:300;line-height:1.8;max-width:460px}
+#pmsg b{color:var(--acc2);font-weight:500}
+.sec{font:600 clamp(22px,3.6vw,32px) var(--serif);color:var(--acc2);letter-spacing:.06em;text-align:center;margin:34px 0 22px}
+.sec small{display:block;font:300 11px var(--sans);letter-spacing:.35em;color:var(--mut);margin-top:8px;text-transform:uppercase}
+.st{display:block;font:normal 11px var(--sans);color:var(--mut);margin-top:7px;min-height:14px}
+.pb{display:block;height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden}
+.pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+#dl{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,130%);width:min(92vw,470px);background:rgba(18,16,12,.93);border:1px solid var(--line);border-radius:18px;padding:12px 16px;z-index:40;backdrop-filter:blur(14px);transition:transform .5s cubic-bezier(.2,.9,.3,1);font-size:12.5px}
+#dl.on{transform:translate(-50%,0)}
+#dl b{color:var(--acc2);font-weight:500}
+#dl .pb{height:4px;margin:8px 0}
+#dl span{color:var(--mut);display:block;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i><i></i></div>
+
+<header>
+  <div class="eyebrow">Retro Game Archive · 1980 — 2004</div>
+  <h1>최영호의 게임에뮬레이터</h1>
+  <div class="orn">◆</div>
+  <p>추억의 콘솔 &amp; 휴대용 게임기 컬렉션 — 아이콘을 선택해 시작하세요</p>
+</header>
+<div class="filters">
+  <div class="tabs" id="tabs"></div>
+  <div class="srch" id="srch">
+    <div class="box">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="text" placeholder="에뮬레이터 검색 (예: n, 게임, 윈도우)" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="에뮬레이터 검색">
+      <button class="clr" id="qclr" type="button" aria-label="지우기">✕</button>
+    </div>
+    <div class="sres" id="sres" role="listbox"></div>
+  </div>
+</div>
+<main><div class="grid" id="grid"></div>
+<h2 class="sec">PC · DOS &amp; WINDOWS<small>x86 Emulator · v86</small></h2>
+<div class="grid" id="pcgrid"></div></main>
+<footer>
+  ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요. 이 사이트는 게임 파일을 제공하지 않습니다.<br>
+  에뮬레이션 엔진: EmulatorJS (RetroArch/libretro 코어) · v86 (x86 PC) · 인터넷 연결 필요
+</footer>
+
+<section id="emu">
+  <div id="bar">
+    <button id="bHome">← 홈</button>
+    <span class="t" id="eTitle"></span>
+    <button id="bLoad">📂 게임</button>
+    <button id="bSave" disabled>💾 저장</button>
+    <button id="bRest" disabled>📥 불러오기</button>
+    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bFs">⛶ 전체화면</button>
+    <button id="bHide">▲ 메뉴숨김</button>
+  </div>
+  <div id="stage">
+    <div id="drop">
+      <div class="big" id="dIcon"></div>
+      <h2 id="dName"></h2>
+      <p>게임 ROM 파일(.zip 포함)을 아래 버튼으로 선택하거나 이 화면에 끌어다 놓으세요</p>
+      <button class="btn" id="dBtn">📂 게임 파일 불러오기</button>
+      <p id="dExt"></p>
+    </div>
+    <iframe id="fr" allow="autoplay; gamepad; fullscreen"></iframe>
+    <div id="rot"><span>📱</span>가로로 돌려주세요</div>
+  </div>
+  <button id="fab">☰</button>
+</section>
+<section id="pc">
+  <div id="pbar">
+    <span class="t" id="pTitle"></span>
+    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="quit">⏻ 끝내기</button>
+  </div>
+  <div id="pstage"><div id="vscreen"></div>
+    <div id="pmsg"><div class="big" id="pIcon"></div><h2 id="pName"></h2><p id="pTxt"></p></div>
+  </div>
+</section>
+<div id="dl"></div>
+<input type="file" id="pcIn" hidden>
+<div id="toast"></div>
+<input type="file" id="romIn" hidden>
+<input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
+
+<script>
+/* ---------- 콘솔 목록 ---------- */
+const C=[
+ {id:'atari2600',n:'Atari 2600',fn:'ATARI2600',core:'atari2600',y:1977,a:'#a0693a',b:'#35200f',g:'stick',l:'2600',x:'.a26 .bin'},
+ {id:'nes',n:'Famicom / NES',fn:'NES',core:'nes',y:1983,a:'#f0384f',b:'#6d1020',g:'pad',l:'NES',x:'.nes .zip'},
+ {id:'sms',n:'Master System',fn:'SEGAMS',core:'segaMS',y:1985,a:'#2f6bff',b:'#0c1b55',g:'pad',l:'SMS',x:'.sms .zip'},
+ {id:'pce',n:'PC Engine',fn:'PCENGINE',core:'pce',y:1987,a:'#ffb020',b:'#8a3b08',g:'pad',l:'PCE',x:'.pce .zip'},
+ {id:'md',n:'Mega Drive / Genesis',fn:'MEGADRIVE',core:'segaMD',y:1988,a:'#3a3f4d',b:'#050609',g:'pad',l:'MD',x:'.md .gen .bin .zip'},
+ {id:'gb',n:'Game Boy',fn:'GAMEBOY',core:'gb',y:1989,a:'#a8c93a',b:'#2f4a12',g:'hand',l:'GB',x:'.gb .zip'},
+ {id:'lynx',n:'Atari Lynx',fn:'LYNX',core:'lynx',y:1989,a:'#ff8a2b',b:'#6b2208',g:'land',l:'LYNX',x:'.lnx .zip'},
+ {id:'snes',n:'Super Famicom / SNES',fn:'SNES',core:'snes',y:1990,a:'#8b5cf6',b:'#2e1270',g:'pad',l:'SNES',x:'.sfc .smc .zip'},
+ {id:'gg',n:'Game Gear',fn:'GAMEGEAR',core:'segaGG',y:1990,a:'#12b5ee',b:'#06364f',g:'land',l:'GG',x:'.gg .zip'},
+ {id:'psx',n:'PlayStation',fn:'PLAYSTATION',core:'psx',y:1994,a:'#7b8aa3',b:'#0b1226',g:'pad',l:'PS1',x:'.bin .cue .iso .zip'},
+ {id:'vb',n:'Virtual Boy',fn:'VIRTUALBOY',core:'vb',y:1995,a:'#e82020',b:'#1a0303',g:'land',l:'VB',x:'.vb .zip'},
+ {id:'n64',n:'Nintendo 64',fn:'NINTENDO64',core:'n64',y:1996,a:'#22c55e',b:'#063b19',g:'n64',l:'N64',x:'.z64 .n64 .v64 .zip'},
+ {id:'ngp',n:'Neo Geo Pocket',fn:'NGPOCKET',core:'ngp',y:1998,a:'#ff5a5a',b:'#4a0a0a',g:'hand',l:'NGP',x:'.ngp .ngc .zip'},
+ {id:'gbc',n:'Game Boy Color',fn:'GAMEBOYCOLOR',core:'gb',y:1998,a:'#1fd1c0',b:'#0a4a45',g:'hand',l:'GBC',x:'.gbc .zip'},
+ {id:'gba',n:'Game Boy Advance',fn:'GBA',core:'gba',y:2001,a:'#7478ff',b:'#1b1a63',g:'land',l:'GBA',x:'.gba .zip'},
+ {id:'nds',n:'Nintendo DS',fn:'NINTENDODS',core:'nds',y:2004,a:'#aab6c8',b:'#26324a',g:'ds',l:'NDS',x:'.nds .zip'}
+];
+const era=y=>y<1990?'1980년대':y<2000?'1990년대':'2000년대';
+
+/* ---------- 레트로 콘솔 아이콘(PNG, icons/ 폴더) ---------- */
+const IMG={atari2600:'atari2600',nes:'nes',sms:'mastersystem',pce:'pcengine',md:'megadrive',gb:'gameboy',lynx:'lynx',snes:'snes',gg:'gamegear',psx:'playstation',vb:'virtualboy',n64:'nintendo64',ngp:'neogeopocket',gbc:'gameboycolor',gba:'gameboyadvance',nds:'nintendods',dos:'msdos',win10:'windows1',win20:'windows2',win30:'windows3',win31:'windows31',win95:'windows95',win98:'windows98'};
+/* 모든 아이콘을 먼저 내려받아 한 번에 표시 (최대 5초 대기 후 진행) */
+const ICONS_READY=Promise.race([
+ Promise.all(Object.values(IMG).map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=`icons/${n}.png`;if(i.decode)i.decode().then(r,r)}))),
+ new Promise(r=>setTimeout(r,5000))]);
+function icon(c){
+ return `<img src="icons/${IMG[c.id]}.png" alt="${c.n}" width="256" height="256" draggable="false">`;
+}
+
+/* ---------- 홈 화면 ---------- */
+const $=s=>document.querySelector(s);
+let filter='전체';
+function render(){
+ const eras=['전체','1980년대','1990년대','2000년대'];
+ $('#tabs').innerHTML=eras.map(e=>`<button class="${e===filter?'on':''}" data-e="${e}">${e}</button>`).join('');
+ $('#grid').innerHTML=C.filter(c=>filter==='전체'||era(c.y)===filter).map((c,i)=>
+  `<button class="app" data-id="${c.id}" style="animation-delay:${i*45}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small></button>`).join('');
+}
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){filter=b.dataset.e;render()}};
+$('#grid').onclick=e=>{const b=e.target.closest('.app');if(b)openEmu(C.find(c=>c.id===b.dataset.id))};
+ICONS_READY.then(render);
+
+/* ---------- 에뮬레이터 ---------- */
+const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&innerWidth<1100);
+if(mob)document.body.classList.add('mob');
+let cur=null,gameName='',ctlOn=true,started=false;
+const emu=$('#emu'),fr=$('#fr');
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2400)};
+
+function openEmu(c){
+ cur=c;gameName='';started=false;
+ $('#eTitle').textContent=c.n;$('#dName').textContent=c.n;$('#dIcon').innerHTML=icon(c,'d');
+ $('#dExt').textContent='지원 형식: '+c.x;
+ $('#drop').classList.remove('hidden');
+ ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
+ fr.src='about:blank';
+ emu.classList.add('show');emu.classList.remove('nobar');$('#bar').classList.remove('hide');
+ history.pushState({emu:1},'');
+}
+function closeEmu(){
+ if(document.fullscreenElement||document.webkitFullscreenElement)exitFs();
+ fr.src='about:blank';emu.classList.remove('show','pfs');document.body.classList.remove('fs');
+}
+$('#bHome').onclick=()=>{closeEmu()};
+addEventListener('popstate',()=>{if(emu.classList.contains('show'))closeEmu()});
+
+function pick(){$('#romIn').value='';$('#romIn').click()}
+$('#bLoad').onclick=pick;$('#dBtn').onclick=pick;
+$('#romIn').onchange=e=>e.target.files[0]&&startGame(e.target.files[0]);
+const dr=$('#drop');
+['dragover','dragenter'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.add('over')}));
+['dragleave','drop'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.remove('over')}));
+dr.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];f&&startGame(f)});
+
+function startGame(file){
+ gameName=file.name.replace(/\.[^.]+$/,'');
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
+ fr.src='about:blank';
+ setTimeout(()=>{
+  const d=fr.contentDocument,w=fr.contentWindow;
+  d.open();
+  d.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>`);
+  d.close();
+  w.EJS_player='#game';
+  w.EJS_core=cur.core;
+  w.EJS_gameName=gameName;
+  w.EJS_gameUrl=new w.File([file],file.name);
+  w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+  w.EJS_startOnLoaded=true;
+  w.EJS_color=cur.a;
+  w.EJS_language='ko-KR';
+  w.EJS_onGameStart=()=>{started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);toast('게임 시작! 🎮')};
+  const s=d.createElement('script');s.src=w.EJS_pathtodata+'loader.js';d.body.appendChild(s);
+  $('#drop').classList.add('hidden');toast('불러오는 중… 잠시만요');
+ },60);
+}
+
+/* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
+function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
+$('#bSave').onclick=()=>{
+ try{
+  const st=fr.contentWindow.EJS_emulator.gameManager.getState();
+  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+  const name=`${cur.fn}${g}_${stamp()}.GSV`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
+ }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
+};
+$('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
+$('#gsvIn').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{fr.contentWindow.EJS_emulator.gameManager.loadState(new Uint8Array(await f.arrayBuffer()));toast('📥 불러옴: '+f.name)}
+ catch(err){toast('불러오기 실패: 같은 게임·기종의 GSV인지 확인하세요')}
+};
+
+/* 조작버튼 / 메뉴 숨김 */
+$('#bCtl').onclick=()=>{
+ ctlOn=!ctlOn;
+ try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
+ $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
+};
+$('#bHide').onclick=()=>{$('#bar').classList.add('hide');emu.classList.add('nobar')};
+$('#fab').onclick=()=>{$('#bar').classList.remove('hide');emu.classList.remove('nobar')};
+
+/* 전체화면 + 모바일 가로 고정 */
+const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function exitFs(){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}
+$('#bFs').onclick=async()=>{
+ if(isFs()){exitFs();return}
+ if(emu.classList.contains('pfs')){emu.classList.remove('pfs');setFs(false);return}
+ const req=emu.requestFullscreen||emu.webkitRequestFullscreen;
+ if(req){try{await req.call(emu)}catch(e){pfs()}}else pfs();
+};
+function pfs(){emu.classList.add('pfs');setFs(true)}  // iPhone 등 Fullscreen API 미지원 대비
+function setFs(on){
+ document.body.classList.toggle('fs',on);
+ if(mob&&screen.orientation&&screen.orientation.lock){
+  if(on)screen.orientation.lock('landscape').catch(()=>{});else screen.orientation.unlock();
+ }
+ port();
+}
+function port(){document.body.classList.toggle('port',innerHeight>innerWidth)}
+['fullscreenchange','webkitfullscreenchange'].forEach(v=>document.addEventListener(v,()=>setFs(!!isFs())));
+addEventListener('resize',port);addEventListener('orientationchange',port);port();
+
+/* ================= PC 에뮬레이터 (v86 · DOS / Windows) ================= */
+const P=[
+ {id:'dos',n:'MS-DOS',y:1981,a:'#4b5563',b:'#030303',g:'dos',l:'DOS',ram:16},
+ {id:'win10',n:'Windows 1.0',y:1985,a:'#2dd4bf',b:'#0b4a45',g:'win',l:'1.0',ram:16},
+ {id:'win20',n:'Windows 2.0',y:1987,a:'#38bdf8',b:'#0c3a5e',g:'win',l:'2.0',ram:16},
+ {id:'win30',n:'Windows 3.0',y:1990,a:'#818cf8',b:'#1e1b4b',g:'win',l:'3.0',ram:32},
+ {id:'win31',n:'Windows 3.1',y:1992,a:'#3b82f6',b:'#0b2a6b',g:'win',l:'3.1',ram:32},
+ {id:'win95',n:'Windows 95',y:1995,a:'#14b8a6',b:'#0b3d3a',g:'win',l:'95',ram:128},
+ {id:'win98',n:'Windows 98',y:1998,a:'#60a5fa',b:'#172554',g:'win',l:'98',ram:128}
+];
+ICONS_READY.then(()=>{$('#pcgrid').innerHTML=P.map((c,i)=>`<button class="app" data-id="${c.id}" style="animation-delay:${i*60}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small><em class="st">확인 중…</em><i class="pb"><i></i></i></button>`).join('');});
+$('#pcgrid').onclick=e=>{const b=e.target.closest('.app');if(b)openPc(P.find(c=>c.id===b.dataset.id))};
+
+const store={},mb=b=>(b/1048576).toFixed(1)+'MB',fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';
+function badge(id,t,pct){const c=document.querySelector(`#pcgrid [data-id="${id}"]`);if(!c)return;c.querySelector('.st').textContent=t;if(pct!=null)c.querySelector('.pb i').style.width=pct+'%'}
+async function probe(p){
+ for(const e of ['img','zip','iso']){const u=`os/${p.id}/${p.id}.${e}`;
+  try{const r=await fetch(u,{method:'HEAD'});if(r.ok&&!/html/.test(r.headers.get('content-type')||''))return{u,size:+r.headers.get('content-length')||0}}catch(_){}}
+ return null;
+}
+/* 페이지 시작 시 서버(os/<id>/ 폴더)의 이미지를 자동 탐색 → 진행률·남은 시간 표시하며 다운로드 */
+async function preload(){
+ P.forEach(p=>{store[p.id]={state:'wait'};store[p.id].prom=new Promise(r=>store[p.id].fin=r)});
+ const found=(await Promise.all(P.map(async p=>({p,f:await probe(p)})))).filter(x=>{
+  if(!x.f){store[x.p.id].state='none';badge(x.p.id,'이미지 없음',0);store[x.p.id].fin()}return x.f}).sort((a,b)=>a.f.size-b.f.size);
+ if(!found.length)return;
+ const tot=found.reduce((s,x)=>s+x.f.size,0)||1,dl=$('#dl');let base=0;
+ found.forEach(({p})=>{store[p.id].state='queue';badge(p.id,'대기 중')});
+ dl.classList.add('on');
+ const cache=await caches.open('cyh-os').catch(()=>null);
+ for(const {p,f} of found){
+  const s=store[p.id];s.name=f.u;s.state='load';
+  try{
+   const hit=cache&&await cache.match(f.u);
+   if(hit&&(!f.size||(await hit.clone().blob()).size===f.size)){s.blob=await hit.blob()}
+   else{
+    const r=await fetch(f.u),rd=r.body.getReader(),parts=[],total=f.size||+r.headers.get('content-length')||0,t0=performance.now();let got=0,last=0;
+    for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;
+     const now=performance.now();
+     if(now-last>200){last=now;const sp=got/Math.max(.001,(now-t0)/1000),pct=total?Math.min(99,Math.floor(got/total*100)):0,all=base+got;
+      badge(p.id,pct+'% · 남은 '+fmt((total-got)/sp),pct);
+      dl.innerHTML=`<b>${p.n}</b> 불러오는 중 · ${pct}%<i class="pb"><i style="width:${pct}%"></i></i><span>${mb(got)} / ${mb(total)} · ${mb(sp)}/s · 이 파일 남은 시간 <b>${fmt((total-got)/sp)}</b><br>전체 ${Math.round(all/tot*100)}% · 전체 남은 시간 <b>${fmt((tot-all)/sp)}</b></span>`}}
+    s.blob=new Blob(parts);
+    try{cache&&await cache.put(f.u,new Response(s.blob))}catch(_){}
+   }
+   s.state='ok';badge(p.id,'준비됨 · '+mb(s.blob.size),100);
+  }catch(e){s.state='err';badge(p.id,'불러오기 실패',0)}
+  base+=f.size;s.fin();
+ }
+ dl.innerHTML='<b>✓ 모든 이미지 준비 완료</b>';setTimeout(()=>dl.classList.remove('on'),2500);
+}
+preload();
+
+/* ---- v86 로드 ---- */
+let B,pc={};
+const js=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(Error('스크립트 로드 실패: '+src));document.head.appendChild(s)});
+async function loadV86(){
+ if(!B){
+  const loc=await fetch('v86/libv86.js',{method:'HEAD'}).then(r=>r.ok&&!/html/.test(r.headers.get('content-type')||'')).catch(()=>false);
+  const n='https://cdn.jsdelivr.net/npm/v86@latest/build/',g='https://cdn.jsdelivr.net/gh/copy/v86@master/bios/';
+  B=loc?{lib:'v86/libv86.js',wasm:'v86/v86.wasm',bios:'v86/seabios.bin',vga:'v86/vgabios.bin'}:{lib:n+'libv86.js',wasm:n+'v86.wasm',bios:g+'seabios.bin',vga:g+'vgabios.bin'};
+ }
+ if(!window.V86&&!window.V86Starter)await js(B.lib);
+}
+const needZip=async()=>{if(!window.JSZip)await js('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')};
+
+/* ---- ZIP 안의 파일들 → FAT16 디스크 이미지(DOS/Windows 게임용) ---- */
+function fat16(files){
+ const clean=s=>s.toUpperCase().replace(/[^A-Z0-9_$~!#%&\-{}()@'`^]/g,'_');
+ const n83=(raw,used)=>{const i=raw.lastIndexOf('.'),b=clean(i>0?raw.slice(0,i):raw),e=i>0?clean(raw.slice(i+1)).slice(0,3):'';let o=b.length>8?b.slice(0,6)+'~1':b,k=1;
+  while(used.has(o+'.'+e))o=b.slice(0,6)+'~'+(++k);used.add(o+'.'+e);return o.padEnd(8)+e.padEnd(3)};
+ const root={dir:true,kids:[],used:new Set()};
+ for(const f of files){let n=root;const ps=f.path.split('/').filter(Boolean);
+  ps.forEach((p,i)=>{if(i===ps.length-1)n.kids.push({nm:n83(p,n.used),data:f.data,size:f.data.length});
+   else{let d=n.kids.find(k=>k.dir&&k.raw===p);if(!d){d={dir:true,raw:p,kids:[],used:new Set(),nm:n83(p,n.used)};n.kids.push(d)}n=d}})}
+ const CL=4096;let nx=2;const dirs=[root],take=c=>{const s=nx;nx+=c;return s};
+ (function w(d){for(const k of d.kids){k.par=d;if(k.dir){k.cnt=Math.max(1,Math.ceil((k.kids.length+2)*32/CL));k.cl=take(k.cnt);dirs.push(k);w(k)}else{k.cnt=Math.ceil(k.size/CL);k.cl=k.cnt?take(k.cnt):0}}})(root);
+ if(root.kids.length>512)throw Error('최상위 파일이 너무 많습니다(512개 초과)');
+ const TC=Math.max(4096,nx-2+8),fs=Math.ceil((TC+2)*2/512),ds=1+2*fs+32,ps=ds+TC*8,P0=63*512;
+ const img=new Uint8Array((63+ps)*512),dv=new DataView(img.buffer),cOff=c=>P0+(ds+(c-2)*8)*512;
+ const T=(o,s)=>{for(let i=0;i<s.length;i++)img[o+i]=s.charCodeAt(i)};
+ const chs=l=>{const c=Math.min(1023,Math.floor(l/1008));return[Math.floor(l/63)%16,(l%63+1)|((c>>8)<<6),c&255]};
+ img.set(chs(63),447);img[450]=ps<65536?4:6;img.set(chs(63+ps-1),451);dv.setUint32(454,63,true);dv.setUint32(458,ps,true);img[510]=0x55;img[511]=0xAA;
+ img.set([0xEB,0x3C,0x90],P0);T(P0+3,'MSDOS5.0');dv.setUint16(P0+11,512,true);img[P0+13]=8;dv.setUint16(P0+14,1,true);img[P0+16]=2;dv.setUint16(P0+17,512,true);
+ dv.setUint16(P0+19,ps<65536?ps:0,true);img[P0+21]=0xF8;dv.setUint16(P0+22,fs,true);dv.setUint16(P0+24,63,true);dv.setUint16(P0+26,16,true);dv.setUint32(P0+28,63,true);dv.setUint32(P0+32,ps<65536?0:ps,true);
+ img[P0+36]=0x80;img[P0+38]=0x29;dv.setUint32(P0+39,0x1234ABCD,true);T(P0+43,'GAMEDISK   FAT16   ');img[P0+510]=0x55;img[P0+511]=0xAA;
+ const fat=new Uint16Array(img.buffer,P0+512,fs*256);fat[0]=0xFFF8;fat[1]=0xFFFF;
+ const ent=(o,nm,at,cl,sz)=>{T(o,nm);img[o+11]=at;dv.setUint16(o+24,0x5821,true);dv.setUint16(o+26,cl,true);dv.setUint32(o+28,sz,true)};
+ dirs.forEach(d=>{let o=d===root?P0+(1+2*fs)*512:cOff(d.cl);
+  if(d!==root){ent(o,'.          ',16,d.cl,0);ent(o+32,'..         ',16,d.par===root?0:d.par.cl,0);o+=64}
+  for(const k of d.kids){ent(o,k.nm,k.dir?16:32,k.cl,k.dir?0:k.size);o+=32;
+   if(k.cl){for(let i=0;i<k.cnt-1;i++)fat[k.cl+i]=k.cl+i+1;fat[k.cl+k.cnt-1]=0xFFFF}
+   if(!k.dir&&k.cl)img.set(k.data,cOff(k.cl))}});
+ img.set(new Uint8Array(img.buffer,P0+512,fs*512),P0+512+fs*512);
+ return img;
+}
+
+/* ---- 파일 → 디스크 종류 판별 (img/iso/vhd/zip) ---- */
+async function toDisk(name,blob,isGame){
+ let buf=await blob.arrayBuffer(),n=name.toLowerCase();
+ if(n.endsWith('.zip')){
+  await needZip();const z=await JSZip.loadAsync(buf),fl=[];
+  for(const[p,e]of Object.entries(z.files))if(!e.dir)fl.push({path:p,data:await e.async('uint8array')});
+  const im=fl.find(f=>/\.(img|ima|iso|vhd|vfd|flp)$/i.test(f.path));
+  if(im){buf=im.data.buffer.slice(im.data.byteOffset,im.data.byteOffset+im.data.byteLength);n=im.path.toLowerCase()}
+  else if(isGame){return{k:'hd',buf:fat16(fl).buffer}}
+  else throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
+ }
+ if(buf.byteLength>512&&new TextDecoder().decode(new Uint8Array(buf,buf.byteLength-512,8))==='conectix')buf=buf.slice(0,buf.byteLength-512);
+ return{k:n.endsWith('.iso')?'cd':buf.byteLength<=2949120?'fd':'hd',buf};
+}
+
+/* ---- PC 화면 / 부팅 ---- */
+const showMsg=t=>{$('#pTxt').innerHTML=t;$('#pmsg').classList.remove('hidden')};
+function openPc(p){
+ pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
+ $('#pc').classList.add('show');history.pushState({pc:1},'');
+ const s=store[p.id]||{};
+ showMsg(s.state==='none'?`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`:'메뉴의 <b>시작</b>을 눌러 부팅하세요.');
+}
+async function boot(){
+ try{
+  pc.running=false;const p=pc.os;let main;
+  if(pc.vhd)main=pc.vhd;
+  else if(pc.local)main=await toDisk(pc.local.name,pc.local);
+  else{const s=store[p.id];
+   if(!s||s.state==='none'){showMsg(`서버에 <b>os/${p.id}/${p.id}.img</b>(또는 .zip)가 없습니다.<br>로컬부팅을 이용하세요.`);return}
+   if(s.state!=='ok'){showMsg('서버에서 이미지를 불러오는 중… 완료되면 자동으로 시작합니다');await s.prom}
+   if(s.state!=='ok'){showMsg('이미지를 불러오지 못했습니다');return}
+   main=await toDisk(s.name,s.blob);
+  }
+  showMsg('에뮬레이터 준비 중…');await loadV86();
+  if(pc.emu){try{pc.emu.destroy()}catch(_){}}
+  $('#vscreen').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
+  const o={wasm_path:B.wasm,memory_size:p.ram*1048576,vga_memory_size:8*1048576,screen_container:$('#vscreen'),bios:{url:B.bios},vga_bios:{url:B.vga},autostart:true};
+  o[{hd:'hda',fd:'fda',cd:'cdrom'}[main.k]]={buffer:main.buf};
+  const g=pc.game;
+  if(g){if(g.k==='hd')o[o.hda?'hdb':'hda']={buffer:g.buf};else if(g.k==='fd')o[o.fda?'fdb':'fda']={buffer:g.buf};else if(!o.cdrom)o.cdrom={buffer:g.buf};else toast('CD 부팅 중에는 ISO 게임을 추가할 수 없습니다')}
+  pc.emu=new(window.V86||window.V86Starter)(o);
+  pc.emu.add_listener('emulator-started',()=>{pc.running=true;$('#pmsg').classList.add('hidden');toast('부팅 시작 ▶')});
+ }catch(e){showMsg('오류: '+e.message)}
+}
+const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
+const dlFile=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()};
+const A={
+ start(){if(pc.running){pc.emu.restart();toast('재시작');return}pc.local=null;pc.vhd=null;boot()},
+ async local(){const f=await pickFile('.img,.ima,.iso,.vhd,.zip');pc.local=f;pc.vhd=null;boot()},
+ async game(){
+  const f=await pickFile('.img,.ima,.iso,.vhd,.zip');
+  try{pc.game=await toDisk(f.name,f,true)}catch(e){toast(e.message);return}
+  toast('게임 디스크 준비됨: '+f.name);
+  if(pc.running){if(confirm('게임을 적용하려면 재부팅이 필요합니다.\n지금 재부팅할까요? (VHD로 저장하지 않은 변경은 사라집니다)'))boot()}
+  else toast('이제 시작을 누르면 게임 디스크가 함께 연결됩니다');
+ },
+ cap(){
+  if(!pc.running)return toast('실행 중일 때만 캡처할 수 있습니다');
+  const cv=$('#vscreen canvas');
+  if(!cv||cv.style.display==='none')return toast('그래픽(Windows) 화면에서 캡처할 수 있습니다');
+  cv.toBlob(b=>{dlFile(b,`${pc.os.id.toUpperCase()}_${stamp()}.PNG`);toast('📷 캡처 저장됨')});
+ },
+ async vsave(){
+  if(!pc.running)return toast('실행 중일 때만 저장할 수 있습니다');
+  try{const b=pc.emu.v86.cpu.devices.ide.primary.master.buffer;
+   const buf=await new Promise(r=>b.get_buffer?b.get_buffer(r):r(b.buffer||b));
+   const n=`${pc.os.id.toUpperCase()}_${stamp()}.VHD`;dlFile(new Blob([buf]),n);toast('💾 저장됨: '+n);
+  }catch(e){toast('VHD 저장 실패: '+e.message)}
+ },
+ async vload(){const f=await pickFile('.vhd,.img,.zip');try{pc.vhd=await toDisk(f.name,f)}catch(e){return toast(e.message)}pc.local=null;toast('VHD 적용: '+f.name);boot()},
+ quit(){try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#pc').classList.remove('show')}
+};
+$('#pbar').onclick=e=>{const b=e.target.closest('button');if(b)A[b.dataset.a]()};
+addEventListener('popstate',()=>{if($('#pc').classList.contains('show'))A.quit()});
+/* ---------- 검색: 이름 일부만 입력해도 목록 → 클릭하면 바로 실행 ---------- */
+const S_KW={atari2600:'아타리 아타리2600 2600',nes:'패미컴 패미콤 닌텐도 엔이에스 famicom',sms:'마스터시스템 마스터 시스템 세가 sega',pce:'피씨엔진 pc엔진 엔진 pcengine nec',md:'메가드라이브 메가 드라이브 제네시스 세가 sega megadrive genesis',gb:'게임보이 보이 닌텐도 gameboy',lynx:'링스 링크스 아타리',snes:'슈퍼패미컴 슈패 슈퍼 패미컴 닌텐도 에스엔이에스 superfamicom',gg:'게임기어 기어 세가 sega gamegear',psx:'플레이스테이션 플스 플레이 스테이션 소니 sony ps1 psx playstation',vb:'버추얼보이 버추얼 가상 닌텐도 virtualboy',n64:'닌텐도64 닌텐도 64 엔64 nintendo64',ngp:'네오지오 네오지오포켓 포켓 snk neogeo',gbc:'게임보이컬러 컬러 닌텐도 gameboycolor',gba:'게임보이어드밴스 어드밴스 닌텐도 gameboyadvance',nds:'닌텐도ds 닌텐도 디에스 듀얼스크린 nintendods',dos:'도스 엠에스도스 msdos 마이크로소프트',win10:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우1',win20:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우2',win30:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3',win31:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3.1',win95:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우95',win98:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우98'};
+const sNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9\u3131-\u318e\uac00-\ud7a3]/g,'');
+const S_ALL=[...C.map(c=>({c,pc:false,tag:era(c.y)})),...P.map(c=>({c,pc:true,tag:'PC'}))].map(o=>({...o,
+ nn:sNorm(o.c.n),words:o.c.n.toLowerCase().split(/[^a-z0-9\u3131-\u318e\uac00-\ud7a3]+/).filter(Boolean),
+ extra:sNorm([o.c.id,o.c.l,o.c.fn||'',S_KW[o.c.id]||''].join(' '))}));
+const sIsSub=(q,t)=>{let i=0;for(const ch of t){if(ch===q[i])i++;if(i===q.length)return true}return false};
+function searchEmu(raw){
+ const q=sNorm(raw);if(!q)return{list:[],similar:false};
+ const sc=o=>o.nn.startsWith(q)?0:o.words.some(w=>sNorm(w).startsWith(q))?1:o.nn.includes(q)?2:o.extra.includes(q)?3:(q.length>1&&sIsSub(q,o.nn))?4:-1;
+ let list=S_ALL.map(o=>({o,s:sc(o)})).filter(r=>r.s>=0).sort((a,b)=>a.s-b.s);
+ if(list.length)return{list:list.map(r=>r.o),similar:false};
+ // 일치하는 게 없으면 글자 하나라도 겹치는 비슷한 이름을 보여줌
+ const set=[...new Set(q)];
+ list=S_ALL.map(o=>({o,n:set.filter(ch=>o.nn.includes(ch)||o.extra.includes(ch)).length})).filter(r=>r.n>0).sort((a,b)=>b.n-a.n).slice(0,6);
+ return{list:list.map(r=>r.o),similar:true};
+}
+const sEsc=t=>t.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function sHl(name,raw){
+ const q=sNorm(raw);if(!q)return sEsc(name);
+ const sep='[^a-z0-9\\u3131-\\u318e\\uac00-\\ud7a3]*';
+ const re=new RegExp([...q].map(ch=>ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join(sep),'i');
+ const m=re.exec(name);if(!m)return sEsc(name);
+ return sEsc(name.slice(0,m.index))+'<mark>'+sEsc(m[0])+'</mark>'+sEsc(name.slice(m.index+m[0].length));
+}
+const S_RES=$('#sres'),S_IN=$('#q'),S_BOX=$('#srch');let sIdx=0,sList=[];
+function showRes(){
+ const raw=S_IN.value;S_BOX.classList.toggle('has',!!raw);
+ if(!sNorm(raw)){S_BOX.classList.remove('open');S_RES.innerHTML='';sList=[];return}
+ const r=searchEmu(raw);sList=r.list;sIdx=0;
+ S_RES.innerHTML=!sList.length?'<div class="none">검색 결과가 없습니다</div>':
+  (r.similar?'<div class="hint">비슷한 이름</div>':'')+sList.map((o,i)=>
+  `<button type="button" class="it${i?'':' on'}" role="option" data-i="${i}"><span class="si">${icon(o.c)}</span><span class="nm">${sHl(o.c.n,raw)}</span><span class="tg">${o.tag}</span></button>`).join('');
+ S_BOX.classList.add('open');
+}
+function sPick(i){
+ const o=sList[i];if(!o)return;
+ S_BOX.classList.remove('open');S_IN.blur();S_IN.value='';S_BOX.classList.remove('has');S_RES.innerHTML='';sList=[];
+ o.pc?openPc(o.c):openEmu(o.c);
+}
+function sMark(){S_RES.querySelectorAll('.it').forEach((b,i)=>b.classList.toggle('on',i===sIdx));const b=S_RES.querySelector('.it.on');b&&b.scrollIntoView({block:'nearest'})}
+S_IN.addEventListener('input',showRes);
+S_IN.addEventListener('focus',()=>{if(sNorm(S_IN.value))showRes()});
+S_IN.addEventListener('keydown',e=>{
+ if(e.isComposing)return;
+ if(e.key==='ArrowDown'&&sList.length){e.preventDefault();sIdx=(sIdx+1)%sList.length;sMark()}
+ else if(e.key==='ArrowUp'&&sList.length){e.preventDefault();sIdx=(sIdx-1+sList.length)%sList.length;sMark()}
+ else if(e.key==='Enter'){e.preventDefault();sPick(sIdx)}
+ else if(e.key==='Escape'){S_BOX.classList.remove('open');S_IN.blur()}
+});
+S_RES.addEventListener('mousedown',e=>e.preventDefault());
+S_RES.addEventListener('click',e=>{const b=e.target.closest('.it');if(b)sPick(+b.dataset.i)});
+S_RES.addEventListener('mousemove',e=>{const b=e.target.closest('.it');if(b&&+b.dataset.i!==sIdx){sIdx=+b.dataset.i;sMark()}});
+$('#qclr').onclick=()=>{S_IN.value='';showRes();S_IN.focus()};
+document.addEventListener('pointerdown',e=>{if(!S_BOX.contains(e.target))S_BOX.classList.remove('open')});
+</script>
+</body>
+</html>
