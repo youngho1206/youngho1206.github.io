@@ -12,6 +12,7 @@
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans)}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% -10%,#1d1a12 0,#0b0a0c 45%,#050507 100%)}
+button,a{touch-action:manipulation}
 button{font:inherit;color:inherit;cursor:pointer}
 header{text-align:center;padding:clamp(36px,8vw,70px) 20px 10px}
 .eyebrow{font-size:11px;letter-spacing:.42em;color:var(--acc)}
@@ -147,16 +148,16 @@ function topbar(){const el=$('#'+cur+' .top'),n=sel.size;
     $('#tc').onclick=()=>setMode(false);$('#ta').onclick=()=>{const all=P[cur].items.map(x=>keyOf(cur,x));n===all.length?sel.clear():all.forEach(k=>sel.add(k));render()}}
   else{el.innerHTML=`<button class="pill" id="tb">←</button><span class="t">${P[cur].t}</span><button class="plus" id="tp">+</button>`;
     $('#tb').onclick=()=>location.hash='';
-    $('#tp').onclick=e=>{e.stopPropagation();const m=document.createElement('div');m.className='menu';m.innerHTML=plusMenu[cur].map((x,i)=>`<button data-i="${i}">${x[0]}</button>`).join('');el.appendChild(m);
+    $('#tp').onclick=e=>{e.stopPropagation();const old=el.querySelector('.menu');if(old){old.remove();return}const m=document.createElement('div');m.className='menu';m.innerHTML=plusMenu[cur].map((x,i)=>`<button data-i="${i}">${x[0]}</button>`).join('');el.appendChild(m);
       m.onclick=ev=>{const i=ev.target.dataset.i;if(i==null)return;m.remove();const a=plusMenu[cur][i][1];a==='pick'?setMode(true):add()};setTimeout(()=>document.addEventListener('click',()=>m.remove(),{once:true}))}}}
 function setMode(v){mode=v;sel.clear();render()}
 function bar(){const b=$('#abar');b.classList.toggle('on',mode);if(!mode)return;
   b.innerHTML=acts[cur].map((a,i)=>`<button data-i="${i}">${a[0]}</button>`).join('');
   b.onclick=e=>{const i=e.target.dataset.i;if(i==null)return;if(!sel.size)return toast('먼저 항목을 선택하세요');acts[cur][i][1]()}}
 function toggle(k){sel.has(k)?sel.delete(k):sel.add(k);render()}
-function render(){topbar();bar();const body=$('#'+cur+' .body'),p=P[cur];body.className='body'+(mode?' sel':'');
+function render(top=true){if(top){topbar();bar()}const body=$('#'+cur+' .body'),p=P[cur];body.className='body'+(mode?' sel':'');
   const chk=k=>`<span class="chk">✓</span>`;
-  if(!p.items.length){body.innerHTML=`<div class="empty">${{photo:'IMG 폴더에 사진을 올리면<br>여기에 바로 표시됩니다.',video:'오른쪽 위 + 버튼으로<br>영상 링크를 추가하세요.',music:'MUSIC 폴더에 음악(MID, WAV, WMA, MP3)을<br>올리면 여기에 바로 표시됩니다.',diary:'오른쪽 위 + 버튼으로<br>글쓰기를 눌러 보세요.'}[cur]}</div>`;return}
+  if(!p.items.length){body.innerHTML=p.loading?'<div class="empty">불러오는 중…</div>':`<div class="empty">${{photo:'IMG 폴더에 사진을 올리면<br>여기에 바로 표시됩니다.',video:'오른쪽 위 + 버튼으로<br>영상 링크를 추가하세요.',music:'MUSIC 폴더에 음악(MID, WAV, WMA, MP3)을<br>올리면 여기에 바로 표시됩니다.',diary:'오른쪽 위 + 버튼으로<br>글쓰기를 눌러 보세요.'}[cur]}</div>`;return}
   let h='';
   if(cur==='photo')h='<div class="ph">'+p.items.map(f=>`<div data-k="${esc(f)}" class="${sel.has(f)?'on':''}"><img loading="lazy" decoding="async" src="IMG/${encodeURIComponent(f)}" alt="">${chk()}</div>`).join('')+'</div>';
   if(cur==='music')h='<div class="list">'+p.items.map(f=>`<div class="mu ${sel.has(f)?'on':''}" data-k="${esc(f)}">${chk()}<span style="font-size:26px">🎵</span><div class="nm"><b>${esc(f)}</b><small>${f.split('.').pop().toUpperCase()}</small></div></div>`).join('')+'</div>';
@@ -205,12 +206,14 @@ function vdl(){const vs=P.video.items.filter(v=>sel.has(v.id)),f=vs.filter(v=>em
 /* ---------- 라우팅/로딩 ---------- */
 async function show(p){cur=p;mode=false;sel.clear();document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));$('#hub').style.display=p?'none':'grid';
   $('#abar').classList.remove('on');if(!p)return;$('#'+p).classList.add('on');
-  const pr=P[p];render();$('#'+p+' .body').insertAdjacentHTML('afterbegin','');
+  const pr=P[p];pr.loading=true;render();
+  try{
   if(p==='photo')pr.items=await list('IMG',/\.(jpe?g|png|gif|webp|bmp|heic|avif)$/i);
   if(p==='music')pr.items=await list('MUSIC',/\.(mid|midi|wav|wma|mp3)$/i);
   if(p==='video')pr.items=(await rd('videos')).d;
   if(p==='diary')pr.items=(await rd('diary')).d;
-  if(cur===p)render()}
+  }catch(e){}
+  pr.loading=false;if(cur===p)render(false)}
 const route=()=>{const h=location.hash.slice(1);show(P[h]?h:'')};
 addEventListener('hashchange',route);
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>location.hash=b.dataset.go);
