@@ -404,8 +404,8 @@ const P=[
  {id:'dos',n:'MS-DOS',y:1981,a:'#4b5563',b:'#030303',g:'dos',l:'DOS',ram:16},
  {id:'win10',n:'Windows 1.0',y:1985,a:'#2dd4bf',b:'#0b4a45',g:'win',l:'1.0',ram:16},
  {id:'win20',n:'Windows 2.0',y:1987,a:'#38bdf8',b:'#0c3a5e',g:'win',l:'2.0',ram:16},
- {id:'win30',n:'Windows 3.0',y:1990,a:'#818cf8',b:'#1e1b4b',g:'win',l:'3.0',ram:16},
- {id:'win31',n:'Windows 3.1',y:1992,a:'#3b82f6',b:'#0b2a6b',g:'win',l:'3.1',ram:16},
+ {id:'win30',n:'Windows 3.0',y:1990,a:'#818cf8',b:'#1e1b4b',g:'win',l:'3.0',ram:32},
+ {id:'win31',n:'Windows 3.1',y:1992,a:'#3b82f6',b:'#0b2a6b',g:'win',l:'3.1',ram:32},
  {id:'win95',n:'Windows 95',y:1995,a:'#14b8a6',b:'#0b3d3a',g:'win',l:'95',ram:32},
  {id:'win98',n:'Windows 98',y:1998,a:'#60a5fa',b:'#172554',g:'win',l:'98',ram:32}
 ];
@@ -617,7 +617,7 @@ async function boot(){
   $('#vscreen').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
   const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
   const ramMB=Math.min(p.ram,lowMem?32:64);
-  const o={wasm_path:B.wasm,memory_size:ramMB*1048576,vga_memory_size:4*1048576,screen_container:$('#vscreen'),bios:{url:B.bios},vga_bios:{url:B.vga},autostart:true};
+  const o={wasm_path:B.wasm,memory_size:ramMB*1048576,vga_memory_size:8*1048576,screen_container:$('#vscreen'),bios:{url:B.bios},vga_bios:{url:B.vga},autostart:true};
   o[{hd:'hda',fd:'fda',cd:'cdrom'}[main.k]]={buffer:main.buf};
   const g=pc.game;
   if(g){if(g.k==='hd')o[o.hda?'hdb':'hda']={buffer:g.buf};else if(g.k==='fd')o[o.fda?'fdb':'fda']={buffer:g.buf};else if(!o.cdrom)o.cdrom={buffer:g.buf};else toast('CD 부팅 중에는 ISO 게임을 추가할 수 없습니다')}
