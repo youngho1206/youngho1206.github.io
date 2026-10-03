@@ -433,7 +433,7 @@ async function probe(p){
  return null;
 }
 let _cache;
-const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os'):Promise.resolve(null)).catch(()=>null));
+const getCache=()=>_cache||(_cache=(self.caches?(caches.delete('cyh-os').catch(()=>0),caches.open('cyh-os2')):Promise.resolve(null)).catch(()=>null));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function fetchBlob(f,onProg){
  let err;
@@ -455,7 +455,7 @@ async function loadOne(p,f,prog){
  const s=store[p.id];s.name=f.u;s.state='load';s.err='';s.got=0;s.total=f.size||0;
  try{
   const cache=await getCache();let blob=null;
-  try{const hit=cache&&await cache.match(f.u);if(hit){const b=await hit.blob();if(!f.size||b.size===f.size)blob=b}}catch(_){}
+  try{const hit=cache&&await cache.match(f.u);if(hit&&f.size){const b=await hit.blob();if(b.size===f.size)blob=b}}catch(_){}
   if(!blob){
    badge(p.id,'받는 중…',0);
    blob=await fetchBlob(f,(got,total)=>{s.got=got;s.total=total;if(total)badge(p.id,Math.min(99,Math.floor(got/total*100))+'%',Math.min(99,got/total*100));else badge(p.id,mb(got),50);prog&&prog(got,total)});
@@ -585,6 +585,65 @@ async function toDisk(name,blob,isGame,prog){
  return{k:n.endsWith('.iso')?'cd':buf.byteLength<=2949120?'fd':'hd',buf};
 }
 
+/* ---- Windows 3.1 이미지 자동 패치 (메모리 상에서 FAT16 직접 수정) ----
+   서버에 어떤 버전의 win31 이미지가 있든, 부팅 직전에 아래를 보장한다.
+   · SYSTEM.INI [386Enh] 에뮬레이터용 설정 · AUTOEXEC.BAT 정리 · WINS.BAT / WINE.BAT 추가 · 남은 WIN386.SWP 삭제 */
+function patchWin31(buf){
+ try{
+  const u=new Uint8Array(buf),dv=new DataView(buf);
+  if(u.length<65536||u[510]!==0x55||u[511]!==0xAA)return'MBR 아님';
+  const pt=[446,462,478,494].find(o=>[4,6,0xE].includes(u[o+4]));if(pt==null)return'FAT16 파티션 없음';
+  const OFF=dv.getUint32(pt+8,true)*512;
+  const bps=dv.getUint16(OFF+11,true),spc=u[OFF+13],res=dv.getUint16(OFF+14,true),nf=u[OFF+16],rootent=dv.getUint16(OFF+17,true),fs=dv.getUint16(OFF+22,true);
+  if(bps!==512||!spc||!nf)return'BPB 이상';
+  const tot=dv.getUint16(OFF+19,true)||dv.getUint32(OFF+32,true);
+  const CL=spc*bps,rootsec=res+nf*fs,ds=rootsec+rootent*32/512,ncl=Math.floor((tot-ds)/spc);
+  if(ncl<4085||ncl>=65525)return'FAT16 아님';
+  const g=c=>dv.getUint16(OFF+res*512+c*2,true);
+  const sf=(c,v)=>{for(let i=0;i<nf;i++)dv.setUint16(OFF+(res+i*fs)*512+c*2,v,true)};
+  const cpos=c=>OFF+(ds+(c-2)*spc)*512;
+  const chain=c=>{const o=[];while(c>=2&&c<0xFFF8&&o.length<70000){o.push(c);c=g(c)}return o};
+  const freeCh=c=>chain(c).forEach(x=>sf(x,0));
+  let hint=2;
+  const alloc=n=>{const out=[];let c=hint;while(out.length<n){if(c>=ncl+2)throw Error('디스크 공간 부족');if(g(c)===0)out.push(c);c++}
+   out.forEach((x,i)=>sf(x,i+1<out.length?out[i+1]:0xFFFF));hint=out[out.length-1]+1;return out};
+  const n83=n=>{const[a,e='']=n.toUpperCase().split('.');const r=new Uint8Array(11).fill(32);for(let i=0;i<Math.min(8,a.length);i++)r[i]=a.charCodeAt(i);for(let i=0;i<Math.min(3,e.length);i++)r[8+i]=e.charCodeAt(i);return r};
+  const slots=dc=>{const s=[];if(dc==null){const b=OFF+rootsec*512;for(let i=0;i<rootent;i++)s.push(b+i*32)}else chain(dc).forEach(x=>{for(let i=0;i<CL/32;i++)s.push(cpos(x)+i*32)});return s};
+  const find=(dc,name)=>{const nm=n83(name);let fr=null;
+   for(const o of slots(dc)){if(u[o]===0){fr=fr??o;return{o:null,fr}}
+    if(u[o]===0xE5){fr=fr??o;continue}if(u[o+11]===0x0F)continue;
+    let ok=1;for(let i=0;i<11;i++)if(u[o+i]!==nm[i]){ok=0;break}if(ok)return{o,fr}}
+   return{o:null,fr}};
+  const clOf=o=>dv.getUint16(o+26,true),szOf=o=>dv.getUint32(o+28,true);
+  const read=(dc,name)=>{const{o}=find(dc,name);if(o==null)return null;const c=clOf(o),sz=szOf(o),out=new Uint8Array(sz);let p=0;
+   for(const x of chain(c)){const n=Math.min(CL,sz-p);if(n<=0)break;out.set(u.subarray(cpos(x),cpos(x)+n),p);p+=n}return out};
+  const write=(dc,name,data)=>{const{o,fr}=find(dc,name);let slot;
+   if(o!=null){const c=clOf(o);if(c>=2)freeCh(c);slot=o}
+   else{if(fr==null)throw Error('디렉터리 가득 참');slot=fr;u.fill(0,slot,slot+32);u.set(n83(name),slot);u[slot+11]=0x20;dv.setUint16(slot+24,0x5821,true)}
+   let first=0;
+   if(data.length){const cl=alloc(Math.ceil(data.length/CL));cl.forEach((x,i)=>{u.fill(0,cpos(x),cpos(x)+CL);u.set(data.subarray(i*CL,(i+1)*CL),cpos(x))});first=cl[0]}
+   dv.setUint16(slot+26,first,true);dv.setUint32(slot+28,data.length,true)};
+  const del=(dc,name)=>{const{o}=find(dc,name);if(o==null)return false;const c=clOf(o);if(c>=2)freeCh(c);u[o]=0xE5;return true};
+  const enc=t=>Uint8Array.from(t.replace(/\r?\n/g,'\r\n'),ch=>ch.charCodeAt(0)&255),dec=a=>String.fromCharCode(...a);
+  const win=find(null,'WINDOWS');if(win.o==null)return'WINDOWS 폴더 없음';const wd=clOf(win.o);
+  const si=read(wd,'SYSTEM.INI');if(!si)return'SYSTEM.INI 없음';
+  let txt=dec(si),done=[];
+  if(!/EMMExclude/i.test(txt)){
+   const m=txt.match(/\[386Enh\]\r?\n/i);if(!m)return'[386Enh] 없음';
+   write(wd,'SYSTEM.BAK',si);
+   txt=txt.replace(m[0],m[0]+'EMMExclude=A000-EFFF\r\nNoEMMDriver=TRUE\r\nSystemROMBreakPoint=FALSE\r\nVirtualHDIRQ=FALSE\r\nTimerCriticalSection=10000\r\nUniqueDOSPSP=TRUE\r\nPSPIncrement=5\r\n');
+   write(wd,'SYSTEM.INI',enc(txt));done.push('SYSTEM.INI');
+  }
+  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\nC:\\DOS\\SMARTDRV.EXE /X\n';
+  const cur=read(null,'AUTOEXEC.BAT');
+  if(!cur||dec(cur).replace(/\r/g,'')!==ae){if(cur)write(null,'AUTOEXEC.BAK',cur);write(null,'AUTOEXEC.BAT',enc(ae));done.push('AUTOEXEC.BAT')}
+  if(!read(null,'WINS.BAT')){write(null,'WINS.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'));done.push('WINS.BAT')}
+  if(!read(null,'WINE.BAT')){write(null,'WINE.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /3\n'));done.push('WINE.BAT')}
+  if(del(wd,'WIN386.SWP'))done.push('스왑삭제');
+  return done.length?'패치 적용: '+done.join(', '):'이미 패치됨';
+ }catch(e){return'패치 실패: '+e.message}
+}
+
 /* ---- PC 화면 / 부팅 ---- */
 const showMsg=t=>{$('#pTxt').innerHTML=t;$('#pmsg').classList.remove('hidden')};
 function openPc(p){
@@ -610,6 +669,7 @@ async function boot(){
    if(s.state!=='ok'){loadHide();showMsg(`이미지를 불러오지 못했습니다.<br><small>${s.err||''}</small><br><b>시작</b>을 다시 눌러 재시도하세요.`);return}
    step(42,'이미지 압축 해제 중…');
    main=await toDisk(s.name,s.blob,false,q=>step(42+q*.13,`이미지 압축 해제 중 · ${Math.round(q)}%`));
+   if(p.id==='win31'&&main.k==='hd'){step(55,'Windows 3.1 설정 점검 중…');pc.patchInfo=patchWin31(main.buf);console.log('[win31]',pc.patchInfo,'· 이미지',mb(s.blob.size))}
   }
   if(my!==bootSeq)return;
   showMsg('에뮬레이터 준비 중…');step(56,'v86 엔진을 불러오는 중…');await loadV86();step(75,'BIOS와 디스크를 연결하는 중…');
@@ -625,7 +685,7 @@ async function boot(){
   const emu=pc.emu=new(window.V86||window.V86Starter)(o);
   const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
   emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
-  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast('부팅 시작 ▶')});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.id==='win31'?'부팅 시작 ▶  DOS에서 win 입력 · 안 되면 wins 입력':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
  }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
