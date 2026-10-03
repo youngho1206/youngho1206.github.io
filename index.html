@@ -639,7 +639,9 @@ function patchWin31(buf){
   if(!cur||dec(cur).replace(/\r/g,'')!==ae){if(cur)write(null,'AUTOEXEC.BAK',cur);write(null,'AUTOEXEC.BAT',enc(ae));done.push('AUTOEXEC.BAT')}
   const wb=enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'),cb=read(null,'WIN.BAT');
   if(!cb||dec(cb).replace(/\r/g,'')!=='@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'){write(null,'WIN.BAT',wb);done.push('WIN.BAT')}
-  if(!read(null,'WINS.BAT')){write(null,'WINS.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'));done.push('WINS.BAT')}
+const extra={'WINLOGS.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S /B\n','WINLOGE.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /3 /B\n','LOG.BAT':'@ECHO OFF\nTYPE C:\\WINDOWS\\BOOTLOG.TXT | MORE\n'};
+  for(const k in extra){const cur2=read(null,k);if(!cur2||dec(cur2).replace(/\r/g,'')!==extra[k]){write(null,k,enc(extra[k]));done.push(k)}}
+    if(!read(null,'WINS.BAT')){write(null,'WINS.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'));done.push('WINS.BAT')}
   if(!read(null,'WINE.BAT')){write(null,'WINE.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /3\n'));done.push('WINE.BAT')}
   if(del(wd,'WIN386.SWP'))done.push('스왑삭제');
   return done.length?'패치 적용: '+done.join(', '):'이미 패치됨';
@@ -687,7 +689,7 @@ async function boot(){
   const emu=pc.emu=new(window.V86||window.V86Starter)(o);
   const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
   emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
-  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.id==='win31'?'부팅 시작 ▶  DOS에서 win 입력 (표준 모드) · 386 모드는 wine':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.id==='win31'?'[패치3] 부팅 시작 ▶  win 입력(표준 모드) · wine=386모드 · 안되면 winloge 후 log':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
  }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
