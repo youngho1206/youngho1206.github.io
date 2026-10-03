@@ -256,7 +256,7 @@ body.mob.fs.port #rot{display:flex}
 <section id="pc">
   <div id="pbar">
     <span class="t" id="pTitle"></span>
-    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="kbd">⌨ 키보드</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="fs">⛶ 전체화면</button><button data-a="quit">⏻ 끝내기</button><button data-a="fsx">✕ 전체화면종료</button>
+    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="kbd">⌨ 키보드</button><button data-a="tgrab">👆 터치잡기</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="fs">⛶ 전체화면</button><button data-a="quit">⏻ 끝내기</button><button data-a="fsx">✕ 전체화면종료</button>
   </div>
   <div id="pstage"><div id="vscreen"></div><div id="mhint">🖱 화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제</div>
     <div id="prot"><span>📱</span>가로로 휴대폰을 돌려주세요</div>
@@ -705,7 +705,7 @@ const extra={'WINLOGS.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S /B\n','WINLOGE.BA
 /* ---- PC 화면 / 부팅 ---- */
 const showMsg=t=>{$('#pTxt').innerHTML=t;$('#pmsg').classList.remove('hidden')};
 function openPc(p){
- loadHide(); pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
+ loadHide(); pc={os:p};TG=false;{const b=document.querySelector('#pbar [data-a="tgrab"]');b&&b.classList.remove('on')}$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
  $('#pc').classList.add('show');history.pushState({pc:1},'');
  const s=store[p.id]||{};
  if(s.state==='none')showMsg(`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`);
@@ -744,7 +744,7 @@ async function boot(){
   const emu=pc.emu=new(window.V86||window.V86Starter)(o);
   const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
   emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
-  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?(HAS_MOUSE?'[마우스v2] 부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶  화면을 손가락으로 터치하면 그 위치로 마우스가 이동합니다'):'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?'[마우스v2] 부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
  }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
@@ -761,7 +761,7 @@ function mouseCapture(on){
  if(pc)pc.mcap=!!on;
  if(pc&&pc.emu)mset(pc.emu,!!on);
  vs.classList.toggle('mlock',!!on);
- $('#mhint').classList.toggle('on',!on&&wantMouse());
+ $('#mhint').classList.toggle('on',!on&&wantMouse()&&!TG);
  if(on){
   try{const r=vs.requestPointerLock&&vs.requestPointerLock();if(r&&r.catch)r.catch(()=>{})}catch(_){}
   toast('🖱 마우스 잡힘 · ESC로 해제');
@@ -770,17 +770,16 @@ function mouseCapture(on){
  }
 }
 const mouseUi=()=>mouseCapture(false);
-$('#vscreen').addEventListener('mousedown',e=>{if(wantMouse()&&!pc.mcap){mouseCapture(true)}});
+$('#vscreen').addEventListener('mousedown',e=>{if(!TG&&wantMouse()&&!pc.mcap){mouseCapture(true)}});
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&pc&&pc.mcap)mouseCapture(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
 addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
-/* ---- 터치 → 마우스 포인터 ----
-   마우스가 없는 기기: 손가락으로 닿은 위치로 에뮬레이터 안의 포인터가 이동 → 손을 떼면 클릭
+/* ---- 터치잡기 (메뉴의 👆 터치잡기 버튼을 켰을 때만 동작) ----
+   손가락으로 누른 그 자리를 바로 선택(포인터 이동 + 클릭)
    · 탭 = 왼쪽 클릭(두 번 = 더블클릭) · 손가락 끌기 = 드래그(창 이동 등) · 길게 누르기 = 오른쪽 클릭
    · 방식: 포인터를 화면 왼쪽 위 모서리로 보낸 뒤(= 기준점) 목표 위치까지 작은 걸음으로 이동 (윈도우 마우스 가속 방지) */
-const HAS_MOUSE=!!(window.matchMedia&&matchMedia('(any-pointer:fine)').matches);
-if(!HAS_MOUSE)$('#mhint').textContent='👆 화면을 터치하면 그 위치로 마우스 포인터가 이동합니다';
-const TOUCH_GAIN=1,TSTEP=4,TBUDGET=16;   // 포인터가 실제 손가락보다 덜/더 움직이면 TOUCH_GAIN 값을 조정
+let TG=false;   // 터치잡기 ON/OFF (버튼으로만 켜짐)
+const TOUCH_GAIN=1,TSTEP=4,TBUDGET=40;   // 포인터가 실제 손가락보다 덜/더 움직이면 TOUCH_GAIN 값을 조정
 const T={a:[],est:null,res:'',emu:null,tm:0,id:null,sx:0,sy:0,down:false,moved:false,lp:false,lpT:0,n:0};
 const tsend=(dx,dy)=>{try{pc.emu.bus.send('mouse-delta',[dx*TOUCH_GAIN,-dy*TOUCH_GAIN])}catch(_){}};
 const tbtn=(l,r)=>{try{pc.emu.bus.send('mouse-click',[!!l,false,!!r])}catch(_){}};
@@ -810,17 +809,22 @@ function tpump(){
  if(T.a.length)T.tm=setTimeout(tpump,16);
 }
 const tpush=a=>{T.a.push(a);if(!T.tm)T.tm=setTimeout(tpump,0)};
+function tripple(x,y){
+ const r=$('#pstage').getBoundingClientRect(),d=document.createElement('i');
+ d.style.cssText=`position:absolute;z-index:44;pointer-events:none;left:${x-r.left-22}px;top:${y-r.top-22}px;width:44px;height:44px;border-radius:50%;background:rgba(120,180,255,.35);border:2px solid rgba(160,205,255,.9);transform:scale(.4);opacity:1;transition:transform .35s,opacity .35s`;
+ $('#pstage').appendChild(d);requestAnimationFrame(()=>{d.style.transform='scale(1)';d.style.opacity='0'});setTimeout(()=>d.remove(),450);
+}
 const tTouch=(e)=>[...e.changedTouches].find(x=>x.identifier===T.id);
 (()=>{
  const vs=$('#vscreen');
  vs.addEventListener('touchstart',e=>{
-  if(!wantMouse())return;
+  if(!TG||!wantMouse())return;
   e.preventDefault();
   if(T.id!==null)return;
   const t=e.changedTouches[0],g=tGuest(t);if(!g)return;
   if(T.emu!==pc.emu){T.emu=pc.emu;T.est=null;T.a.length=0;T.n=0}
   mset(pc.emu,true);$('#mhint').classList.remove('on');
-  T.id=t.identifier;T.sx=t.clientX;T.sy=t.clientY;T.down=false;T.moved=false;T.lp=false;
+  T.id=t.identifier;T.sx=t.clientX;T.sy=t.clientY;T.down=false;T.moved=false;T.lp=false;tripple(t.clientX,t.clientY);
   const res=g.w+'x'+g.h;
   if(!T.est||T.res!==res||T.n>=8){T.res=res;T.n=0;tpush({t:'home',w:g.w,h:g.h})}
   T.n++;
@@ -915,7 +919,14 @@ const A={
   pcEnterFs();
  },
  fsx(){pcExitFs()},
- quit(){pcExitFs();vkShow(false);try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
+ tgrab(){
+  TG=!TG;
+  document.querySelector('#pbar [data-a="tgrab"]').classList.toggle('on',TG);
+  $('#mhint').classList.toggle('on',!TG&&wantMouse()&&!(pc&&pc.mcap));
+  if(TG){if(pc&&pc.mcap)mouseCapture(false);$('#mhint').classList.remove('on');toast('👆 터치잡기 ON · 화면의 원하는 곳을 손가락으로 누르세요 (끌기=드래그, 길게=오른쪽 클릭)')}
+  else toast('터치잡기 OFF');
+ },
+ quit(){TG=false;{const b=document.querySelector('#pbar [data-a="tgrab"]');b&&b.classList.remove('on')}pcExitFs();vkShow(false);try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
 };
 
 /* ================= 가상 키보드 (iOS 26 투명 글래스) =================
