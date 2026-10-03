@@ -775,46 +775,111 @@ document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockEleme
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
 addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
 /* ---- 터치잡기 (메뉴의 👆 터치잡기 버튼을 켰을 때만 동작) ----
-   손가락으로 누른 그 자리를 바로 선택(포인터 이동 + 클릭)
-   · 탭 = 왼쪽 클릭(두 번 = 더블클릭) · 손가락 끌기 = 드래그(창 이동 등) · 길게 누르기 = 오른쪽 클릭
-   · 방식: 포인터를 화면 왼쪽 위 모서리로 보낸 뒤(= 기준점) 목표 위치까지 작은 걸음으로 이동 (윈도우 마우스 가속 방지) */
-let TG=false;   // 터치잡기 ON/OFF (버튼으로만 켜짐)
-const TOUCH_GAIN=1,TSTEP=4,TBUDGET=40;   // 포인터가 실제 손가락보다 덜/더 움직이면 TOUCH_GAIN 값을 조정
-const T={a:[],est:null,res:'',emu:null,tm:0,id:null,sx:0,sy:0,down:false,moved:false,lp:false,lpT:0,n:0};
-const tsend=(dx,dy)=>{try{pc.emu.bus.send('mouse-delta',[dx*TOUCH_GAIN,-dy*TOUCH_GAIN])}catch(_){}};
+   손가락으로 누른 그 자리를 선택: 포인터를 보낸 뒤 '화면에서 포인터의 실제 위치를 찾아' 오차를 보정 → 정확히 그 자리에서 클릭
+   · 윈도우 마우스 가속 때문에 보낸 이동량 ≠ 실제 이동량 이라서, 한 번 움직일 때마다 화면을 비교해 실제 위치를 확인합니다
+   · 탭 = 클릭 · 손가락을 크게 끌면 = 드래그 · 길게 누르기 = 오른쪽 클릭 */
+let TG=false;   // 터치잡기 ON/OFF
+const TSTEP=4,TBUDGET=24,TTOL=3,TDRAG=16;
+const T={emu:null,est:null,s:1,res:'',chain:Promise.resolve(),id:null,sx:0,sy:0,moved:false,lp:false,lpT:0,tg:null,dragOn:false};
+const tsleep=ms=>new Promise(r=>setTimeout(r,ms));
+const tsend=(dx,dy)=>{try{pc.emu.bus.send('mouse-delta',[dx,-dy])}catch(_){}};
 const tbtn=(l,r)=>{try{pc.emu.bus.send('mouse-click',[!!l,false,!!r])}catch(_){}};
+const tOk=()=>TG&&wantMouse()&&T.emu===pc.emu;
+const tCanvas=()=>{const cv=document.querySelector('#vscreen canvas');return(cv&&cv.style.display!=='none'&&cv.width&&cv.height)?cv:null};
 function tGuest(t){
- const cv=document.querySelector('#vscreen canvas');
- if(!cv||cv.style.display==='none'||!cv.width||!cv.height)return null;
+ const cv=tCanvas();if(!cv)return null;
  const r=cv.getBoundingClientRect(),s=Math.min(r.width/cv.width,r.height/cv.height);
  if(!(s>0))return null;
  const ox=(r.width-cv.width*s)/2,oy=(r.height-cv.height*s)/2;
  return{x:Math.max(0,Math.min(cv.width-1,Math.round((t.clientX-r.left-ox)/s))),y:Math.max(0,Math.min(cv.height-1,Math.round((t.clientY-r.top-oy)/s))),w:cv.width,h:cv.height};
 }
-function tpump(){
- T.tm=0;
- if(!wantMouse()){T.a.length=0;return}
- let budget=TBUDGET;
- while(T.a.length&&budget>0){
-  const a=T.a[0];
-  if(a.t==='home'){for(let i=0,n=Math.ceil(Math.max(a.w,a.h)/100)+3;i<n;i++)tsend(-100,-100);T.est={x:0,y:0};T.a.shift();budget-=4}
-  else if(a.t==='to'){
-   const e=T.est;let dx=a.x-e.x,dy=a.y-e.y;
-   while(budget>0&&(dx||dy)){const sx=Math.max(-TSTEP,Math.min(TSTEP,dx)),sy=Math.max(-TSTEP,Math.min(TSTEP,dy));tsend(sx,sy);e.x+=sx;e.y+=sy;dx-=sx;dy-=sy;budget--}
-   if(dx||dy)break;T.a.shift();
-  }
-  else if(a.t==='b'){tbtn(a.l,a.r);T.a.shift();budget--}
-  else if(a.t==='w'){if(!a.u)a.u=performance.now()+a.ms;if(performance.now()<a.u)break;T.a.shift()}
+const tSnap=()=>{const cv=tCanvas();if(!cv)return null;try{return cv.getContext('2d').getImageData(0,0,cv.width,cv.height)}catch(_){return null}};
+/* 두 화면(이동 전/후)을 비교해 '새로 나타난 포인터' 위치(화살표 끝)를 찾음. ex = 이전 포인터 위치(무시), exp = 예상 위치 */
+function tFind(a,b,ex,exp){
+ const w=a.width,h=a.height,A=a.data,B=b.data,pts=[];
+ for(let y=0;y<h;y++){let o=y*w*4;for(let x=0;x<w;x++,o+=4){
+  if(ex&&x>=ex.x-3&&x<=ex.x+20&&y>=ex.y-3&&y<=ex.y+28)continue;
+  if(Math.abs(A[o]-B[o])+Math.abs(A[o+1]-B[o+1])+Math.abs(A[o+2]-B[o+2])>90){pts.push(x,y);if(pts.length>60000)return null}
+ }}
+ if(!pts.length)return null;
+ const cw=Math.ceil(w/8),cells=new Map();
+ for(let i=0;i<pts.length;i+=2){const k=(pts[i+1]>>3)*cw+(pts[i]>>3);let c=cells.get(k);if(!c)cells.set(k,c=[]);c.push(pts[i],pts[i+1])}
+ const seen=new Set(),out=[];
+ for(const k0 of cells.keys()){
+  if(seen.has(k0))continue;
+  const q=[k0],all=[];seen.add(k0);
+  while(q.length){const k=q.pop(),c=cells.get(k);for(let i=0;i<c.length;i++)all.push(c[i]);
+   const cx=k%cw,cy=(k-cx)/cw;
+   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0)continue;const nk=ny*cw+nx;if(cells.has(nk)&&!seen.has(nk)){seen.add(nk);q.push(nk)}}}
+  let x0=1e9,y0=1e9,x1=-1,y1=-1;
+  for(let i=0;i<all.length;i+=2){const x=all[i],y=all[i+1];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  const bw=x1-x0+1,bh=y1-y0+1;
+  if(bw>=3&&bh>=5&&bw<=30&&bh<=36)out.push({x:x0,y:y0,n:all.length/2});
  }
- if(T.a.length)T.tm=setTimeout(tpump,16);
+ if(!out.length)return null;
+ let best=null,bd=1e9;
+ for(const c of out){const d=exp?Math.hypot(c.x-exp.x,c.y-exp.y):-c.n;if(d<bd){bd=d;best=c}}
+ return best;
 }
-const tpush=a=>{T.a.push(a);if(!T.tm)T.tm=setTimeout(tpump,0)};
+async function tMove(dx,dy){   // 화면 픽셀 → 마우스 카운트로 바꿔 보냄
+ let cx=Math.round(dx/T.s),cy=Math.round(dy/T.s);
+ while(cx||cy){
+  for(let n=0;(cx||cy)&&n<TBUDGET;n++){
+   const sx=Math.max(-TSTEP,Math.min(TSTEP,cx)),sy=Math.max(-TSTEP,Math.min(TSTEP,cy));
+   tsend(sx,sy);cx-=sx;cy-=sy;
+  }
+  if(cx||cy)await tsleep(16);
+ }
+}
+async function tGoto(x,y){
+ if(!tOk())return;
+ const cv=tCanvas();if(!cv)return;
+ const res=cv.width+'x'+cv.height;
+ if(!T.est||T.res!==res){   // 기준점: 왼쪽 위 모서리로 보내서 위치를 확실히 알아둠
+  T.res=res;
+  for(let i=0,n=Math.ceil(Math.max(cv.width,cv.height)/100)+4;i<n;i++)tsend(-100,-100);
+  await tsleep(220);T.est={x:0,y:0};
+ }
+ let prev=tSnap();
+ for(let it=0;it<6&&tOk();it++){
+  const ex=x-T.est.x,ey=y-T.est.y;
+  if(Math.abs(ex)<=TTOL&&Math.abs(ey)<=TTOL)break;
+  const fx=T.est.x,fy=T.est.y;
+  await tMove(ex,ey);
+  let P=null,cur=null;
+  for(let r=0;r<4&&!P;r++){
+   await tsleep(r?160:110);cur=tSnap();
+   if(prev&&cur)P=tFind(prev,cur,{x:fx,y:fy},{x:x,y:y});
+  }
+  if(P){
+   const want=Math.hypot(ex,ey),got=Math.hypot(P.x-fx,P.y-fy);
+   if(want>40&&got>8){T.s=Math.max(.25,Math.min(4,T.s*.4+T.s*got/want*.6))}   // 실제 이동 비율 학습
+   T.est={x:P.x,y:P.y};
+  }else{T.est={x:fx+ex,y:fy+ey}}   // 못 찾으면 예상값 사용
+  if(cur)prev=cur;
+ }
+}
+async function tClick(right){
+ if(!tOk())return;
+ tbtn(!right,!!right);await tsleep(70);tbtn(0,0);await tsleep(40);
+}
+async function tDrag(){
+ if(!tOk()||!T.est){T.dragOn=false;return}
+ tbtn(1,0);await tsleep(50);
+ while(T.dragOn&&tOk()&&T.tg){
+  const dx=T.tg.x-T.est.x,dy=T.tg.y-T.est.y;
+  if(Math.abs(dx)>1||Math.abs(dy)>1){await tMove(dx,dy);T.est.x+=dx;T.est.y+=dy}
+  await tsleep(24);
+ }
+ tbtn(0,0);T.est=null;await tsleep(40);   // 드래그 뒤에는 위치를 다시 맞춤
+}
+const tq=f=>{T.chain=T.chain.then(f).catch(e=>console.warn('[touch]',e))};
 function tripple(x,y){
  const r=$('#pstage').getBoundingClientRect(),d=document.createElement('i');
  d.style.cssText=`position:absolute;z-index:44;pointer-events:none;left:${x-r.left-22}px;top:${y-r.top-22}px;width:44px;height:44px;border-radius:50%;background:rgba(120,180,255,.35);border:2px solid rgba(160,205,255,.9);transform:scale(.4);opacity:1;transition:transform .35s,opacity .35s`;
  $('#pstage').appendChild(d);requestAnimationFrame(()=>{d.style.transform='scale(1)';d.style.opacity='0'});setTimeout(()=>d.remove(),450);
 }
-const tTouch=(e)=>[...e.changedTouches].find(x=>x.identifier===T.id);
+const tTouch=e=>[...e.changedTouches].find(x=>x.identifier===T.id);
 (()=>{
  const vs=$('#vscreen');
  vs.addEventListener('touchstart',e=>{
@@ -822,15 +887,13 @@ const tTouch=(e)=>[...e.changedTouches].find(x=>x.identifier===T.id);
   e.preventDefault();
   if(T.id!==null)return;
   const t=e.changedTouches[0],g=tGuest(t);if(!g)return;
-  if(T.emu!==pc.emu){T.emu=pc.emu;T.est=null;T.a.length=0;T.n=0}
+  if(T.emu!==pc.emu){T.emu=pc.emu;T.est=null;T.s=1;T.chain=Promise.resolve()}
   mset(pc.emu,true);$('#mhint').classList.remove('on');
-  T.id=t.identifier;T.sx=t.clientX;T.sy=t.clientY;T.down=false;T.moved=false;T.lp=false;tripple(t.clientX,t.clientY);
-  const res=g.w+'x'+g.h;
-  if(!T.est||T.res!==res||T.n>=8){T.res=res;T.n=0;tpush({t:'home',w:g.w,h:g.h})}
-  T.n++;
-  tpush({t:'to',x:g.x,y:g.y});
+  T.id=t.identifier;T.sx=t.clientX;T.sy=t.clientY;T.moved=false;T.lp=false;T.dragOn=false;T.tg={x:g.x,y:g.y};
+  tripple(t.clientX,t.clientY);
+  tq(()=>tGoto(g.x,g.y));
   clearTimeout(T.lpT);
-  T.lpT=setTimeout(()=>{if(T.id!==null&&!T.moved&&!T.down){T.lp=true;tpush({t:'b',l:0,r:1});tpush({t:'w',ms:40});tpush({t:'b',l:0,r:0});if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}}},600);
+  T.lpT=setTimeout(()=>{if(T.id!==null&&!T.moved){T.lp=true;tq(()=>tClick(true));if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}}},650);
  },{passive:false});
  vs.addEventListener('touchmove',e=>{
   if(T.id===null)return;
@@ -838,16 +901,16 @@ const tTouch=(e)=>[...e.changedTouches].find(x=>x.identifier===T.id);
   e.preventDefault();
   if(T.lp)return;
   const g=tGuest(t);if(!g)return;
-  if(!T.moved&&Math.hypot(t.clientX-T.sx,t.clientY-T.sy)>8){T.moved=true;clearTimeout(T.lpT);T.down=true;tpush({t:'b',l:1,r:0})}
-  if(T.moved){const last=T.a[T.a.length-1];if(last&&last.t==='to'&&last.drag){last.x=g.x;last.y=g.y}else tpush({t:'to',x:g.x,y:g.y,drag:true})}
+  T.tg={x:g.x,y:g.y};
+  if(!T.moved&&Math.hypot(t.clientX-T.sx,t.clientY-T.sy)>TDRAG){T.moved=true;clearTimeout(T.lpT);T.dragOn=true;tq(()=>tDrag())}
  },{passive:false});
  const tend=e=>{
   if(T.id===null)return;
   const t=tTouch(e);if(!t)return;
   e.preventDefault();clearTimeout(T.lpT);
-  if(T.down)tpush({t:'b',l:0,r:0});
-  else if(!T.lp&&e.type==='touchend'){tpush({t:'b',l:1,r:0});tpush({t:'w',ms:40});tpush({t:'b',l:0,r:0})}
-  T.id=null;T.down=false;
+  if(T.moved)T.dragOn=false;
+  else if(!T.lp&&e.type==='touchend')tq(()=>tClick(false));
+  T.id=null;
  };
  vs.addEventListener('touchend',tend,{passive:false});
  vs.addEventListener('touchcancel',tend,{passive:false});
