@@ -139,6 +139,15 @@ body.mob.fs.port #rot{display:flex}
 #dl .pb{height:4px;margin:8px 0}
 #dl span{color:var(--mut);display:block;line-height:1.7}
 .lifebtn{position:absolute;top:14px;right:14px;z-index:6;padding:9px 20px;border-radius:99px;border:1px solid var(--line);background:linear-gradient(135deg,var(--acc2),var(--acc));color:#1a1409;font:600 13px var(--sans);letter-spacing:.08em;text-decoration:none;box-shadow:0 6px 20px rgba(212,175,106,.3)}
+
+#loadbox{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,140%);width:min(92vw,460px);box-sizing:border-box;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:rgba(12,12,14,.94);backdrop-filter:blur(16px);z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.2,.9,.3,1);font:12px var(--sans);text-align:left}
+#loadbox.on{transform:translate(-50%,0)}
+#loadbox b{display:block;color:var(--acc2);font-weight:600;margin-bottom:4px}
+#loadbox span{display:block;color:var(--mut);line-height:1.6}
+#loadbox .loadbar{display:block;height:4px;margin-top:9px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden}
+#loadbox .loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s}
+.loadspin{display:inline-block;width:11px;height:11px;margin-right:7px;border:2px solid rgba(255,255,255,.18);border-top-color:var(--acc2);border-radius:50%;vertical-align:-2px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -204,6 +213,12 @@ body.mob.fs.port #rot{display:flex}
   </div>
 </section>
 <div id="dl"></div>
+<div id="loadbox" aria-live="polite">
+  <div class="loadspin"></div>
+  <b id="loadtitle">불러오는 중…</b>
+  <span id="loadline">잠시만 기다려 주세요.</span>
+  <i class="loadbar"><i id="loadpct"></i></i>
+</div>
 <input type="file" id="pcIn" hidden>
 <div id="toast"></div>
 <input type="file" id="romIn" hidden>
@@ -272,6 +287,7 @@ function openEmu(c){
  history.pushState({emu:1},'');
 }
 function closeEmu(){
+ loadHide();
  if(document.fullscreenElement||document.webkitFullscreenElement)exitFs();
  fr.src='about:blank';emu.classList.remove('show','pfs');document.body.classList.remove('fs');
 }
@@ -286,29 +302,56 @@ const dr=$('#drop');
 ['dragleave','drop'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.remove('over')}));
 dr.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];f&&startGame(f)});
 
+
+let loadTimer=null,loadStarted=0,loadEstimate=15;
+function loadHide(){if(loadTimer){clearInterval(loadTimer);loadTimer=null}$('#loadbox').classList.remove('on')}
+function loadShow(title,estimate=15){
+  loadHide(); loadStarted=performance.now(); loadEstimate=Math.max(3,estimate);
+  $('#loadtitle').textContent=title; $('#loadline').textContent='준비 중… 예상 남은 시간 계산 중'; $('#loadpct').style.width='2%';
+  $('#loadbox').classList.add('on');
+  loadTimer=setInterval(()=>{
+    const sec=(performance.now()-loadStarted)/1000;
+    const remain=Math.max(0,loadEstimate-sec);
+    const text=remain>=60?`${Math.ceil(remain/60)}분 ${Math.ceil(remain%60)}초 남음`:`약 ${Math.ceil(remain)}초 남음`;
+    $('#loadline').textContent=`경과 ${fmt(sec)} · ${text} · 인터넷/기기 성능에 따라 달라질 수 있습니다.`;
+    $('#loadpct').style.width=Math.min(94,2+(sec/loadEstimate)*92)+'%';
+  },250);
+}
+function loadProgress(pct,line){
+  $('#loadpct').style.width=Math.max(0,Math.min(100,pct))+'%';
+  $('#loadline').textContent=line;
+}
 function startGame(file){
  gameName=file.name.replace(/\.[^.]+$/,'');
  started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
+ const est=Math.max(5,Math.min(60,file.size/1048576*0.35+4));
+ loadShow(`${cur.n} · 파일 준비 중`,est);
  fr.src='about:blank';
  setTimeout(()=>{
-  const d=fr.contentDocument,w=fr.contentWindow;
-  d.open();
-  d.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>`);
-  d.close();
-  w.EJS_player='#game';
-  w.EJS_core=cur.core;
-  w.EJS_gameName=gameName;
-  w.EJS_gameUrl=new w.File([file],file.name);
-  w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
-  w.EJS_startOnLoaded=true;
-  w.EJS_color=cur.a;
-  w.EJS_language='ko-KR';
-  w.EJS_onGameStart=()=>{started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);toast('게임 시작! 🎮')};
-  const s=d.createElement('script');s.src=w.EJS_pathtodata+'loader.js';d.body.appendChild(s);
-  $('#drop').classList.add('hidden');toast('불러오는 중… 잠시만요');
+   try{
+    const d=fr.contentDocument,w=fr.contentWindow;
+    d.open();
+    d.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>`);
+    d.close();
+    w.EJS_player='#game'; w.EJS_core=cur.core; w.EJS_gameName=gameName;
+    w.EJS_gameUrl=new w.File([file],file.name);
+    w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+    w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
+    w.EJS_onGameStart=()=>{
+      started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
+      loadProgress(100,'게임 시작 완료');
+      setTimeout(loadHide,500);
+      toast('게임 시작! 🎮');
+    };
+    w.addEventListener('error',()=>{loadHide();toast('에뮬레이터 로딩 오류가 발생했습니다')});
+    const s=d.createElement('script');s.src=w.EJS_pathtodata+'loader.js';
+    s.onload=()=>loadProgress(60,'에뮬레이터 엔진 다운로드 완료 · 게임 코어 준비 중…');
+    s.onerror=()=>{loadHide();toast('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요')};
+    d.body.appendChild(s);
+    $('#drop').classList.add('hidden');
+   }catch(err){loadHide();toast('에뮬레이터 준비 실패: '+err.message)}
  },60);
 }
-
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
 $('#bSave').onclick=()=>{
@@ -362,10 +405,10 @@ const P=[
  {id:'dos',n:'MS-DOS',y:1981,a:'#4b5563',b:'#030303',g:'dos',l:'DOS',ram:16},
  {id:'win10',n:'Windows 1.0',y:1985,a:'#2dd4bf',b:'#0b4a45',g:'win',l:'1.0',ram:16},
  {id:'win20',n:'Windows 2.0',y:1987,a:'#38bdf8',b:'#0c3a5e',g:'win',l:'2.0',ram:16},
- {id:'win30',n:'Windows 3.0',y:1990,a:'#818cf8',b:'#1e1b4b',g:'win',l:'3.0',ram:32},
- {id:'win31',n:'Windows 3.1',y:1992,a:'#3b82f6',b:'#0b2a6b',g:'win',l:'3.1',ram:32},
- {id:'win95',n:'Windows 95',y:1995,a:'#14b8a6',b:'#0b3d3a',g:'win',l:'95',ram:128},
- {id:'win98',n:'Windows 98',y:1998,a:'#60a5fa',b:'#172554',g:'win',l:'98',ram:128}
+ {id:'win30',n:'Windows 3.0',y:1990,a:'#818cf8',b:'#1e1b4b',g:'win',l:'3.0',ram:16},
+ {id:'win31',n:'Windows 3.1',y:1992,a:'#3b82f6',b:'#0b2a6b',g:'win',l:'3.1',ram:16},
+ {id:'win95',n:'Windows 95',y:1995,a:'#14b8a6',b:'#0b3d3a',g:'win',l:'95',ram:32},
+ {id:'win98',n:'Windows 98',y:1998,a:'#60a5fa',b:'#172554',g:'win',l:'98',ram:32}
 ];
 ICONS_READY.then(()=>{$('#pcgrid').innerHTML=P.map((c,i)=>`<button class="app" data-id="${c.id}" style="animation-delay:${i*60}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small><em class="st">확인 중…</em><i class="pb"><i></i></i></button>`).join('');});
 $('#pcgrid').onclick=e=>{const b=e.target.closest('.app');if(b)openPc(P.find(c=>c.id===b.dataset.id))};
@@ -416,7 +459,7 @@ const js=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.s
 async function loadV86(){
  if(!B){
   const loc=await fetch('v86/libv86.js',{method:'HEAD'}).then(r=>r.ok&&!/html/.test(r.headers.get('content-type')||'')).catch(()=>false);
-  const n='https://cdn.jsdelivr.net/npm/v86@latest/build/',g='https://cdn.jsdelivr.net/gh/copy/v86@master/bios/';
+  const n='https://cdn.jsdelivr.net/npm/v86@0.5.462/build/',g='https://cdn.jsdelivr.net/npm/v86@0.5.462/bios/';
   B=loc?{lib:'v86/libv86.js',wasm:'v86/v86.wasm',bios:'v86/seabios.bin',vga:'v86/vgabios.bin'}:{lib:n+'libv86.js',wasm:n+'v86.wasm',bios:g+'seabios.bin',vga:g+'vgabios.bin'};
  }
  if(!window.V86&&!window.V86Starter)await js(B.lib);
@@ -472,13 +515,14 @@ async function toDisk(name,blob,isGame){
 /* ---- PC 화면 / 부팅 ---- */
 const showMsg=t=>{$('#pTxt').innerHTML=t;$('#pmsg').classList.remove('hidden')};
 function openPc(p){
- pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
+ loadHide(); pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
  $('#pc').classList.add('show');history.pushState({pc:1},'');
  const s=store[p.id]||{};
  showMsg(s.state==='none'?`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`:'메뉴의 <b>시작</b>을 눌러 부팅하세요.');
 }
 async function boot(){
  try{
+  loadShow(`${pc.os.n} · 에뮬레이터 준비 중`,pc.os.id==='win31'?12:8);
   pc.running=false;const p=pc.os;let main;
   if(pc.vhd)main=pc.vhd;
   else if(pc.local)main=await toDisk(pc.local.name,pc.local);
@@ -488,16 +532,18 @@ async function boot(){
    if(s.state!=='ok'){showMsg('이미지를 불러오지 못했습니다');return}
    main=await toDisk(s.name,s.blob);
   }
-  showMsg('에뮬레이터 준비 중…');await loadV86();
+  showMsg('에뮬레이터 준비 중…');loadProgress(55,'v86 엔진을 불러오는 중…');await loadV86();loadProgress(75,'BIOS와 디스크를 연결하는 중…');
   if(pc.emu){try{pc.emu.destroy()}catch(_){}}
   $('#vscreen').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
-  const o={wasm_path:B.wasm,memory_size:p.ram*1048576,vga_memory_size:8*1048576,screen_container:$('#vscreen'),bios:{url:B.bios},vga_bios:{url:B.vga},autostart:true};
+  const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
+  const ramMB=Math.min(p.ram,lowMem?32:64);
+  const o={wasm_path:B.wasm,memory_size:ramMB*1048576,vga_memory_size:4*1048576,screen_container:$('#vscreen'),bios:{url:B.bios},vga_bios:{url:B.vga},autostart:true};
   o[{hd:'hda',fd:'fda',cd:'cdrom'}[main.k]]={buffer:main.buf};
   const g=pc.game;
   if(g){if(g.k==='hd')o[o.hda?'hdb':'hda']={buffer:g.buf};else if(g.k==='fd')o[o.fda?'fdb':'fda']={buffer:g.buf};else if(!o.cdrom)o.cdrom={buffer:g.buf};else toast('CD 부팅 중에는 ISO 게임을 추가할 수 없습니다')}
   pc.emu=new(window.V86||window.V86Starter)(o);
-  pc.emu.add_listener('emulator-started',()=>{pc.running=true;$('#pmsg').classList.add('hidden');toast('부팅 시작 ▶')});
- }catch(e){showMsg('오류: '+e.message)}
+  pc.emu.add_listener('emulator-started',()=>{pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast('부팅 시작 ▶')});
+ }catch(e){loadHide();showMsg('오류: '+e.message)}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
 const dlFile=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()};
