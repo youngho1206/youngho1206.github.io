@@ -138,7 +138,6 @@ body.mob.fs.port #rot{display:flex}
 #dl b{color:var(--acc2);font-weight:500}
 #dl .pb{height:4px;margin:8px 0}
 #dl span{color:var(--mut);display:block;line-height:1.7}
-.lifebtn{position:absolute;top:14px;right:14px;z-index:6;padding:9px 20px;border-radius:99px;border:1px solid var(--line);background:linear-gradient(135deg,var(--acc2),var(--acc));color:#1a1409;font:600 13px var(--sans);letter-spacing:.08em;text-decoration:none;box-shadow:0 6px 20px rgba(212,175,106,.3)}
 
 #loadbox{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,140%);width:min(92vw,460px);box-sizing:border-box;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:rgba(12,12,14,.94);backdrop-filter:blur(16px);z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.2,.9,.3,1);font:12px var(--sans);text-align:left}
 #loadbox.on{transform:translate(-50%,0)}
@@ -153,7 +152,6 @@ body.mob.fs.port #rot{display:flex}
 <body>
 <div class="bg"><i></i><i></i><i></i></div>
 
-<a class="lifebtn" href="life.html">일상</a>
 <header>
   <div class="eyebrow">Retro Game Archive · 1980 — 2004</div>
   <h1>최영호의 게임에뮬레이터</h1>
@@ -305,10 +303,11 @@ dr.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];f&&startGame(f)})
 
 let loadTimer=null,loadStarted=0,loadEstimate=15;
 function loadHide(){if(loadTimer){clearInterval(loadTimer);loadTimer=null}$('#loadbox').classList.remove('on')}
-function loadShow(title,estimate=15){
+function loadShow(title,estimate=15,manual=false){
   loadHide(); loadStarted=performance.now(); loadEstimate=Math.max(3,estimate);
-  $('#loadtitle').textContent=title; $('#loadline').textContent='준비 중… 예상 남은 시간 계산 중'; $('#loadpct').style.width='2%';
+  $('#loadtitle').textContent=title; $('#loadline').textContent=manual?'준비 중…':'준비 중… 예상 남은 시간 계산 중'; $('#loadpct').style.width='2%';
   $('#loadbox').classList.add('on');
+  if(manual)return; /* 수동 모드: 실제 단계(다운로드/압축해제/엔진)가 진행률을 직접 표시 */
   loadTimer=setInterval(()=>{
     const sec=(performance.now()-loadStarted)/1000;
     const remain=Math.max(0,loadEstimate-sec);
@@ -413,58 +412,127 @@ const P=[
 ICONS_READY.then(()=>{$('#pcgrid').innerHTML=P.map((c,i)=>`<button class="app" data-id="${c.id}" style="animation-delay:${i*60}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small><em class="st">확인 중…</em><i class="pb"><i></i></i></button>`).join('');});
 $('#pcgrid').onclick=e=>{const b=e.target.closest('.app');if(b)openPc(P.find(c=>c.id===b.dataset.id))};
 
-const store={},mb=b=>(b/1048576).toFixed(1)+'MB',fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';
+const store={},mb=b=>(b/1048576).toFixed(1)+'MB',fmt=s=>(isFinite(s)&&s>=0)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';
 function badge(id,t,pct){const c=document.querySelector(`#pcgrid [data-id="${id}"]`);if(!c)return;c.querySelector('.st').textContent=t;if(pct!=null)c.querySelector('.pb i').style.width=pct+'%'}
+
+/* 서버에 이미지가 있는지 확인: HEAD 대신 Range GET 사용 (HEAD/Content-Length가 막힌 서버에서도 동작) */
 async function probe(p){
- for(const e of ['img','zip','iso']){const u=`os/${p.id}/${p.id}.${e}`;
-  try{const r=await fetch(u,{method:'HEAD'});if(r.ok&&!/html/.test(r.headers.get('content-type')||''))return{u,size:+r.headers.get('content-length')||0}}catch(_){}}
+ for(const e of ['img','zip','iso']){
+  const u=`os/${p.id}/${p.id}.${e}`;
+  try{
+   const ac=new AbortController();
+   const r=await fetch(u,{headers:{Range:'bytes=0-0'},cache:'no-store',signal:ac.signal});
+   const ct=r.headers.get('content-type')||'';let size=0;
+   if(r.status===206){const m=(r.headers.get('content-range')||'').match(/\/(\d+)\s*$/);size=m?+m[1]:0}
+   else if(r.ok)size=+r.headers.get('content-length')||0;
+   const ok=r.ok&&!/html/i.test(ct);
+   try{ac.abort()}catch(_){}
+   if(ok)return{u,size};
+  }catch(_){}
+ }
  return null;
+}
+let _cache;
+const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os'):Promise.resolve(null)).catch(()=>null));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function fetchBlob(f,onProg){
+ let err;
+ for(let t=0;t<3;t++){
+  try{
+   const r=await fetch(f.u,{cache:'no-cache'});
+   if(!r.ok)throw Error('서버 응답 '+r.status);
+   const total=f.size||+r.headers.get('content-length')||0;
+   if(!r.body||!r.body.getReader){const b=await r.blob();onProg(b.size,total||b.size);return b}
+   const rd=r.body.getReader(),parts=[];let got=0;
+   for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;onProg(got,total)}
+   return new Blob(parts);
+  }catch(e){err=e;if(t<2)await sleep(700*(t+1))}
+ }
+ throw err;
+}
+/* 이미지 한 개 불러오기 (캐시 사용, 실패 시 3회 재시도). 끝나면 항상 fin() 호출 → 대기 중인 부팅이 멈추지 않음 */
+async function loadOne(p,f,prog){
+ const s=store[p.id];s.name=f.u;s.state='load';s.err='';s.got=0;s.total=f.size||0;
+ try{
+  const cache=await getCache();let blob=null;
+  try{const hit=cache&&await cache.match(f.u);if(hit){const b=await hit.blob();if(!f.size||b.size===f.size)blob=b}}catch(_){}
+  if(!blob){
+   badge(p.id,'받는 중…',0);
+   blob=await fetchBlob(f,(got,total)=>{s.got=got;s.total=total;if(total)badge(p.id,Math.min(99,Math.floor(got/total*100))+'%',Math.min(99,got/total*100));else badge(p.id,mb(got),50);prog&&prog(got,total)});
+   try{cache&&await cache.put(f.u,new Response(blob))}catch(_){}
+  }
+  s.blob=blob;s.state='ok';badge(p.id,'준비됨 · '+mb(blob.size),100);
+ }catch(e){s.state='err';s.err=e&&e.message||'알 수 없는 오류';badge(p.id,'불러오기 실패',0)}
+ finally{s.fin()}
 }
 /* 페이지 시작 시 서버(os/<id>/ 폴더)의 이미지를 자동 탐색 → 진행률·남은 시간 표시하며 다운로드 */
 async function preload(){
- P.forEach(p=>{store[p.id]={state:'wait'};store[p.id].prom=new Promise(r=>store[p.id].fin=r)});
- const found=(await Promise.all(P.map(async p=>({p,f:await probe(p)})))).filter(x=>{
-  if(!x.f){store[x.p.id].state='none';badge(x.p.id,'이미지 없음',0);store[x.p.id].fin()}return x.f}).sort((a,b)=>a.f.size-b.f.size);
- if(!found.length)return;
- const tot=found.reduce((s,x)=>s+x.f.size,0)||1,dl=$('#dl');let base=0;
- found.forEach(({p})=>{store[p.id].state='queue';badge(p.id,'대기 중')});
- dl.classList.add('on');
- const cache=await caches.open('cyh-os').catch(()=>null);
- for(const {p,f} of found){
-  const s=store[p.id];s.name=f.u;s.state='load';
-  try{
-   const hit=cache&&await cache.match(f.u);
-   if(hit&&(!f.size||(await hit.clone().blob()).size===f.size)){s.blob=await hit.blob()}
-   else{
-    const r=await fetch(f.u),rd=r.body.getReader(),parts=[],total=f.size||+r.headers.get('content-length')||0,t0=performance.now();let got=0,last=0;
-    for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;
-     const now=performance.now();
-     if(now-last>200){last=now;const sp=got/Math.max(.001,(now-t0)/1000),pct=total?Math.min(99,Math.floor(got/total*100)):0,all=base+got;
-      badge(p.id,pct+'% · 남은 '+fmt((total-got)/sp),pct);
-      dl.innerHTML=`<b>${p.n}</b> 불러오는 중 · ${pct}%<i class="pb"><i style="width:${pct}%"></i></i><span>${mb(got)} / ${mb(total)} · ${mb(sp)}/s · 이 파일 남은 시간 <b>${fmt((total-got)/sp)}</b><br>전체 ${Math.round(all/tot*100)}% · 전체 남은 시간 <b>${fmt((tot-all)/sp)}</b></span>`}}
-    s.blob=new Blob(parts);
-    try{cache&&await cache.put(f.u,new Response(s.blob))}catch(_){}
-   }
-   s.state='ok';badge(p.id,'준비됨 · '+mb(s.blob.size),100);
-  }catch(e){s.state='err';badge(p.id,'불러오기 실패',0)}
-  base+=f.size;s.fin();
- }
- dl.innerHTML='<b>✓ 모든 이미지 준비 완료</b>';setTimeout(()=>dl.classList.remove('on'),2500);
+ P.forEach(p=>{const s=store[p.id]={state:'wait'};s.prom=new Promise(r=>s.fin=r)});
+ try{
+  const found=[];
+  await Promise.all(P.map(async p=>{const f=await probe(p);
+   if(f)found.push({p,f});else{store[p.id].state='none';badge(p.id,'이미지 없음',0);store[p.id].fin()}}));
+  if(!found.length)return;
+  found.sort((a,b)=>a.f.size-b.f.size);
+  const tot=found.reduce((x,y)=>x+y.f.size,0),dl=$('#dl');let base=0;
+  found.forEach(({p})=>{store[p.id].state='queue';badge(p.id,'대기 중')});
+  dl.classList.add('on');
+  for(const {p,f} of found){
+   const s=store[p.id],t0=performance.now();let last=0;
+   const prog=(got,total)=>{const now=performance.now();if(now-last<200)return;last=now;
+    const sp=got/Math.max(.001,(now-t0)/1000),all=base+got,pct=total?Math.min(99,Math.floor(got/total*100)):0;
+    const rem=total&&sp>0?`이 파일 남은 시간 <b>${fmt((total-got)/sp)}</b>`:'남은 시간 계산 중';
+    dl.innerHTML=`<b>${p.n}</b> 불러오는 중${total?' · '+pct+'%':''}<i class="pb"><i style="width:${pct}%"></i></i><span>${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s · ${rem}`+(tot?`<br>전체 ${Math.min(99,Math.round(all/tot*100))}% · 전체 남은 시간 <b>${fmt((tot-all)/sp)}</b>`:'')+`</span>`};
+   if(s.state==='queue')await loadOne(p,f,prog);else await s.prom;
+   base+=f.size;
+  }
+  const bad=found.filter(x=>store[x.p.id].state==='err');
+  dl.innerHTML=bad.length?`<b>⚠ ${bad.map(x=>x.p.n).join(', ')} 불러오기 실패</b><span>해당 OS를 눌러 시작하면 자동으로 다시 시도합니다.</span>`:'<b>✓ 모든 이미지 준비 완료</b>';
+  setTimeout(()=>dl.classList.remove('on'),bad.length?6000:2500);
+ }catch(e){console.error(e)}
+ finally{P.forEach(p=>store[p.id].fin())}
 }
 preload();
 
+/* 부팅 시 이미지가 준비되지 않았으면 여기서 직접 (재)시도 */
+async function getImage(p,uiProg){
+ const s=store[p.id];
+ if(s.state==='load'||s.state==='queue'||s.state==='wait'){
+  const iv=setInterval(()=>{if(s.state==='load')uiProg(s.got||0,s.total||0)},250);
+  try{await s.prom}finally{clearInterval(iv)}
+ }
+ if(s.state==='ok')return s;
+ const f=await probe(p);
+ if(!f){s.state='none';badge(p.id,'이미지 없음',0);return s}
+ await loadOne(p,f,uiProg);
+ return s;
+}
+
 /* ---- v86 로드 ---- */
 let B,pc={};
-const js=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(Error('스크립트 로드 실패: '+src));document.head.appendChild(s)});
+const js=(src,ms=25000)=>new Promise((ok,no)=>{const e=document.createElement('script');
+ const t=setTimeout(()=>{e.remove();no(Error('시간 초과: '+src))},ms);
+ e.src=src;e.onload=()=>{clearTimeout(t);ok()};e.onerror=()=>{clearTimeout(t);e.remove();no(Error('스크립트 로드 실패: '+src))};document.head.appendChild(e)});
+const urlOk=async u=>{try{const ac=new AbortController();const r=await fetch(u,{headers:{Range:'bytes=0-0'},signal:ac.signal});const ok=r.ok&&!/html/i.test(r.headers.get('content-type')||'');try{ac.abort()}catch(_){}return ok}catch(_){return false}};
+const firstOk=async us=>{for(const u of us)if(await urlOk(u))return u;return null};
 async function loadV86(){
- if(!B){
-  const loc=await fetch('v86/libv86.js',{method:'HEAD'}).then(r=>r.ok&&!/html/.test(r.headers.get('content-type')||'')).catch(()=>false);
-  const n='https://cdn.jsdelivr.net/npm/v86@0.5.462/build/',g='https://cdn.jsdelivr.net/npm/v86@0.5.462/bios/';
-  B=loc?{lib:'v86/libv86.js',wasm:'v86/v86.wasm',bios:'v86/seabios.bin',vga:'v86/vgabios.bin'}:{lib:n+'libv86.js',wasm:n+'v86.wasm',bios:g+'seabios.bin',vga:g+'vgabios.bin'};
- }
- if(!window.V86&&!window.V86Starter)await js(B.lib);
+ if(window.V86||window.V86Starter)return;
+ const V='0.5.462',jd=`https://cdn.jsdelivr.net/npm/v86@${V}/`,up=`https://unpkg.com/v86@${V}/`;
+ const libs=[];
+ if(await urlOk('v86/libv86.js')&&await urlOk('v86/v86.wasm'))libs.push({lib:'v86/libv86.js',wasm:'v86/v86.wasm'});
+ libs.push({lib:jd+'build/libv86.js',wasm:jd+'build/v86.wasm'},{lib:up+'build/libv86.js',wasm:up+'build/v86.wasm'},
+  {lib:'https://cdn.jsdelivr.net/npm/v86@latest/build/libv86.js',wasm:'https://cdn.jsdelivr.net/npm/v86@latest/build/v86.wasm'});
+ let lastErr;
+ for(const c of libs){try{await js(c.lib);if(window.V86||window.V86Starter){B=c;break}}catch(e){lastErr=e}}
+ if(!B)throw Error('v86 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하거나 v86 폴더에 libv86.js/v86.wasm을 넣어주세요. ('+(lastErr&&lastErr.message||'')+')');
+ const bios=await firstOk([...(await urlOk('v86/seabios.bin')?['v86/seabios.bin']:[]),jd+'bios/seabios.bin',up+'bios/seabios.bin','https://cdn.jsdelivr.net/gh/copy/v86@master/bios/seabios.bin','https://raw.githubusercontent.com/copy/v86/master/bios/seabios.bin']);
+ const vga=await firstOk([...(await urlOk('v86/vgabios.bin')?['v86/vgabios.bin']:[]),jd+'bios/vgabios.bin',up+'bios/vgabios.bin','https://cdn.jsdelivr.net/gh/copy/v86@master/bios/vgabios.bin','https://raw.githubusercontent.com/copy/v86/master/bios/vgabios.bin']);
+ if(!bios||!vga)throw Error('BIOS 파일(seabios.bin / vgabios.bin)을 불러오지 못했습니다.');
+ B.bios=bios;B.vga=vga;
 }
-const needZip=async()=>{if(!window.JSZip)await js('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')};
+const needZip=async()=>{if(window.JSZip)return;
+ for(const u of['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js','https://unpkg.com/jszip@3.10.1/dist/jszip.min.js']){try{await js(u);if(window.JSZip)return}catch(_){}}
+ throw Error('ZIP 해제 라이브러리(JSZip)를 불러오지 못했습니다. 인터넷 연결을 확인하세요.')};
 
 /* ---- ZIP 안의 파일들 → FAT16 디스크 이미지(DOS/Windows 게임용) ---- */
 function fat16(files){
@@ -498,14 +566,19 @@ function fat16(files){
 }
 
 /* ---- 파일 → 디스크 종류 판별 (img/iso/vhd/zip) ---- */
-async function toDisk(name,blob,isGame){
+async function toDisk(name,blob,isGame,prog){
  let buf=await blob.arrayBuffer(),n=name.toLowerCase();
  if(n.endsWith('.zip')){
-  await needZip();const z=await JSZip.loadAsync(buf),fl=[];
-  for(const[p,e]of Object.entries(z.files))if(!e.dir)fl.push({path:p,data:await e.async('uint8array')});
-  const im=fl.find(f=>/\.(img|ima|iso|vhd|vfd|flp)$/i.test(f.path));
-  if(im){buf=im.data.buffer.slice(im.data.byteOffset,im.data.byteOffset+im.data.byteLength);n=im.path.toLowerCase()}
-  else if(isGame){return{k:'hd',buf:fat16(fl).buffer}}
+  const sig=new Uint8Array(buf,0,Math.min(4,buf.byteLength));
+  if(sig[0]!==0x50||sig[1]!==0x4B)throw Error('ZIP 파일이 손상되었거나 올바르지 않습니다 (서버에서 받은 파일이 zip이 아님)');
+  await needZip();const z=await JSZip.loadAsync(buf);
+  const ents=Object.values(z.files).filter(e=>!e.dir);
+  const im=ents.find(e=>/\.(img|ima|iso|vhd|vfd|flp)$/i.test(e.name));
+  if(im){ /* 디스크 이미지 한 개만 풀어서 메모리 절약 */
+   const u8=await im.async('uint8array',m=>prog&&prog(m.percent));
+   buf=(u8.byteOffset===0&&u8.byteLength===u8.buffer.byteLength)?u8.buffer:u8.buffer.slice(u8.byteOffset,u8.byteOffset+u8.byteLength);n=im.name.toLowerCase();
+  }
+  else if(isGame){const fl=[];for(const e of ents)fl.push({path:e.name,data:await e.async('uint8array')});return{k:'hd',buf:fat16(fl).buffer}}
   else throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
  }
  if(buf.byteLength>512&&new TextDecoder().decode(new Uint8Array(buf,buf.byteLength-512,8))==='conectix')buf=buf.slice(0,buf.byteLength-512);
@@ -518,21 +591,28 @@ function openPc(p){
  loadHide(); pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
  $('#pc').classList.add('show');history.pushState({pc:1},'');
  const s=store[p.id]||{};
- showMsg(s.state==='none'?`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`:'메뉴의 <b>시작</b>을 눌러 부팅하세요.');
+ showMsg(s.state==='none'?`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`:s.state==='err'?`이미지를 불러오지 못했습니다 (${s.err||'오류'}).<br>메뉴의 <b>시작</b>을 누르면 다시 시도합니다.`:'메뉴의 <b>시작</b>을 눌러 부팅하세요.');
 }
+let bootSeq=0;
 async function boot(){
+ const my=++bootSeq,p=pc.os;
+ const step=(pct,line)=>{if(my===bootSeq)loadProgress(pct,line)};
  try{
-  loadShow(`${pc.os.n} · 에뮬레이터 준비 중`,pc.os.id==='win31'?12:8);
-  pc.running=false;const p=pc.os;let main;
+  loadShow(`${p.n} · 시작 준비 중`,0,true);step(2,'준비 중…');
+  pc.running=false;let main;
   if(pc.vhd)main=pc.vhd;
-  else if(pc.local)main=await toDisk(pc.local.name,pc.local);
-  else{const s=store[p.id];
-   if(!s||s.state==='none'){showMsg(`서버에 <b>os/${p.id}/${p.id}.img</b>(또는 .zip)가 없습니다.<br>로컬부팅을 이용하세요.`);return}
-   if(s.state!=='ok'){showMsg('서버에서 이미지를 불러오는 중… 완료되면 자동으로 시작합니다');await s.prom}
-   if(s.state!=='ok'){showMsg('이미지를 불러오지 못했습니다');return}
-   main=await toDisk(s.name,s.blob);
+  else if(pc.local){step(10,'선택한 이미지를 읽는 중…');main=await toDisk(pc.local.name,pc.local,false,q=>step(10+q*.4,`이미지 압축 해제 중 · ${Math.round(q)}%`))}
+  else{
+   const t0=performance.now();
+   const s=await getImage(p,(got,total)=>{const sp=got/Math.max(.001,(performance.now()-t0)/1000);
+    step(total?3+got/total*37:10,`서버에서 이미지 받는 중 · ${mb(got)}${total?' / '+mb(total):''}${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`)});
+   if(s.state==='none'){loadHide();showMsg(`서버에 <b>os/${p.id}/${p.id}.img</b>(또는 .zip)가 없습니다.<br>로컬부팅을 이용하세요.`);return}
+   if(s.state!=='ok'){loadHide();showMsg(`이미지를 불러오지 못했습니다.<br><small>${s.err||''}</small><br><b>시작</b>을 다시 눌러 재시도하세요.`);return}
+   step(42,'이미지 압축 해제 중…');
+   main=await toDisk(s.name,s.blob,false,q=>step(42+q*.13,`이미지 압축 해제 중 · ${Math.round(q)}%`));
   }
-  showMsg('에뮬레이터 준비 중…');loadProgress(55,'v86 엔진을 불러오는 중…');await loadV86();loadProgress(75,'BIOS와 디스크를 연결하는 중…');
+  if(my!==bootSeq)return;
+  showMsg('에뮬레이터 준비 중…');step(56,'v86 엔진을 불러오는 중…');await loadV86();step(75,'BIOS와 디스크를 연결하는 중…');
   if(pc.emu){try{pc.emu.destroy()}catch(_){}}
   $('#vscreen').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
   const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
@@ -541,9 +621,12 @@ async function boot(){
   o[{hd:'hda',fd:'fda',cd:'cdrom'}[main.k]]={buffer:main.buf};
   const g=pc.game;
   if(g){if(g.k==='hd')o[o.hda?'hdb':'hda']={buffer:g.buf};else if(g.k==='fd')o[o.fda?'fdb':'fda']={buffer:g.buf};else if(!o.cdrom)o.cdrom={buffer:g.buf};else toast('CD 부팅 중에는 ISO 게임을 추가할 수 없습니다')}
-  pc.emu=new(window.V86||window.V86Starter)(o);
-  pc.emu.add_listener('emulator-started',()=>{pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast('부팅 시작 ▶')});
- }catch(e){loadHide();showMsg('오류: '+e.message)}
+  step(88,'가상 PC를 시작하는 중…');
+  const emu=pc.emu=new(window.V86||window.V86Starter)(o);
+  const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
+  emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast('부팅 시작 ▶')});
+ }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
 const dlFile=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()};
