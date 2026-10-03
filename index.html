@@ -123,7 +123,7 @@ body.mob.fs.port #rot{display:flex}
 #vscreen canvas{width:100%!important;height:100%!important;object-fit:contain}
 #mhint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;pointer-events:none;background:rgba(0,0,0,.72);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 16px;font-size:12.5px;white-space:nowrap;display:none}
 #mhint.on{display:block}
-#vscreen.mlock{cursor:none}
+#vscreen.mlock,#vscreen.mlock *{cursor:none!important}
 #pmsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 38%,#1d1a12,#060608 70%);z-index:2}
 #pmsg.hidden{display:none}
 #pmsg .big{width:min(34vw,120px);aspect-ratio:1;border-radius:22.5%;overflow:hidden;animation:bob 3.2s ease-in-out infinite;box-shadow:0 24px 50px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.15),0 0 60px rgba(212,175,106,.18)}
@@ -692,31 +692,36 @@ async function boot(){
   const emu=pc.emu=new(window.V86||window.V86Starter)(o);
   const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
   emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
-  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?'부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?'[마우스v2] 부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
  }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
 const dlFile=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()};
-/* ---- 마우스 잡기: 화면 클릭 = 에뮬레이터가 마우스를 잡음 / ESC = 해제(진짜 마우스로 복귀) ---- */
-const mset=(emu,on)=>{try{const f=emu.mouse_set_enabled||emu.mouse_set_status;if(f)f.call(emu,on)}catch(_){}};
+/* ---- 마우스 잡기 v2: 화면 클릭 = 진짜 마우스 숨기고 에뮬레이터가 마우스를 가져감 / ESC = 해제 ---- */
+const mset=(emu,on)=>{
+ try{if(emu.bus&&emu.bus.send)emu.bus.send('mouse-enable',!!on)}catch(_){}
+ try{const f=emu.mouse_set_enabled||emu.mouse_set_status;if(f)f.call(emu,!!on)}catch(_){}
+};
 const wantMouse=()=>!!(pc&&pc.emu&&pc.running&&pc.os&&pc.os.g==='win');
-function mouseUi(){
- const lk=!!document.pointerLockElement;
- $('#mhint').classList.toggle('on',wantMouse()&&!lk);
- $('#vscreen').classList.toggle('mlock',lk);
- if(pc&&pc.emu&&pc.os&&pc.os.g==='win')mset(pc.emu,lk);
+function mouseCapture(on){
+ const vs=$('#vscreen');
+ if(on&&!wantMouse())return;
+ if(pc)pc.mcap=!!on;
+ if(pc&&pc.emu)mset(pc.emu,!!on);
+ vs.classList.toggle('mlock',!!on);
+ $('#mhint').classList.toggle('on',!on&&wantMouse());
+ if(on){
+  try{const r=vs.requestPointerLock&&vs.requestPointerLock();if(r&&r.catch)r.catch(()=>{})}catch(_){}
+  toast('🖱 마우스 잡힘 · ESC로 해제');
+ }else{
+  try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}
+ }
 }
-function grabMouse(){
- if(!wantMouse()||document.pointerLockElement)return;
- try{
-  if(pc.emu.lock_mouse)pc.emu.lock_mouse();
-  else{const el=document.body;(el.requestPointerLock||el.mozRequestPointerLock).call(el)}
- }catch(_){}
-}
-$('#vscreen').addEventListener('click',grabMouse);
-document.addEventListener('pointerlockchange',mouseUi);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.pointerLockElement)document.exitPointerLock()},true);
-addEventListener('blur',()=>{if(document.pointerLockElement)document.exitPointerLock()});
+const mouseUi=()=>mouseCapture(false);
+$('#vscreen').addEventListener('mousedown',e=>{if(wantMouse()&&!pc.mcap){mouseCapture(true)}});
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&pc&&pc.mcap)mouseCapture(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
+addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
 const A={
  start(){if(pc.running){pc.emu.restart();toast('재시작');return}pc.local=null;pc.vhd=null;boot()},
  async local(){const f=await pickFile('.img,.ima,.iso,.vhd,.zip');pc.local=f;pc.vhd=null;boot()},
@@ -741,7 +746,7 @@ const A={
   }catch(e){toast('VHD 저장 실패: '+e.message)}
  },
  async vload(){const f=await pickFile('.vhd,.img,.zip');try{pc.vhd=await toDisk(f.name,f)}catch(e){return toast(e.message)}pc.local=null;toast('VHD 적용: '+f.name);boot()},
- quit(){try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
+ quit(){try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
 };
 $('#pbar').onclick=e=>{const b=e.target.closest('button');if(b)A[b.dataset.a]()};
 addEventListener('popstate',()=>{if($('#pc').classList.contains('show'))A.quit()});
