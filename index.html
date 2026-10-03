@@ -117,6 +117,17 @@ body.mob.fs.port #rot{display:flex}
 #pbar button:disabled{opacity:.3;pointer-events:none}
 #pc.nobar #fab{display:block}
 #pc.pfs{z-index:1000}
+#pbar [data-a="fsx"]{display:none}
+#pc.fsmode #pbar{justify-content:center;padding:5px 8px;gap:5px}
+#pc.fsmode #pbar .t,#pc.fsmode #pbar button{display:none}
+#pc.fsmode #pbar [data-a="start"],#pc.fsmode #pbar [data-a="vload"],#pc.fsmode #pbar [data-a="cap"],#pc.fsmode #pbar [data-a="kbd"],#pc.fsmode #pbar [data-a="quit"],#pc.fsmode #pbar [data-a="fsx"]{display:inline-block}
+#pc.fsmode #pbar [data-a="start"]{order:1}#pc.fsmode #pbar [data-a="vload"]{order:2}#pc.fsmode #pbar [data-a="cap"]{order:3}#pc.fsmode #pbar [data-a="kbd"]{order:4}#pc.fsmode #pbar [data-a="quit"]{order:5}#pc.fsmode #pbar [data-a="fsx"]{order:6}
+#fsmsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:60;max-width:84%;background:rgba(0,0,0,.88);border:1px solid var(--acc);color:#fff;padding:18px 24px;border-radius:18px;text-align:center;font:600 15px/1.6 var(--sans);letter-spacing:.02em;opacity:0;pointer-events:none;transition:.3s}
+#fsmsg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#prot{display:none;position:absolute;inset:0;z-index:45;background:rgba(0,0,0,.92);color:var(--acc2);align-items:center;justify-content:center;flex-direction:column;gap:10px;font:600 20px var(--serif);letter-spacing:.06em}
+#prot span{font-size:54px;animation:rt 2s ease-in-out infinite}
+#pc.fsport #prot{display:flex}
+#vscreen{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @media (max-width:520px){#pbar button{padding:8px 11px}}
 #pstage{flex:1;position:relative;min-height:0;background:#000}
 #vscreen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -245,11 +256,13 @@ body.mob.fs.port #rot{display:flex}
 <section id="pc">
   <div id="pbar">
     <span class="t" id="pTitle"></span>
-    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="kbd">⌨ 키보드</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="quit">⏻ 끝내기</button>
+    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="kbd">⌨ 키보드</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="fs">⛶ 전체화면</button><button data-a="quit">⏻ 끝내기</button><button data-a="fsx">✕ 전체화면종료</button>
   </div>
   <div id="pstage"><div id="vscreen"></div><div id="mhint">🖱 화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제</div>
+    <div id="prot"><span>📱</span>가로로 휴대폰을 돌려주세요</div>
     <div id="pmsg"><div class="big" id="pIcon"></div><h2 id="pName"></h2><p id="pTxt"></p></div><div id="vk" role="group" aria-label="가상 키보드"><div class="vkh" id="vkh"><button type="button" id="vkFn" aria-label="기능키 줄 보이기/숨기기">Fn</button><span class="vkg"></span><button type="button" id="vkAl" aria-label="투명도 바꾸기">◐</button><button type="button" id="vkX" aria-label="키보드 닫기">✕</button></div><div id="vkRows"></div></div>
   </div>
+  <div id="fsmsg" aria-live="polite"></div>
 </section>
 <div id="dl"></div>
 <div id="loadbox" aria-live="polite">
@@ -437,7 +450,7 @@ function setFs(on){
  port();
 }
 function port(){document.body.classList.toggle('port',innerHeight>innerWidth)}
-['fullscreenchange','webkitfullscreenchange'].forEach(v=>document.addEventListener(v,()=>setFs(!!isFs())));
+['fullscreenchange','webkitfullscreenchange'].forEach(v=>document.addEventListener(v,()=>{if(!$('#pc').classList.contains('show'))setFs(!!isFs())}));
 addEventListener('resize',port);addEventListener('orientationchange',port);port();
 
 /* ================= PC 에뮬레이터 (v86 · DOS / Windows) ================= */
@@ -695,7 +708,8 @@ function openPc(p){
  loadHide(); pc={os:p};$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
  $('#pc').classList.add('show');history.pushState({pc:1},'');
  const s=store[p.id]||{};
- showMsg(s.state==='none'?`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`:s.state==='err'?`이미지를 불러오지 못했습니다 (${s.err||'오류'}).<br>메뉴의 <b>시작</b>을 누르면 다시 시도합니다.`:'메뉴의 <b>시작</b>을 눌러 부팅하세요.');
+ if(s.state==='none')showMsg(`서버에 이미지가 없습니다.<br><b>os/${p.id}/${p.id}.img</b> 또는 <b>${p.id}.zip</b>을 넣거나,<br>메뉴의 <b>로컬부팅</b>으로 내 이미지를 불러오세요.`);
+ else{showMsg('서버의 이미지를 불러와 자동으로 시작합니다…');boot()}  // 시작 버튼 없이 자동 실행
 }
 let bootSeq=0;
 async function boot(){
@@ -730,7 +744,7 @@ async function boot(){
   const emu=pc.emu=new(window.V86||window.V86Starter)(o);
   const wd=setTimeout(()=>{if(pc.emu===emu&&!pc.running){loadHide();showMsg('부팅이 너무 오래 걸립니다. 페이지를 새로고침한 뒤 다시 시도하세요.')}},60000);
   emu.add_listener('download-error',e=>{clearTimeout(wd);loadHide();showMsg('파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음')+'<br>인터넷 연결을 확인한 뒤 다시 시도하세요.')});
-  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?'[마우스v2] 부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
+  emu.add_listener('emulator-started',()=>{clearTimeout(wd);pc.running=true;mouseUi();$('#pmsg').classList.add('hidden');loadProgress(100,'부팅 시작 완료');setTimeout(loadHide,500);toast(p.g==='win'?(HAS_MOUSE?'[마우스v2] 부팅 시작 ▶  화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제':'부팅 시작 ▶  화면을 손가락으로 터치하면 그 위치로 마우스가 이동합니다'):'부팅 시작 ▶');if(pc.patchInfo)console.log('[win31]',pc.patchInfo)});
  }catch(e){loadHide();showMsg('오류: '+(e&&e.message||e))}
 }
 const pickFile=acc=>new Promise(r=>{const i=$('#pcIn');i.value='';i.accept=acc;i.onchange=()=>r(i.files[0]);i.click()});
@@ -760,6 +774,115 @@ $('#vscreen').addEventListener('mousedown',e=>{if(wantMouse()&&!pc.mcap){mouseCa
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&pc&&pc.mcap)mouseCapture(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
 addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
+/* ---- 터치 → 마우스 포인터 ----
+   마우스가 없는 기기: 손가락으로 닿은 위치로 에뮬레이터 안의 포인터가 이동 → 손을 떼면 클릭
+   · 탭 = 왼쪽 클릭(두 번 = 더블클릭) · 손가락 끌기 = 드래그(창 이동 등) · 길게 누르기 = 오른쪽 클릭
+   · 방식: 포인터를 화면 왼쪽 위 모서리로 보낸 뒤(= 기준점) 목표 위치까지 작은 걸음으로 이동 (윈도우 마우스 가속 방지) */
+const HAS_MOUSE=!!(window.matchMedia&&matchMedia('(any-pointer:fine)').matches);
+if(!HAS_MOUSE)$('#mhint').textContent='👆 화면을 터치하면 그 위치로 마우스 포인터가 이동합니다';
+const TOUCH_GAIN=1,TSTEP=4,TBUDGET=16;   // 포인터가 실제 손가락보다 덜/더 움직이면 TOUCH_GAIN 값을 조정
+const T={a:[],est:null,res:'',emu:null,tm:0,id:null,sx:0,sy:0,down:false,moved:false,lp:false,lpT:0,n:0};
+const tsend=(dx,dy)=>{try{pc.emu.bus.send('mouse-delta',[dx*TOUCH_GAIN,-dy*TOUCH_GAIN])}catch(_){}};
+const tbtn=(l,r)=>{try{pc.emu.bus.send('mouse-click',[!!l,false,!!r])}catch(_){}};
+function tGuest(t){
+ const cv=document.querySelector('#vscreen canvas');
+ if(!cv||cv.style.display==='none'||!cv.width||!cv.height)return null;
+ const r=cv.getBoundingClientRect(),s=Math.min(r.width/cv.width,r.height/cv.height);
+ if(!(s>0))return null;
+ const ox=(r.width-cv.width*s)/2,oy=(r.height-cv.height*s)/2;
+ return{x:Math.max(0,Math.min(cv.width-1,Math.round((t.clientX-r.left-ox)/s))),y:Math.max(0,Math.min(cv.height-1,Math.round((t.clientY-r.top-oy)/s))),w:cv.width,h:cv.height};
+}
+function tpump(){
+ T.tm=0;
+ if(!wantMouse()){T.a.length=0;return}
+ let budget=TBUDGET;
+ while(T.a.length&&budget>0){
+  const a=T.a[0];
+  if(a.t==='home'){for(let i=0,n=Math.ceil(Math.max(a.w,a.h)/100)+3;i<n;i++)tsend(-100,-100);T.est={x:0,y:0};T.a.shift();budget-=4}
+  else if(a.t==='to'){
+   const e=T.est;let dx=a.x-e.x,dy=a.y-e.y;
+   while(budget>0&&(dx||dy)){const sx=Math.max(-TSTEP,Math.min(TSTEP,dx)),sy=Math.max(-TSTEP,Math.min(TSTEP,dy));tsend(sx,sy);e.x+=sx;e.y+=sy;dx-=sx;dy-=sy;budget--}
+   if(dx||dy)break;T.a.shift();
+  }
+  else if(a.t==='b'){tbtn(a.l,a.r);T.a.shift();budget--}
+  else if(a.t==='w'){if(!a.u)a.u=performance.now()+a.ms;if(performance.now()<a.u)break;T.a.shift()}
+ }
+ if(T.a.length)T.tm=setTimeout(tpump,16);
+}
+const tpush=a=>{T.a.push(a);if(!T.tm)T.tm=setTimeout(tpump,0)};
+const tTouch=(e)=>[...e.changedTouches].find(x=>x.identifier===T.id);
+(()=>{
+ const vs=$('#vscreen');
+ vs.addEventListener('touchstart',e=>{
+  if(!wantMouse())return;
+  e.preventDefault();
+  if(T.id!==null)return;
+  const t=e.changedTouches[0],g=tGuest(t);if(!g)return;
+  if(T.emu!==pc.emu){T.emu=pc.emu;T.est=null;T.a.length=0;T.n=0}
+  mset(pc.emu,true);$('#mhint').classList.remove('on');
+  T.id=t.identifier;T.sx=t.clientX;T.sy=t.clientY;T.down=false;T.moved=false;T.lp=false;
+  const res=g.w+'x'+g.h;
+  if(!T.est||T.res!==res||T.n>=8){T.res=res;T.n=0;tpush({t:'home',w:g.w,h:g.h})}
+  T.n++;
+  tpush({t:'to',x:g.x,y:g.y});
+  clearTimeout(T.lpT);
+  T.lpT=setTimeout(()=>{if(T.id!==null&&!T.moved&&!T.down){T.lp=true;tpush({t:'b',l:0,r:1});tpush({t:'w',ms:40});tpush({t:'b',l:0,r:0});if(navigator.vibrate)try{navigator.vibrate(20)}catch(_){}}},600);
+ },{passive:false});
+ vs.addEventListener('touchmove',e=>{
+  if(T.id===null)return;
+  const t=tTouch(e);if(!t)return;
+  e.preventDefault();
+  if(T.lp)return;
+  const g=tGuest(t);if(!g)return;
+  if(!T.moved&&Math.hypot(t.clientX-T.sx,t.clientY-T.sy)>8){T.moved=true;clearTimeout(T.lpT);T.down=true;tpush({t:'b',l:1,r:0})}
+  if(T.moved){const last=T.a[T.a.length-1];if(last&&last.t==='to'&&last.drag){last.x=g.x;last.y=g.y}else tpush({t:'to',x:g.x,y:g.y,drag:true})}
+ },{passive:false});
+ const tend=e=>{
+  if(T.id===null)return;
+  const t=tTouch(e);if(!t)return;
+  e.preventDefault();clearTimeout(T.lpT);
+  if(T.down)tpush({t:'b',l:0,r:0});
+  else if(!T.lp&&e.type==='touchend'){tpush({t:'b',l:1,r:0});tpush({t:'w',ms:40});tpush({t:'b',l:0,r:0})}
+  T.id=null;T.down=false;
+ };
+ vs.addEventListener('touchend',tend,{passive:false});
+ vs.addEventListener('touchcancel',tend,{passive:false});
+})();
+
+/* ---- PC 전체화면 (실행 중인 에뮬레이터를 그대로 이어서 크게 / 안드로이드는 가로 고정) ---- */
+const UA=navigator.userAgent;
+const FS_KIND=/iPhone|iPod/i.test(UA)?'iphone':(/Android/i.test(UA)&&/Mobile/i.test(UA))?'android':'big';   // 안드로이드 폰(삼성·LG·샤오미·화웨이·OPPO·VIVO 등) / 아이폰·아이팟 / PC·태블릿
+const pcEl=$('#pc');
+const pIsFs=()=>document.fullscreenElement===pcEl||document.webkitFullscreenElement===pcEl;
+let fsMsgT=0;
+function fsMsg(t,ms=4200){const m=$('#fsmsg');m.textContent=t;m.classList.add('on');clearTimeout(fsMsgT);fsMsgT=setTimeout(()=>m.classList.remove('on'),ms)}
+const FS_LABEL={start:'▶ 게임시작',vload:'📥 불러오기',cap:'📷 화면캡처',kbd:'⌨ 키보드',quit:'⏻ 끝내기'};
+function pcFsPort(){pcEl.classList.toggle('fsport',FS_KIND==='android'&&pcEl.classList.contains('fsmode')&&innerHeight>innerWidth)}
+function pcFsUi(on){
+ pcEl.classList.toggle('fsmode',on);
+ document.querySelectorAll('#pbar button').forEach(b=>{const a=b.dataset.a;if(!FS_LABEL[a])return;if(b.dataset.o===undefined)b.dataset.o=b.textContent;b.textContent=on?FS_LABEL[a]:b.dataset.o});
+ pcFsPort();
+ setTimeout(()=>dispatchEvent(new Event('resize')),150);
+}
+async function pcEnterFs(){
+ if(pcEl.classList.contains('fsmode'))return;
+ const req=pcEl.requestFullscreen||pcEl.webkitRequestFullscreen;let ok=false;
+ if(req){try{await req.call(pcEl);ok=true}catch(_){}}
+ if(!ok)pcEl.classList.add('pfs');   // Fullscreen API가 막힌 브라우저는 화면 가득 채우기로 대체
+ pcFsUi(true);
+ if(FS_KIND==='android'&&screen.orientation&&screen.orientation.lock){try{await screen.orientation.lock('landscape')}catch(_){}}
+}
+function pcExitFs(){
+ if(pIsFs()){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(_){}}
+ pcEl.classList.remove('pfs');
+ if(pcEl.classList.contains('fsmode'))pcFsUi(false);
+ try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(_){}
+}
+['fullscreenchange','webkitfullscreenchange'].forEach(v=>document.addEventListener(v,()=>{
+ if(!pIsFs()&&pcEl.classList.contains('fsmode')&&!pcEl.classList.contains('pfs'))pcExitFs();   // ESC·뒤로가기로 빠져나온 경우
+}));
+['resize','orientationchange'].forEach(v=>addEventListener(v,()=>setTimeout(pcFsPort,80)));
+
 const A={
  start(){if(pc.running){pc.emu.restart();toast('재시작');return}pc.local=null;pc.vhd=null;boot()},
  async local(){const f=await pickFile('.img,.ima,.iso,.vhd,.zip');pc.local=f;pc.vhd=null;boot()},
@@ -785,7 +908,14 @@ const A={
  },
  async vload(){const f=await pickFile('.vhd,.img,.zip');try{pc.vhd=await toDisk(f.name,f)}catch(e){return toast(e.message)}pc.local=null;toast('VHD 적용: '+f.name);boot()},
  kbd(){vkShow(!$('#vk').classList.contains('show'))},
- quit(){vkShow(false);try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
+ fs(){
+  if(FS_KIND==='iphone'){fsMsg('가로로 휴대폰을 돌려주세요');return}
+  if(FS_KIND==='android')fsMsg("화면이 자동으로 가로회전이 됩니다. 종료하고 싶으면 '전체화면 종료'버튼을 누르세요.",5200);
+  else fsMsg('화면이 커집니다.',2400);
+  pcEnterFs();
+ },
+ fsx(){pcExitFs()},
+ quit(){pcExitFs();vkShow(false);try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
 };
 
 /* ================= 가상 키보드 (iOS 26 투명 글래스) =================
