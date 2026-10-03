@@ -150,6 +150,44 @@ body.mob.fs.port #rot{display:flex}
 #loadbox .loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s}
 .loadspin{display:inline-block;width:11px;height:11px;margin-right:7px;border:2px solid rgba(255,255,255,.18);border-top-color:var(--acc2);border-radius:50%;vertical-align:-2px;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 가상 키보드 (iOS 26 · 투명 글래스 스타일) ===== */
+#pbar button.on{border-color:var(--acc);color:var(--acc2);background:rgba(212,175,106,.14)}
+#vk{--gap:4px;--kh:46px;--fs:17px;--a:.14;--vkf:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+ position:absolute;z-index:6;left:0;top:0;display:none;box-sizing:border-box;width:600px;padding:calc(var(--gap)*1.2) calc(var(--gap)*1.4) calc(var(--gap)*1.4);
+ border-radius:clamp(18px,calc(var(--kh)*.62),36px);
+ background:linear-gradient(180deg,rgba(255,255,255,calc(var(--a) + .05)),rgba(255,255,255,calc(var(--a) - .05))),rgba(22,24,32,.2);
+ -webkit-backdrop-filter:blur(30px) saturate(1.9);backdrop-filter:blur(30px) saturate(1.9);
+ border:1px solid rgba(255,255,255,.32);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 0 rgba(255,255,255,.1),inset 0 0 26px rgba(255,255,255,.07),0 22px 54px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.25);
+ touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:var(--vkf)}
+#vk.show{display:block;animation:vkin .3s cubic-bezier(.2,.9,.3,1)}
+@keyframes vkin{from{opacity:0;transform:translateY(16px) scale(.98)}}
+#vk .vkh{display:flex;align-items:center;gap:calc(var(--gap)*1.5);height:max(26px,calc(var(--kh)*.62));padding:0 calc(var(--gap)*.8);cursor:grab;touch-action:none}
+#vk .vkh:active{cursor:grabbing}
+#vk .vkg{flex:1;display:flex;justify-content:center;pointer-events:none}
+#vk .vkg:before{content:"";width:max(36px,calc(var(--kh)*1.1));height:5px;border-radius:5px;background:rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+#vk .vkh button{flex:none;border:1px solid rgba(255,255,255,.28);color:#fff;height:calc(100% - 4px);min-width:calc(var(--kh)*.8);padding:0 calc(var(--fs)*.6);border-radius:99px;
+ background:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.45);font:600 calc(var(--fs)*.72) var(--vkf);letter-spacing:0;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#vk .vkh button:active{background:rgba(255,255,255,.5);transform:scale(.94)}
+#vk .vkh button.on{background:rgba(255,255,255,.85);color:#10131a;text-shadow:none}
+#vk .vkr{display:flex;width:100%}
+#vk .vkr.off{display:none}
+#vk .kw{flex:0 0 auto;width:calc(var(--w)/15*100%);padding:calc(var(--gap)/2);touch-action:none}
+#vk .k{position:relative;box-sizing:border-box;height:var(--kh);display:flex;align-items:center;justify-content:center;border-radius:max(7px,calc(var(--kh)*.27));
+ background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.16));border:1px solid rgba(255,255,255,.24);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.3);
+ color:#fff;font:500 var(--fs)/1 var(--vkf);text-shadow:0 1px 2px rgba(0,0,0,.4);white-space:nowrap;overflow:visible;transition:transform .08s,background .12s,color .12s}
+#vk .kw.s .k{background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.08))}
+#vk .kw.m .k{font-size:calc(var(--fs)*.74);font-weight:600}
+#vk .kw.sp .k{font-size:calc(var(--fs)*.78);color:rgba(255,255,255,.85)}
+#vk .kw.dn .k{background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,.48));color:#10131a;text-shadow:none;transform:scale(.94)}
+#vk .kw.on .k{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.74));color:#10131a;text-shadow:none}
+#vk .kw.lock .k:before{content:"";position:absolute;top:max(3px,calc(var(--kh)*.1));right:max(4px,calc(var(--kh)*.12));width:max(5px,calc(var(--kh)*.12));height:max(5px,calc(var(--kh)*.12));border-radius:50%;background:#30d158;box-shadow:0 0 6px #30d158}
+#vk .kw.pop.dn .k:after{content:attr(data-p);position:absolute;left:50%;bottom:calc(100% + 5px);transform:translateX(-50%);min-width:calc(100% + 16px);height:calc(var(--kh)*1.2);display:flex;align-items:center;justify-content:center;
+ border-radius:max(10px,calc(var(--kh)*.3));background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#10131a;font-size:calc(var(--fs)*1.7);font-weight:500;text-shadow:none;box-shadow:0 8px 22px rgba(0,0,0,.38);pointer-events:none;z-index:3}
+@media (prefers-reduced-motion:reduce){#vk.show{animation:none}#vk .k{transition:none}}
+@media (hover:none){#vk .vkh{cursor:default}}
 </style>
 </head>
 <body>
@@ -207,10 +245,10 @@ body.mob.fs.port #rot{display:flex}
 <section id="pc">
   <div id="pbar">
     <span class="t" id="pTitle"></span>
-    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="quit">⏻ 끝내기</button>
+    <button data-a="start">▶ 시작</button><button data-a="local">💽 로컬부팅</button><button data-a="game">🎮 게임추가</button><button data-a="cap">📷 캡처</button><button data-a="kbd">⌨ 키보드</button><button data-a="vsave">💾 VHD저장</button><button data-a="vload">📥 VHD불러오기</button><button data-a="quit">⏻ 끝내기</button>
   </div>
   <div id="pstage"><div id="vscreen"></div><div id="mhint">🖱 화면을 클릭하면 마우스가 잡힙니다 · ESC로 해제</div>
-    <div id="pmsg"><div class="big" id="pIcon"></div><h2 id="pName"></h2><p id="pTxt"></p></div>
+    <div id="pmsg"><div class="big" id="pIcon"></div><h2 id="pName"></h2><p id="pTxt"></p></div><div id="vk" role="group" aria-label="가상 키보드"><div class="vkh" id="vkh"><button type="button" id="vkFn" aria-label="기능키 줄 보이기/숨기기">Fn</button><span class="vkg"></span><button type="button" id="vkAl" aria-label="투명도 바꾸기">◐</button><button type="button" id="vkX" aria-label="키보드 닫기">✕</button></div><div id="vkRows"></div></div>
   </div>
 </section>
 <div id="dl"></div>
@@ -661,7 +699,7 @@ function openPc(p){
 }
 let bootSeq=0;
 async function boot(){
- const my=++bootSeq,p=pc.os;
+ const my=++bootSeq,p=pc.os;vkReleaseAll();
  const step=(pct,line)=>{if(my===bootSeq)loadProgress(pct,line)};
  try{
   loadShow(`${p.n} · 시작 준비 중`,0,true);step(2,'준비 중…');
@@ -746,8 +784,171 @@ const A={
   }catch(e){toast('VHD 저장 실패: '+e.message)}
  },
  async vload(){const f=await pickFile('.vhd,.img,.zip');try{pc.vhd=await toDisk(f.name,f)}catch(e){return toast(e.message)}pc.local=null;toast('VHD 적용: '+f.name);boot()},
- quit(){try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
+ kbd(){vkShow(!$('#vk').classList.contains('show'))},
+ quit(){vkShow(false);try{document.exitPointerLock&&document.exitPointerLock()}catch(_){}if(pc)pc.mcap=false;try{pc.emu&&pc.emu.destroy()}catch(_){}pc.emu=null;pc.running=false;$('#mhint').classList.remove('on');$('#vscreen').classList.remove('mlock');$('#pc').classList.remove('show')}
 };
+
+/* ================= 가상 키보드 (iOS 26 투명 글래스) =================
+   · 스캔코드(set 1)를 v86에 직접 전달 → 윈도우/도스 어디서나 동작
+   · Shift·Ctrl·Alt: 한 번 탭 = 다음 키 한 번만 적용, 빠르게 두 번 탭 = 고정(초록 점), 다시 탭 = 해제
+   · 일반 키: 누르는 동안 눌림 유지, 길게 누르면 자동 반복(방향키·백스페이스 등)
+   · 헤더(손잡이)를 끌어서 위치 이동, ◐ 로 투명도 3단계, Fn 으로 F1~F12 줄 보이기 */
+const VK_E=0xE0;
+let vkKeys=[],vkBuilt=false,vkFn=null,vkLv=1,vkCaps=false,vkMoved=false,vkPos={x:0,y:0},vkWarnAt=0;
+const vkPtr=new Map();
+function vkDefs(){
+ const L=(l,sl,c,w=1,o='')=>({l,sl,c,w,o});
+ const row=(...a)=>a;
+ const fn=[L('Esc','',0x01,1.5,'s m')];
+ [0x3B,0x3C,0x3D,0x3E,0x3F,0x40,0x41,0x42,0x43,0x44,0x57,0x58].forEach((c,i)=>fn.push(L('F'+(i+1),'',c,1,'s m')));
+ fn.push(L('Del','',[VK_E,0x53],1.5,'s m'));
+ const sym='!@#$%^&*()';
+ const num=[L('`','~',0x29,1,'pop')];
+ '1234567890'.split('').forEach((d,i)=>num.push(L(d,sym[i],0x02+i,1,'pop')));
+ num.push(L('-','_',0x0C,1,'pop'),L('=','+',0x0D,1,'pop'),L('⌫','',0x0E,2,'s m'));
+ const q=[L('Tab','',0x0F,1.5,'s m')];
+ 'qwertyuiop'.split('').forEach((c,i)=>q.push(L(c,c.toUpperCase(),0x10+i,1,'pop let')));
+ q.push(L('[','{',0x1A,1,'pop'),L(']','}',0x1B,1,'pop'),L('\\','|',0x2B,1.5,'pop'));
+ const a=[L('Caps','',0x3A,1.75,'s m caps')];
+ 'asdfghjkl'.split('').forEach((c,i)=>a.push(L(c,c.toUpperCase(),0x1E+i,1,'pop let')));
+ a.push(L(';',':',0x27,1,'pop'),L("'",'"',0x28,1,'pop'),L('Enter','',0x1C,2.25,'s m'));
+ const z=[L('Shift','',0x2A,2.25,'s m mod')];
+ 'zxcvbnm'.split('').forEach((c,i)=>z.push(L(c,c.toUpperCase(),0x2C+i,1,'pop let')));
+ z.push(L(',','<',0x33,1,'pop'),L('.','>',0x34,1,'pop'),L('/','?',0x35,1,'pop'),L('Shift','',0x36,1.75,'s m mod'),L('↑','',[VK_E,0x48],1,'s'));
+ const b=[L('Ctrl','',0x1D,1.25,'s m mod'),L('Alt','',0x38,1.25,'s m mod'),L('space','',0x39,7,'sp'),L('Alt','',[VK_E,0x38],1.25,'s m mod'),L('Ctrl','',[VK_E,0x1D],1.25,'s m mod'),
+  L('←','',[VK_E,0x4B],1,'s'),L('↓','',[VK_E,0x50],1,'s'),L('→','',[VK_E,0x4D],1,'s')];
+ return[{id:'fn',keys:fn},{keys:num},{keys:q},{keys:a},{keys:z},{keys:b}];
+}
+const vkMk=c=>Array.isArray(c)?c.slice():[c];
+const vkBr=c=>Array.isArray(c)?[c[0],c[1]|0x80]:[c|0x80];
+function vkSend(a){
+ const emu=pc&&pc.emu;
+ if(!emu||!pc.running){const n=Date.now();if(n-vkWarnAt>1500){vkWarnAt=n;toast('먼저 ▶ 시작으로 부팅하세요')}return false}
+ try{if(emu.keyboard_send_scancodes)emu.keyboard_send_scancodes(a);else a.forEach(x=>emu.bus.send('keyboard-code',x))}catch(_){}
+ return true;
+}
+function vkBuild(){
+ if(vkBuilt)return;vkBuilt=true;
+ const host=$('#vkRows');
+ vkDefs().forEach(r=>{
+  const rowEl=document.createElement('div');rowEl.className='vkr';if(r.id)rowEl.id='vkr-'+r.id;
+  r.keys.forEach(d=>{
+   const w=document.createElement('div');w.className='kw '+d.o;w.style.setProperty('--w',d.w);
+   const k=document.createElement('div');k.className='k';w.appendChild(k);rowEl.appendChild(w);
+   const o={d,el:w,cap:k,st:0,t:0,down:false,rep:0,iv:0};w._k=o;vkKeys.push(o);
+  });
+  host.appendChild(rowEl);
+ });
+ vkPaint();
+}
+function vkShiftOn(){return vkKeys.some(k=>k.d.o.includes('mod')&&k.d.c===0x2A&&k.st>0||k.d.o.includes('mod')&&k.d.c===0x36&&k.st>0)}
+function vkPaint(){
+ const sh=vkShiftOn();
+ vkKeys.forEach(k=>{
+  const d=k.d,isLet=d.o.includes('let');
+  const up=isLet?(sh!==vkCaps):sh;
+  const t=up&&d.sl?d.sl:d.l;
+  if(k.cap.textContent!==t)k.cap.textContent=t;
+  k.cap.dataset.p=t;
+  if(d.o.includes('mod')){k.el.classList.toggle('on',k.st>0);k.el.classList.toggle('lock',k.st===2)}
+  else if(d.o.includes('caps')){k.el.classList.toggle('on',vkCaps)}
+ });
+}
+function vkReleaseMods(){
+ let ch=false;
+ vkKeys.forEach(k=>{if(k.d.o.includes('mod')&&k.st===1){vkSend(vkBr(k.d.c));k.st=0;ch=true}});
+ if(ch)vkPaint();
+}
+function vkDown(k){
+ const d=k.d;
+ if(d.o.includes('mod')){
+  const now=performance.now();
+  if(k.st===0){if(vkSend(vkMk(d.c))){k.st=1;k.t=now}}
+  else if(k.st===1&&now-k.t<380){k.st=2}
+  else{k.st=0;vkSend(vkBr(d.c))}
+  vkPaint();return;
+ }
+ k.el.classList.add('dn');
+ if(d.o.includes('caps')){vkCaps=!vkCaps;vkSend(vkMk(d.c).concat(vkBr(d.c)));vkPaint();return}
+ if(!vkSend(vkMk(d.c)))return;
+ k.down=true;
+ k.rep=setTimeout(()=>{k.iv=setInterval(()=>vkSend(vkMk(d.c)),55)},420);
+}
+function vkUp(k){
+ clearTimeout(k.rep);clearInterval(k.iv);k.rep=k.iv=0;
+ k.el.classList.remove('dn');
+ if(k.down){k.down=false;vkSend(vkBr(k.d.c));vkReleaseMods()}
+}
+function vkReleaseAll(){
+ vkKeys.forEach(k=>{
+  clearTimeout(k.rep);clearInterval(k.iv);k.rep=k.iv=0;k.el.classList.remove('dn');
+  if(k.down){k.down=false;vkSend(vkBr(k.d.c))}
+  if(k.st>0){k.st=0;vkSend(vkBr(k.d.c))}
+ });
+ vkPtr.clear();vkCaps=false;if(vkBuilt)vkPaint();
+}
+/* 기기에 맞춰 크기·위치 자동 최적화 (폰 세로/가로, 태블릿, PC) */
+function vkFit(){
+ const vk=$('#vk');if(!vk||!vk.classList.contains('show'))return;
+ const st=$('#pstage'),W=st.clientWidth,H=st.clientHeight;if(!W||!H)return;
+ if(vkFn===null)vkFn=H>=460;
+ $('#vkr-fn').classList.toggle('off',!vkFn);$('#vkFn').classList.toggle('on',vkFn);
+ const rows=vkFn?6:5,m=8;
+ const kw=Math.max(240,Math.min(W-m*2,1040));
+ const kh0=kw/15,gap=Math.max(2,Math.min(6,kh0*.09)),pad=gap*1.4;
+ const u=(kw-pad*2)/15;
+ const hh=Math.max(26,u*.62);
+ const byH=(H*.56-hh-pad*2.2)/rows-gap;
+ const kh=Math.max(24,Math.min(u*1.02,byH,64));
+ const fs=Math.max(12,Math.min(24,kh*.4));
+ vk.style.setProperty('--gap',gap.toFixed(1)+'px');vk.style.setProperty('--kh',kh.toFixed(1)+'px');vk.style.setProperty('--fs',fs.toFixed(1)+'px');
+ vk.style.width=kw+'px';
+ const h=vk.offsetHeight;
+ let x,y;
+ if(!vkMoved){x=(W-kw)/2;y=H-h-m}else{x=vkPos.x;y=vkPos.y}
+ x=Math.max(0,Math.min(W-kw,x));y=Math.max(0,Math.min(Math.max(0,H-h),y));
+ vk.style.left=x+'px';vk.style.top=y+'px';vkPos={x,y};
+}
+function vkShow(on){
+ const vk=$('#vk');if(!vk)return;
+ if(on){vkBuild();vk.classList.add('show');vk.style.setProperty('--a',[.08,.14,.26][vkLv]);vkFit()}
+ else{vkReleaseAll();vk.classList.remove('show')}
+ const b=document.querySelector('#pbar [data-a="kbd"]');if(b)b.classList.toggle('on',!!on);
+}
+(function vkInit(){
+ const vk=$('#vk');
+ vk.addEventListener('contextmenu',e=>e.preventDefault());
+ vk.addEventListener('pointerdown',e=>{
+  const w=e.target.closest('.kw');if(!w||!w._k)return;
+  e.preventDefault();
+  try{w.setPointerCapture(e.pointerId)}catch(_){}
+  vkPtr.set(e.pointerId,w._k);vkDown(w._k);
+ });
+ const end=e=>{const k=vkPtr.get(e.pointerId);if(!k)return;vkPtr.delete(e.pointerId);vkUp(k)};
+ vk.addEventListener('pointerup',end);vk.addEventListener('pointercancel',end);vk.addEventListener('lostpointercapture',end);
+ /* 손잡이를 끌어 이동 */
+ const hd=$('#vkh');let dr=null;
+ hd.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button'))return;
+  const r=vk.getBoundingClientRect();dr={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};
+  try{hd.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();
+ });
+ hd.addEventListener('pointermove',e=>{
+  if(!dr||e.pointerId!==dr.id)return;
+  const s=$('#pstage').getBoundingClientRect();
+  vkMoved=true;vkPos={x:e.clientX-dr.dx-s.left,y:e.clientY-dr.dy-s.top};vkFit();
+ });
+ const hend=e=>{if(dr&&e.pointerId===dr.id)dr=null};
+ hd.addEventListener('pointerup',hend);hd.addEventListener('pointercancel',hend);
+ /* 헤더 버튼 */
+ $('#vkX').onclick=()=>vkShow(false);
+ $('#vkFn').onclick=()=>{vkFn=!vkFn;vkFit()};
+ $('#vkAl').onclick=()=>{vkLv=(vkLv+1)%3;vk.style.setProperty('--a',[.08,.14,.26][vkLv]);toast(['투명도: 매우 투명','투명도: 보통','투명도: 선명'][vkLv])};
+ ['resize','orientationchange'].forEach(ev=>addEventListener(ev,()=>setTimeout(vkFit,60)));
+ if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(vkFit,60));
+ document.addEventListener('fullscreenchange',()=>setTimeout(vkFit,120));
+})();
+
 $('#pbar').onclick=e=>{const b=e.target.closest('button');if(b)A[b.dataset.a]()};
 addEventListener('popstate',()=>{if($('#pc').classList.contains('show'))A.quit()});
 /* ---------- 검색: 이름 일부만 입력해도 목록 → 클릭하면 바로 실행 ---------- */
