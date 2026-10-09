@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#c0c0c0">
+<title>Windows 웹 에뮬레이터</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family:Arial,"Malgun Gothic",sans-serif;overflow:hidden;overscroll-behavior:none}
+.app{height:100%;height:100dvh;display:flex;flex-direction:column;background:#000}
+
+/* ===== 윈도우95 스타일 메뉴바 (winemu 원본 디자인) ===== */
+.toolbar{background:#c0c0c0;color:#111;display:flex;align-items:center;gap:6px;padding:7px calc(7px + env(safe-area-inset-right)) 7px calc(7px + env(safe-area-inset-left));padding-top:calc(7px + env(safe-area-inset-top));border-bottom:2px solid #777;flex-shrink:0;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.toolbar::-webkit-scrollbar{display:none}
+.toolbar button,.toolbar label,.toolbar a.btn,.toolbar select{font:700 13px Arial,"Malgun Gothic";color:#111;background:#c0c0c0;border:2px solid;border-color:#fff #555 #555 #fff;padding:7px 10px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;border-radius:0;flex:0 0 auto}
+.toolbar select{padding:6px 4px}
+.toolbar button:active,.toolbar label:active,.toolbar a.btn:active,.toolbar button.on{border-color:#555 #fff #fff #555}
+.toolbar button.on{background:#b0b0b0}
+.toolbar input[type=file]{display:none}
+.status{margin-left:auto;padding-left:8px;font-size:12px;max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+
+/* ===== 화면 ===== */
+.screen{position:relative;flex:1;min-height:0;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#screen_container{line-height:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;-webkit-user-select:none;user-select:none}
+#screen_container canvas{display:block;flex:none}
+#screen_container>div{flex:none;color:#ccc}
+#pad{position:absolute;inset:0;z-index:3;touch-action:none;-webkit-user-select:none;user-select:none;cursor:default}
+#pad.locked{cursor:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.78);color:#fff;text-align:center;padding:20px;z-index:6}
+.overlay.hidden{display:none}
+.card{max-width:520px;width:100%;background:#222;border:1px solid #555;padding:22px}
+.card h2{margin:0 0 10px;font-size:20px}
+.card p{font-size:13px;line-height:1.6;color:#ccc;margin:6px 0}
+.card button{font:700 14px Arial,"Malgun Gothic";color:#111;background:#c0c0c0;border:2px solid;border-color:#fff #555 #555 #fff;padding:9px 14px;margin:6px 3px 0;cursor:pointer}
+.bar{height:14px;background:#000;border:2px solid;border-color:#555 #fff #fff #555;margin:12px 0 4px;display:none}
+.bar i{display:block;height:100%;width:0;background:#000080}
+.help{background:#c0c0c0;color:#111;padding:6px 9px;font-size:11px;flex-shrink:0}
+
+/* ===== 마우스 설정 창 ===== */
+#mpop{position:absolute;z-index:8;left:8px;top:8px;width:min(300px,calc(100% - 16px));background:#c0c0c0;color:#111;border:2px solid;border-color:#fff #555 #555 #fff;padding:10px;display:none;font:13px Arial,"Malgun Gothic"}
+#mpop.show{display:block}
+#mpop h3{margin:0 0 8px;font-size:14px}
+#mpop .r{display:flex;align-items:center;gap:8px;margin:8px 0}
+#mpop button{font:700 12px Arial,"Malgun Gothic";color:#111;background:#c0c0c0;border:2px solid;border-color:#fff #555 #555 #fff;padding:6px 9px;cursor:pointer}
+#mpop button.on{border-color:#555 #fff #fff #555;background:#b0b0b0}
+#mpop input[type=range]{flex:1}
+#mpop small{display:block;color:#333;line-height:1.5;margin-top:6px}
+
+/* ===== 전체화면 ===== */
+#fsTools{display:none;position:absolute;top:calc(8px + env(safe-area-inset-top));right:8px;z-index:20;gap:6px}
+#fsTools button{font:12px Arial,"Malgun Gothic";color:#111;background:#c0c0c0;border:2px solid;border-color:#fff #555 #555 #fff;padding:6px 9px;cursor:pointer;opacity:.9}
+:fullscreen #fsTools,.fsx #fsTools{display:flex}
+:fullscreen .toolbar,:fullscreen .help,.fsx .toolbar,.fsx .help{display:none}
+
+/* ===== iOS 스타일 키보드 ===== */
+.kb{display:none;flex:0 0 auto;background:rgba(209,211,217,.97);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);padding:5px 3px calc(7px + env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;--kh:clamp(34px,5.6vh,46px);position:relative;z-index:15}
+.kb.show{display:block}
+.kb.float{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:820px;border-radius:14px 14px 0 0;--kh:clamp(22px,6.8vh,32px);background:rgba(209,211,217,.9)}
+.acc{display:flex;gap:6px;overflow-x:auto;padding:2px 3px 8px;scrollbar-width:none}
+.acc::-webkit-scrollbar{display:none}
+.a{flex:0 0 auto;min-width:44px;height:32px;padding:0 11px;border-radius:8px;background:rgba(255,255,255,.78);color:#111;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.a.on{background:#007aff;color:#fff}
+.a.down{background:#fff;transform:scale(.96)}
+.a.close{margin-left:auto;background:rgba(120,120,128,.3);box-shadow:none}
+.krow{display:flex;gap:6px;margin:0 0 11px;justify-content:center;padding:0 2px}
+.kb.float .krow{margin-bottom:6px}
+.krow:last-child{margin-bottom:0}
+.k{flex:1 1 0;min-width:0;height:var(--kh);border-radius:5px;background:#fff;color:#000;font-size:clamp(17px,3.3vh,23px);font-weight:400;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 0 #898b8f}
+.k.f{background:#abb0ba;font-size:clamp(13px,2.2vh,16px)}
+.k.sp{flex:1 1 0;visibility:hidden;box-shadow:none}
+.k.down{background:#b9bdc6}
+.k.f.down{background:#fff}
+.k.on{background:#fff}
+.k.f.on{background:#fff}
+.k.lock{background:#fff;color:#007aff}
+.k[data-w="1.3"]{flex-grow:1.3}.k[data-w="1.5"]{flex-grow:1.5}.k[data-w="2"]{flex-grow:2}.k[data-w="5"]{flex-grow:5}.k[data-w="3.5"]{flex-grow:3.5}
+.bub{position:fixed;z-index:50;pointer-events:none;display:none;background:#fff;color:#000;border-radius:9px;box-shadow:0 2px 8px rgba(0,0,0,.4);font:400 34px -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;align-items:center;justify-content:center;height:54px}
+@media(prefers-color-scheme:dark){
+ .kb{background:rgba(44,44,46,.97)}
+ .kb.float{background:rgba(44,44,46,.92)}
+ .k{background:#6b6b6f;color:#fff;box-shadow:0 1px 0 #1b1b1d}
+ .k.f{background:#47474b}
+ .k.down{background:#9b9ba0}
+ .k.f.down,.k.on,.k.f.on{background:#6b6b6f}
+ .k.lock{background:#fff;color:#007aff}
+ .a{background:rgba(120,120,128,.55);color:#fff;box-shadow:none}
+ .a.on{background:#0a84ff}
+ .a.down{background:#8e8e93}
+ .bub{background:#6b6b6f;color:#fff}
+}
+@media(max-width:700px){.status{display:none}.help{display:none}.toolbar button,.toolbar label,.toolbar a.btn{padding:8px 9px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="toolbar" id="toolbar">
+    <a class="btn" id="exitBtn" href="index.html">← 나가기</a>
+    <select id="osSel" title="윈도우 버전">
+      <option value="win10">Windows 1.0</option>
+      <option value="win20">Windows 2.0</option>
+      <option value="win30">Windows 3.0</option>
+      <option value="win31">Windows 3.1</option>
+      <option value="win95">Windows 95</option>
+      <option value="win98">Windows 98</option>
+    </select>
+    <button id="boot">▶ 시작</button>
+    <button id="pause">⏸ 일시정지</button>
+    <button id="reset">↻ 재시작</button>
+    <button id="fullscreen">⛶ 전체화면</button>
+    <button id="mouseBtn">🖱 마우스</button>
+    <button id="kbBtn">⌨ 키보드</button>
+    <label>💾 이미지 불러오기<input id="imageFile" type="file" accept=".img,.ima,.vhd,.vfd,.flp,.iso,.zip,application/octet-stream,application/zip"></label>
+    <button id="save">⬇ 상태 저장</button>
+    <label>⬆ 상태 불러오기<input id="stateFile" type="file" accept=".bin,.state,.v86state,application/octet-stream"></label>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="screen" id="screen">
+    <div id="screen_container"><div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas></div>
+    <div id="pad"></div>
+
+    <div id="mpop">
+      <h3>🖱 마우스 설정</h3>
+      <div class="r"><button id="mLock">마우스 잡기</button><button id="mDbl">더블클릭</button><button id="mRight">우클릭 1회</button></div>
+      <div class="r">감도 <input id="mSens" type="range" min="0.4" max="3" step="0.1" value="1"><b id="mSensV">1.0x</b></div>
+      <small>PC/OTG 마우스: 화면을 클릭하면 마우스가 잡혀 화면 끝에서도 계속 움직입니다(ESC로 해제).<br>터치: 드래그=커서 이동 · 탭=클릭 · 탭 후 바로 드래그=끌기 · 두 손가락 탭=우클릭 · 두 손가락 드래그=스크롤</small>
+    </div>
+
+    <div id="fsTools"><button id="fsKb">⌨ 키보드</button><button id="fsMouse">🖱</button><button id="exitFullscreenOverlay" type="button">✕ 전체화면 해제</button></div>
+
+    <div class="overlay" id="overlay">
+      <div class="card">
+        <h2 id="ovTitle">Windows 웹 에뮬레이터</h2>
+        <p id="ovMsg">준비 중…</p>
+        <div class="bar" id="ovBar"><i></i></div>
+        <p id="ovSub"></p>
+        <div id="ovBtns"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kb" id="kb">
+    <div class="acc" id="acc"></div>
+    <div id="keys"></div>
+  </div>
+
+  <div class="help" id="help">화면을 클릭/터치하면 마우스가 연결됩니다. ESC로 마우스 해제 · F11 전체화면 · v86 x86 에뮬레이터</div>
+</div>
+<div class="bub" id="bub"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Windows 웹 에뮬레이터 (v86)  ·  1.0 / 2.0 / 3.0 / 3.1 / 95 / 98 공용
+   - 페이지 주소: winemu.html?os=win95  (win10 win20 win30 win31 win95 win98)
+   - 서버 이미지: os/<id>/<id>.img | .zip | .iso   (없으면 '이미지 불러오기'로 직접 선택)
+   - v86 엔진 : os/v86/libv86.js, os/v86/v86.wasm (없으면 CDN)
+   ===================================================================== */
+const OSES={
+  win10:{n:'Windows 1.0',ram:16},
+  win20:{n:'Windows 2.0',ram:16},
+  win30:{n:'Windows 3.0',ram:32},
+  win31:{n:'Windows 3.1',ram:16},
+  win95:{n:'Windows 95',ram:64},
+  win98:{n:'Windows 98',ram:64}
+};
+const qs=new URLSearchParams(location.search);
+let OSID=qs.get('os');if(!OSES[OSID])OSID='win95';
+const OS=OSES[OSID];
+document.title=OS.n+' 웹 에뮬레이터';
+
+const $=id=>document.getElementById(id);
+const mb=b=>(b/1048576).toFixed(1)+'MB';
+const fmt=s=>(isFinite(s)&&s>=0)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const status=t=>{$('status').textContent=t};
+
+let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1;
+$('osSel').value=OSID;
+$('osSel').onchange=e=>{location.search='?os='+e.target.value};
+$('exitBtn').onclick=e=>{e.preventDefault();if(history.length>1&&document.referrer)history.back();else location.href='index.html'};
+document.querySelectorAll('.toolbar button').forEach(b=>b.addEventListener('click',()=>b.blur()));
+
+/* ---------- 안내창 ---------- */
+function ov(title,msg,o={}){
+  $('overlay').classList.remove('hidden');
+  $('ovTitle').textContent=title;$('ovMsg').innerHTML=msg;$('ovSub').innerHTML=o.sub||'';
+  const bar=$('ovBar');bar.style.display=o.pct==null?'none':'block';if(o.pct!=null)bar.firstElementChild.style.width=Math.max(0,Math.min(100,o.pct))+'%';
+  const bx=$('ovBtns');bx.innerHTML='';
+  (o.btns||[]).forEach(([t,f])=>{const b=document.createElement('button');b.textContent=t;b.onclick=f;bx.appendChild(b)});
+}
+const ovHide=()=>$('overlay').classList.add('hidden');
+function pickLocal(){$('imageFile').value='';$('imageFile').click()}
+function noImage(extra){
+  ov(OS.n,`서버에 <b>os/${OSID}/${OSID}.img</b> (또는 .zip / .iso)가 없습니다.<br>${extra||''}<b>이미지 불러오기</b>로 내 기기의 디스크 이미지를 선택해 주세요.`,
+    {btns:[['💾 이미지 불러오기',pickLocal],['다시 찾기',()=>start(true)]]});
+  status('이미지 없음');
+}
+
+/* ---------- 서버 이미지 찾기 / 받기 ---------- */
+async function probe(id){
+  for(const e of['img','zip','iso']){
+    const u=`os/${id}/${id}.${e}`;
+    try{
+      const ac=new AbortController();
+      const r=await fetch(u,{headers:{Range:'bytes=0-0'},cache:'no-store',signal:ac.signal});
+      const ct=r.headers.get('content-type')||'';let size=0;
+      if(r.status===206){const m=(r.headers.get('content-range')||'').match(/\/(\d+)\s*$/);size=m?+m[1]:0}
+      else if(r.ok)size=+r.headers.get('content-length')||0;
+      const ok=r.ok&&!/html/i.test(ct);
+      try{ac.abort()}catch(_){}
+      if(ok)return{u,size};
+    }catch(_){}
+  }
+  return null;
+}
+let _cache;
+const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os2'):Promise.resolve(null)).catch(()=>null));
+async function fetchBlob(f,onProg){
+  let err;
+  for(let t=0;t<3;t++){
+    try{
+      const r=await fetch(f.u,{cache:'no-cache'});
+      if(!r.ok)throw Error('서버 응답 '+r.status);
+      const total=f.size||+r.headers.get('content-length')||0;
+      if(!r.body||!r.body.getReader){const b=await r.blob();onProg(b.size,total||b.size);return b}
+      const rd=r.body.getReader(),parts=[];let got=0;
+      for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;onProg(got,total)}
+      return new Blob(parts);
+    }catch(e){err=e;if(t<2)await sleep(700*(t+1))}
+  }
+  throw err;
+}
+async function getServerBlob(f){
+  const cache=await getCache();
+  try{const hit=cache&&await cache.match(f.u);if(hit&&f.size){const b=await hit.blob();if(b.size===f.size)return b}}catch(_){}
+  const t0=performance.now();let last=0;
+  const blob=await fetchBlob(f,(got,total)=>{
+    const now=performance.now();if(now-last<150)return;last=now;
+    const sp=got/Math.max(.001,(now-t0)/1000);
+    ov(OS.n,'서버에서 이미지를 받는 중…',{pct:total?got/total*100:50,sub:`${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`});
+  });
+  try{cache&&await cache.put(f.u,new Response(blob))}catch(_){}
+  return blob;
+}
+
+/* ---------- ZIP 해제 (내장 해제기 + 예비로 JSZip) ---------- */
+const loadScript=(src,ms=25000)=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;const t=setTimeout(()=>{e.remove();no(Error('시간 초과: '+src))},ms);e.onload=()=>{clearTimeout(t);ok()};e.onerror=()=>{clearTimeout(t);e.remove();no(Error('불러오기 실패: '+src))};document.head.appendChild(e)});
+async function needZip(){
+  if(window.JSZip)return;
+  for(const u of['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js','https://unpkg.com/jszip@3.10.1/dist/jszip.min.js']){try{await loadScript(u);if(window.JSZip)return}catch(_){}}
+  throw Error('ZIP 해제 도구를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+}
+const DISK_RE=/\.(img|ima|iso|vhd|vfd|flp)$/i;
+async function unzipDisk(buf,prog){
+  const u8=new Uint8Array(buf),dv=new DataView(buf);
+  let e=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e>=0){
+    const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const list=[];
+    for(let i=0;i<n;i++){
+      if(dv.getUint32(p,true)!==0x02014b50)break;
+      const method=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),usz=dv.getUint32(p+24,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lho=dv.getUint32(p+42,true);
+      list.push({name:new TextDecoder().decode(u8.subarray(p+46,p+46+nl)),method,csz,usz,lho});
+      p+=46+nl+el+cl;
+    }
+    const ent=list.find(x=>DISK_RE.test(x.name)&&x.usz>0);
+    if(!ent)throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
+    const start=ent.lho+30+dv.getUint16(ent.lho+26,true)+dv.getUint16(ent.lho+28,true);
+    const comp=u8.subarray(start,start+ent.csz);
+    if(ent.method===0)return{name:ent.name,buf:comp.slice().buffer};
+    if(ent.method===8&&typeof DecompressionStream==='function'){
+      try{
+        const src=new ReadableStream({start(c){for(let o=0;o<comp.length;o+=1<<20)c.enqueue(comp.subarray(o,Math.min(comp.length,o+(1<<20))));c.close()}});
+        const rd=src.pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+        const out=new Uint8Array(ent.usz);let pos=0;
+        for(;;){const{done,value}=await rd.read();if(done)break;if(pos+value.length>out.length)throw Error('크기 불일치');out.set(value,pos);pos+=value.length;prog&&prog(pos/ent.usz*100)}
+        if(pos===out.length)return{name:ent.name,buf:out.buffer};
+      }catch(err){console.warn('내장 ZIP 해제 실패, JSZip 사용',err)}
+    }
+  }
+  await needZip();
+  const z=await JSZip.loadAsync(buf);
+  const im=Object.values(z.files).find(f=>!f.dir&&DISK_RE.test(f.name));
+  if(!im)throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
+  const a=await im.async('uint8array',m=>prog&&prog(m.percent));
+  return{name:im.name,buf:(a.byteOffset===0&&a.byteLength===a.buffer.byteLength)?a.buffer:a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength)};
+}
+async function toDisk(name,blob,prog){
+  let buf=await blob.arrayBuffer(),n=name.toLowerCase();
+  if(n.endsWith('.zip')){
+    const sg=new Uint8Array(buf,0,Math.min(4,buf.byteLength));
+    if(sg[0]!==0x50||sg[1]!==0x4B)throw Error('ZIP 파일이 손상되었거나 올바르지 않습니다');
+    const r=await unzipDisk(buf,prog);buf=r.buf;n=r.name.toLowerCase();
+  }
+  if(buf.byteLength>512&&new TextDecoder().decode(new Uint8Array(buf,buf.byteLength-512,8))==='conectix')buf=buf.slice(0,buf.byteLength-512);
+  return{k:n.endsWith('.iso')?'cd':buf.byteLength<=2949120?'fd':'hd',buf,name};
+}
+
+/* ---- Windows 3.1 이미지 자동 패치 (메모리 상에서 FAT16 직접 수정) ----
+   서버에 어떤 버전의 win31 이미지가 있든, 부팅 직전에 아래를 보장한다.
+   · SYSTEM.INI [386Enh] 에뮬레이터용 설정 · AUTOEXEC.BAT 정리 · WINS.BAT / WINE.BAT 추가 · 남은 WIN386.SWP 삭제 */
+function patchWin31(buf){
+ try{
+  const u=new Uint8Array(buf),dv=new DataView(buf);
+  if(u.length<65536||u[510]!==0x55||u[511]!==0xAA)return'MBR 아님';
+  const pt=[446,462,478,494].find(o=>[4,6,0xE].includes(u[o+4]));if(pt==null)return'FAT16 파티션 없음';
+  const OFF=dv.getUint32(pt+8,true)*512;
+  const bps=dv.getUint16(OFF+11,true),spc=u[OFF+13],res=dv.getUint16(OFF+14,true),nf=u[OFF+16],rootent=dv.getUint16(OFF+17,true),fs=dv.getUint16(OFF+22,true);
+  if(bps!==512||!spc||!nf)return'BPB 이상';
+  const tot=dv.getUint16(OFF+19,true)||dv.getUint32(OFF+32,true);
+  const CL=spc*bps,rootsec=res+nf*fs,ds=rootsec+rootent*32/512,ncl=Math.floor((tot-ds)/spc);
+  if(ncl<4085||ncl>=65525)return'FAT16 아님';
+  const g=c=>dv.getUint16(OFF+res*512+c*2,true);
+  const sf=(c,v)=>{for(let i=0;i<nf;i++)dv.setUint16(OFF+(res+i*fs)*512+c*2,v,true)};
+  const cpos=c=>OFF+(ds+(c-2)*spc)*512;
+  const chain=c=>{const o=[];while(c>=2&&c<0xFFF8&&o.length<70000){o.push(c);c=g(c)}return o};
+  const freeCh=c=>chain(c).forEach(x=>sf(x,0));
+  let hint=2;
+  const alloc=n=>{const out=[];let c=hint;while(out.length<n){if(c>=ncl+2)throw Error('디스크 공간 부족');if(g(c)===0)out.push(c);c++}
+   out.forEach((x,i)=>sf(x,i+1<out.length?out[i+1]:0xFFFF));hint=out[out.length-1]+1;return out};
+  const n83=n=>{const[a,e='']=n.toUpperCase().split('.');const r=new Uint8Array(11).fill(32);for(let i=0;i<Math.min(8,a.length);i++)r[i]=a.charCodeAt(i);for(let i=0;i<Math.min(3,e.length);i++)r[8+i]=e.charCodeAt(i);return r};
+  const slots=dc=>{const s=[];if(dc==null){const b=OFF+rootsec*512;for(let i=0;i<rootent;i++)s.push(b+i*32)}else chain(dc).forEach(x=>{for(let i=0;i<CL/32;i++)s.push(cpos(x)+i*32)});return s};
+  const find=(dc,name)=>{const nm=n83(name);let fr=null;
+   for(const o of slots(dc)){if(u[o]===0){fr=fr??o;return{o:null,fr}}
+    if(u[o]===0xE5){fr=fr??o;continue}if(u[o+11]===0x0F)continue;
+    let ok=1;for(let i=0;i<11;i++)if(u[o+i]!==nm[i]){ok=0;break}if(ok)return{o,fr}}
+   return{o:null,fr}};
+  const clOf=o=>dv.getUint16(o+26,true),szOf=o=>dv.getUint32(o+28,true);
+  const read=(dc,name)=>{const{o}=find(dc,name);if(o==null)return null;const c=clOf(o),sz=szOf(o),out=new Uint8Array(sz);let p=0;
+   for(const x of chain(c)){const n=Math.min(CL,sz-p);if(n<=0)break;out.set(u.subarray(cpos(x),cpos(x)+n),p);p+=n}return out};
+  const write=(dc,name,data)=>{const{o,fr}=find(dc,name);let slot;
+   if(o!=null){const c=clOf(o);if(c>=2)freeCh(c);slot=o}
+   else{if(fr==null)throw Error('디렉터리 가득 참');slot=fr;u.fill(0,slot,slot+32);u.set(n83(name),slot);u[slot+11]=0x20;dv.setUint16(slot+24,0x5821,true)}
+   let first=0;
+   if(data.length){const cl=alloc(Math.ceil(data.length/CL));cl.forEach((x,i)=>{u.fill(0,cpos(x),cpos(x)+CL);u.set(data.subarray(i*CL,(i+1)*CL),cpos(x))});first=cl[0]}
+   dv.setUint16(slot+26,first,true);dv.setUint32(slot+28,data.length,true)};
+  const del=(dc,name)=>{const{o}=find(dc,name);if(o==null)return false;const c=clOf(o);if(c>=2)freeCh(c);u[o]=0xE5;return true};
+  const enc=t=>Uint8Array.from(t.replace(/\r?\n/g,'\r\n'),ch=>ch.charCodeAt(0)&255),dec=a=>String.fromCharCode(...a);
+  const win=find(null,'WINDOWS');if(win.o==null)return'WINDOWS 폴더 없음';const wd=clOf(win.o);
+  const si=read(wd,'SYSTEM.INI');if(!si)return'SYSTEM.INI 없음';
+  let txt=dec(si),done=[];
+  if(!/EMMExclude/i.test(txt)){
+   const m=txt.match(/\[386Enh\]\r?\n/i);if(!m)return'[386Enh] 없음';
+   write(wd,'SYSTEM.BAK',si);
+   txt=txt.replace(m[0],m[0]+'EMMExclude=A000-EFFF\r\nNoEMMDriver=TRUE\r\nSystemROMBreakPoint=FALSE\r\nVirtualHDIRQ=FALSE\r\nTimerCriticalSection=10000\r\nUniqueDOSPSP=TRUE\r\nPSPIncrement=5\r\n');
+   write(wd,'SYSTEM.INI',enc(txt));done.push('SYSTEM.INI');
+  }
+  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\;C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\nC:\\DOS\\SMARTDRV.EXE /X\n';
+  const cur=read(null,'AUTOEXEC.BAT');
+  if(!cur||dec(cur).replace(/\r/g,'')!==ae){if(cur)write(null,'AUTOEXEC.BAK',cur);write(null,'AUTOEXEC.BAT',enc(ae));done.push('AUTOEXEC.BAT')}
+  const wb=enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'),cb=read(null,'WIN.BAT');
+  if(!cb||dec(cb).replace(/\r/g,'')!=='@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'){write(null,'WIN.BAT',wb);done.push('WIN.BAT')}
+const extra={'WINLOGS.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S /B\n','WINLOGE.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /3 /B\n','LOG.BAT':'@ECHO OFF\nTYPE C:\\WINDOWS\\BOOTLOG.TXT | MORE\n'};
+  for(const k in extra){const cur2=read(null,k);if(!cur2||dec(cur2).replace(/\r/g,'')!==extra[k]){write(null,k,enc(extra[k]));done.push(k)}}
+    if(!read(null,'WINS.BAT')){write(null,'WINS.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'));done.push('WINS.BAT')}
+  if(!read(null,'WINE.BAT')){write(null,'WINE.BAT',enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /3\n'));done.push('WINE.BAT')}
+  if(del(wd,'WIN386.SWP'))done.push('스왑삭제');
+  return done.length?'패치 적용: '+done.join(', '):'이미 패치됨';
+ }catch(e){return'패치 실패: '+e.message}
+}
+
+/* ---------- v86 엔진 불러오기 (os/v86 우선, 없으면 CDN) ---------- */
+async function urlOk(u){try{const r=await fetch(u,{headers:{Range:'bytes=0-0'},cache:'no-store'});return r.ok&&!/html/i.test(r.headers.get('content-type')||'')}catch(_){return false}}
+async function firstOk(list){for(const u of list){if(await urlOk(u))return u}return list[list.length-1]}
+async function loadV86(){
+  if(L)return L;
+  const cdn='https://cdn.jsdelivr.net/npm/v86@0.5.458/build/';
+  const libs=[];
+  if(await urlOk('os/v86/libv86.js')&&await urlOk('os/v86/v86.wasm'))libs.push({lib:'os/v86/libv86.js',wasm:'os/v86/v86.wasm',nm:'os/v86'});
+  libs.push({lib:cdn+'libv86.js',wasm:cdn+'v86.wasm',nm:'CDN 0.5.458'});
+  let B=null,lastErr;
+  for(const c of libs){try{await loadScript(c.lib);if(window.V86||window.V86Starter){B=c;break}}catch(e){lastErr=e}}
+  if(!B)throw Error('v86 엔진을 불러오지 못했습니다. os/v86/libv86.js, os/v86/v86.wasm 파일을 확인하세요. '+(lastErr&&lastErr.message||''));
+  const gh='https://cdn.jsdelivr.net/gh/copy/v86@master/bios/';
+  B.bios=await firstOk(['os/v86/seabios.bin','v86/seabios.bin',gh+'seabios.bin']);
+  B.vga=await firstOk(['os/v86/vgabios.bin','v86/vgabios.bin',gh+'vgabios.bin']);
+  console.log('[v86]',B);
+  return L=B;
+}
+
+/* ---------- 에뮬레이터 시작 ---------- */
+async function makeEmulator(d){
+  const lib=await loadV86();
+  if(emu){try{emu.destroy()}catch(e){try{emu.stop()}catch(_){}}emu=null}
+  $('screen_container').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
+  const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
+  const ram=Math.min(OS.ram,lowMem?32:OS.ram);
+  const o={
+    wasm_path:lib.wasm,
+    memory_size:ram*1048576,
+    vga_memory_size:8*1048576,
+    screen_container:$('screen_container'),
+    bios:{url:lib.bios},
+    vga_bios:{url:lib.vga},
+    autostart:true,
+    disable_mouse:false,
+    disable_keyboard:false,
+    preserve_mac_from_state_image:true
+  };
+  o[{hd:'hda',fd:'fda',cd:'cdrom'}[d.k]]={buffer:d.buf};
+  ovHide();status(OS.n+' 시작 중…');
+  try{
+    emu=new(window.V86||window.V86Starter)(o);
+  }catch(err){
+    console.error(err);status('시작 실패: '+err.message);
+    ov(OS.n,'시작 실패: '+err.message,{btns:[['다시 시도',()=>start(true)]]});return;
+  }
+  emu.add_listener('emulator-started',()=>{adapterOff();status(diskName+' 실행 중');fit();setTimeout(fit,300)});
+  emu.add_listener('screen-set-mode',()=>{setTimeout(fit,30);setTimeout(fit,400)});
+  emu.add_listener('download-error',e=>ov(OS.n,'파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음'),{btns:[['다시 시도',()=>start(true)]]}));
+  adapterOff();
+  $('pause').textContent='⏸ 일시정지';
+}
+
+/* 서버 이미지(또는 이미 읽어둔 이미지)로 시작 */
+async function start(force){
+  const my=++booting;
+  try{
+    if(disk&&!force){await makeEmulator(disk);return}
+    ov(OS.n,'서버에서 이미지를 찾는 중…',{pct:3});status('이미지 찾는 중…');
+    const f=await probe(OSID);
+    if(my!==booting)return;
+    if(!f){noImage();return}
+    const blob=await getServerBlob(f);
+    if(my!==booting)return;
+    ov(OS.n,'이미지 준비 중…',{pct:5,sub:'ZIP이면 압축을 푸는 중입니다'});
+    const d=await toDisk(f.u,blob,q=>ov(OS.n,'이미지 압축 해제 중…',{pct:q}));
+    if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
+    disk=d;diskName=f.u.split('/').pop();
+    if(my!==booting)return;
+    await makeEmulator(d);
+  }catch(e){
+    console.error(e);status('오류');
+    ov(OS.n,'오류: '+(e&&e.message||e),{btns:[['다시 시도',()=>start(true)],['💾 이미지 불러오기',pickLocal]]});
+  }
+}
+async function loadLocalFile(file){
+  if(!file)return;
+  const my=++booting;
+  try{
+    ov(OS.n,file.name+' 읽는 중…',{pct:10});status(file.name+' 읽는 중');
+    const d=await toDisk(file.name,file,q=>ov(OS.n,'이미지 압축 해제 중…',{pct:q}));
+    if(my!==booting)return;
+    if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
+    disk=d;diskName=file.name;
+    await makeEmulator(d);
+  }catch(e){
+    console.error(e);status('오류');
+    ov(OS.n,'오류: '+(e&&e.message||e),{btns:[['💾 이미지 불러오기',pickLocal]]});
+  }
+}
+$('boot').onclick=()=>start(!disk);
+$('imageFile').onchange=e=>loadLocalFile(e.target.files[0]);
+$('pause').onclick=()=>{
+  if(!emu)return;
+  if(emu.is_running()){emu.stop();status('일시정지');$('pause').textContent='▶ 계속';}
+  else{emu.run();status(diskName+' 실행 중');$('pause').textContent='⏸ 일시정지';}
+};
+$('reset').onclick=()=>{if(!emu)return;try{emu.restart();status('재시작')}catch(e){console.error(e)}};
+$('save').onclick=async()=>{
+  if(!emu){alert('먼저 '+OS.n+'을(를) 시작하세요.');return}
+  status('상태 저장 중…');
+  const data=await emu.save_state();
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/octet-stream'}));a.download=OSID+'.v86state';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);status('상태 저장 완료');
+};
+$('stateFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f||!emu)return;
+  status('상태 불러오는 중…');
+  const data=await f.arrayBuffer();
+  emu.stop();await emu.restore_state(data);emu.run();status('상태 불러오기 완료');
+};
+/* 파일 끌어놓기 */
+$('screen').addEventListener('dragover',e=>e.preventDefault());
+$('screen').addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)loadLocalFile(f)});
+
+/* ---------- 화면 맞춤 (가로·세로·키보드 표시 모두 자동) ---------- */
+function fit(){
+  const box=$('screen'),W=box.clientWidth,H=box.clientHeight;if(!W||!H)return;
+  const c=$('screen_container'),cv=c.querySelector('canvas'),tx=c.querySelector('div');
+  if(cv&&cv.style.display!=='none'&&cv.width>1){
+    const s=Math.min(W/cv.width,H/cv.height);zoom=s;
+    cv.style.setProperty('width',Math.floor(cv.width*s)+'px','important');
+    cv.style.setProperty('height',Math.floor(cv.height*s)+'px','important');
+    cv.style.imageRendering=s>=1?'pixelated':'auto';
+    if(tx)tx.style.transform='';
+  }else if(tx&&tx.offsetWidth>10){
+    tx.style.transform='';
+    const w=tx.offsetWidth,h=tx.offsetHeight,s=Math.min(W/w,H/h);zoom=s;
+    tx.style.transformOrigin='center center';tx.style.transform='scale('+s+')';
+  }
+}
+if(window.ResizeObserver){const ro=new ResizeObserver(()=>fit());ro.observe($('screen'))}
+addEventListener('resize',()=>{setTimeout(fit,60);kbLayout()});
+addEventListener('orientationchange',()=>setTimeout(()=>{fit();kbLayout()},250));
+setInterval(fit,800);
+
+/* =====================================================================
+   마우스: 화면 끝에서 멈추지 않는 자유로운 이동
+   · PC / OTG 마우스 → 포인터 락(무한 이동)  · 터치 → 터치패드 방식
+   ===================================================================== */
+const pad=$('pad');
+let sens=1,rightNext=false,ax=0,ay=0;
+const bus=()=>emu&&emu.bus;
+function adapterOff(){try{emu&&emu.mouse_set_status&&emu.mouse_set_status(false)}catch(_){}}  /* v86 기본 마우스 처리를 끄고 아래 코드가 전담 */
+function mDelta(dx,dy){
+  const b=bus();if(!b)return;
+  const k=sens/Math.min(3,Math.max(.5,zoom||1));
+  ax+=dx*k;ay+=dy*k;
+  const sx=Math.trunc(ax),sy=Math.trunc(ay);ax-=sx;ay-=sy;
+  if(sx||sy)b.send('mouse-delta',[sx,-sy]);
+}
+let btnState=[false,false,false];
+function mBtn(l,m,r){
+  const b=bus();if(!b)return;
+  if(btnState[0]===l&&btnState[1]===m&&btnState[2]===r)return;
+  btnState=[l,m,r];b.send('mouse-click',[l,m,r]);
+}
+const mFromMask=m=>mBtn(!!(m&1),!!(m&4),!!(m&2));
+async function mClick(which,n){
+  for(let i=0;i<(n||1);i++){
+    mBtn(which==='l',which==='m',which==='r');await sleep(35);mBtn(false,false,false);if(i<(n||1)-1)await sleep(60);
+  }
+}
+const isLocked=()=>document.pointerLockElement===pad;
+async function lockMouse(){
+  if(!emu){status('먼저 '+OS.n+'을(를) 시작하세요.');return}
+  adapterOff();
+  try{
+    pad.focus&&pad.focus({preventScroll:true});
+    let r;try{r=pad.requestPointerLock({unadjustedMovement:true})}catch(_){r=pad.requestPointerLock()}
+    if(r&&r.catch)await r.catch(async()=>{try{await pad.requestPointerLock()}catch(_){}});
+  }catch(e){console.warn(e)}
+  setTimeout(()=>{status(isLocked()?'마우스 잡힘 · ESC로 해제':'마우스 잡기 실패 → 터치패드/일반 이동으로 동작')},250);
+}
+document.addEventListener('pointerlockchange',()=>{
+  pad.classList.toggle('locked',isLocked());
+  $('mLock').classList.toggle('on',isLocked());$('mLock').textContent=isLocked()?'마우스 놓기':'마우스 잡기';
+  if(!isLocked())mBtn(false,false,false);
+});
+$('mLock').onclick=()=>{if(isLocked())document.exitPointerLock();else lockMouse()};
+$('mDbl').onclick=()=>{mClick('l',2)};
+$('mRight').onclick=function(){rightNext=!rightNext;this.classList.toggle('on',rightNext);status(rightNext?'다음 탭은 우클릭':'')};
+$('mSens').oninput=function(){sens=+this.value;$('mSensV').textContent=sens.toFixed(1)+'x';try{localStorage.setItem('winemu_sens',sens)}catch(_){}};
+try{const s=+localStorage.getItem('winemu_sens');if(s>=.4&&s<=3){sens=s;$('mSens').value=s;$('mSensV').textContent=s.toFixed(1)+'x'}}catch(_){}
+const mpop=$('mpop');
+function toggleMouseMenu(){mpop.classList.toggle('show');$('mouseBtn').classList.toggle('on',mpop.classList.contains('show'))}
+$('mouseBtn').onclick=toggleMouseMenu;
+$('fsMouse').onclick=toggleMouseMenu;
+
+/* --- 마우스(PC/OTG) --- */
+let lastX=null,lastY=null;
+pad.addEventListener('contextmenu',e=>e.preventDefault());
+pad.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse')return;
+  e.preventDefault();adapterOff();
+  if(mpop.classList.contains('show')){mpop.classList.remove('show');$('mouseBtn').classList.remove('on')}
+  if(!isLocked())lockMouse();
+  lastX=e.clientX;lastY=e.clientY;
+  try{pad.setPointerCapture(e.pointerId)}catch(_){}
+  mFromMask(e.buttons);
+});
+pad.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse')return;
+  let dx,dy;
+  if(isLocked()){dx=e.movementX||0;dy=e.movementY||0}
+  else{dx=lastX==null?0:e.clientX-lastX;dy=lastY==null?0:e.clientY-lastY}
+  lastX=e.clientX;lastY=e.clientY;
+  if(dx||dy)mDelta(dx,dy);
+});
+pad.addEventListener('pointerup',e=>{if(e.pointerType==='mouse'){e.preventDefault();mFromMask(e.buttons)}});
+pad.addEventListener('pointercancel',e=>{if(e.pointerType==='mouse')mBtn(false,false,false)});
+pad.addEventListener('wheel',e=>{
+  const b=bus();if(!b)return;e.preventDefault();
+  const n=Math.max(1,Math.min(3,Math.round(Math.abs(e.deltaY)/40)));
+  for(let i=0;i<n;i++)b.send('mouse-wheel',[e.deltaY>0?-1:1,0]);
+},{passive:false});
+
+/* --- 터치(터치패드 방식) --- */
+const tp=new Map();let lastTap=0,lastTapX=0,lastTapY=0,dragging=false,twoMoved=0,twoStart=0,wheelAcc=0,dragTimer=null;
+pad.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse')return;
+  e.preventDefault();adapterOff();
+  if(mpop.classList.contains('show')){mpop.classList.remove('show');$('mouseBtn').classList.remove('on')}
+  try{pad.setPointerCapture(e.pointerId)}catch(_){}
+  tp.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t:performance.now(),moved:0});
+  if(tp.size===2){twoMoved=0;twoStart=performance.now();wheelAcc=0;if(dragging){mBtn(false,false,false);dragging=false}}
+  else if(tp.size===1){
+    const now=performance.now();
+    if(now-lastTap<320&&Math.hypot(e.clientX-lastTapX,e.clientY-lastTapY)<40){dragging=true;mBtn(true,false,false)}  /* 탭 직후 다시 누르면 끌기(= 더블클릭 두 번째) */
+  }
+});
+pad.addEventListener('pointermove',e=>{
+  if(e.pointerType==='mouse')return;
+  const p=tp.get(e.pointerId);if(!p)return;e.preventDefault();
+  const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;p.moved+=Math.abs(dx)+Math.abs(dy);
+  if(tp.size>=2){
+    twoMoved+=Math.abs(dy)+Math.abs(dx);
+    wheelAcc+=dy/tp.size;
+    while(Math.abs(wheelAcc)>=26){const b=bus();b&&b.send('mouse-wheel',[wheelAcc>0?-1:1,0]);wheelAcc-=Math.sign(wheelAcc)*26}
+    return;
+  }
+  const sp=Math.hypot(dx,dy),acc=sp>14?1.6:sp>6?1.25:1.0;   /* 살짝 가속 */
+  mDelta(dx*acc,dy*acc);
+});
+function tEnd(e){
+  if(e.pointerType==='mouse')return;
+  const p=tp.get(e.pointerId);if(!p)return;
+  const now=performance.now(),wasTwo=tp.size>=2;
+  tp.delete(e.pointerId);
+  if(wasTwo){
+    if(tp.size===0&&twoMoved<18&&now-twoStart<350){mClick('r')}   /* 두 손가락 탭 = 우클릭 */
+    return;
+  }
+  if(dragging){
+    mBtn(false,false,false);dragging=false;lastTap=0;return;
+  }
+  if(e.type==='pointerup'&&p.moved<10&&now-p.t<300){      /* 탭 = 클릭 */
+    if(rightNext){rightNext=false;$('mRight').classList.remove('on');status('');mClick('r')}
+    else mClick('l');
+    lastTap=now;lastTapX=p.x;lastTapY=p.y;
+  }
+}
+pad.addEventListener('pointerup',tEnd);
+pad.addEventListener('pointercancel',tEnd);
+pad.addEventListener('lostpointercapture',e=>{if(e.pointerType!=='mouse'&&tp.has(e.pointerId))tEnd({pointerId:e.pointerId,pointerType:e.pointerType,type:'cancel'})});
+
+/* =====================================================================
+   전체화면
+   ===================================================================== */
+async function toggleFullscreen(){
+  try{
+    if(document.fullscreenElement){
+      try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}
+      await document.exitFullscreen();return;
+    }
+    const t=document.documentElement;
+    if(t.requestFullscreen)await t.requestFullscreen();
+    else if(t.webkitRequestFullscreen)t.webkitRequestFullscreen();
+    else{document.body.classList.toggle('fsx');setTimeout(()=>{fit();kbLayout()},60);return}   /* iOS 등: 전체화면 API 없음 → 툴바만 숨김 */
+    try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape')}catch(e){}
+  }catch(e){console.error(e);status('전체화면을 사용할 수 없습니다')}
+}
+$('fullscreen').onclick=toggleFullscreen;
+$('exitFullscreenOverlay').onclick=async()=>{
+  document.body.classList.remove('fsx');
+  if(document.fullscreenElement){try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock()}catch(e){}try{await document.exitFullscreen()}catch(e){}}
+  setTimeout(()=>{fit();kbLayout()},60);
+};
+document.addEventListener('fullscreenchange',()=>{setTimeout(()=>{fit();kbLayout()},120)});
+
+/* =====================================================================
+   iOS 스타일 화상 키보드  (스캔코드를 에뮬레이터로 직접 전송)
+   ===================================================================== */
+const SC={};
+'1234567890'.split('').forEach((c,i)=>SC[c]=[i+2,0]);
+'qwertyuiop'.split('').forEach((c,i)=>SC[c]=[0x10+i,0]);
+'asdfghjkl'.split('').forEach((c,i)=>SC[c]=[0x1E+i,0]);
+'zxcvbnm'.split('').forEach((c,i)=>SC[c]=[0x2C+i,0]);
+Object.entries({'-':0x0C,'=':0x0D,'[':0x1A,']':0x1B,';':0x27,"'":0x28,'`':0x29,'\\':0x2B,',':0x33,'.':0x34,'/':0x35,' ':0x39}).forEach(([c,v])=>SC[c]=[v,0]);
+const SHM={'!':'1','@':'2','#':'3','$':'4','%':'5','^':'6','&':'7','*':'8','(':'9',')':'0','_':'-','+':'=','{':'[','}':']',':':';','"':"'",'~':'`','|':'\\','<':',','>':'.','?':'/'};
+Object.keys(SHM).forEach(k=>SC[k]=[SC[SHM[k]][0],1]);
+const MOD={shift:0x2A,ctrl:0x1D,alt:0x38,win:57435};
+const KB={layer:'abc',shift:false,lock:false,ctrl:false,alt:false,win:false,lastShift:0};
+
+const ROWS={
+  abc:[
+    'q w e r t y u i o p'.split(' '),
+    ['_h','a','s','d','f','g','h','j','k','l','_h'],
+    [['⇧','shift','f',1.5],'z','x','c','v','b','n','m',['⌫','bs','f',1.5]],
+    [['123','l:num','f',1.5],['space','space','',5],['return','enter','f',2]]
+  ],
+  num:[
+    '1 2 3 4 5 6 7 8 9 0'.split(' '),
+    ['-','/',':',';','(',')','$','&','@','"'],
+    [['#+=','l:sym','f',1.5],'.',',','?','!',"'",['⌫','bs','f',1.5]],
+    [['ABC','l:abc','f',1.5],['space','space','',5],['return','enter','f',2]]
+  ],
+  sym:[
+    ['[',']','{','}','#','%','^','*','+','='],
+    ['_','\\','|','~','<','>','`','=','-','/'],
+    [['123','l:num','f',1.5],'.',',','?','!',"'",['⌫','bs','f',1.5]],
+    [['ABC','l:abc','f',1.5],['space','space','',5],['return','enter','f',2]]
+  ]
+};
+const SPECIAL={bs:{c:0x0E,rep:1},enter:{c:0x1C,rep:1},space:{c:0x39,rep:1,letter:0}};
+const ACC=[
+  ['시작','start'],['Esc',{c:1}],['Tab',{c:0x0F,rep:1}],['Ctrl','m:ctrl'],['Alt','m:alt'],['Win','m:win'],
+  ['◀',{c:57419,rep:1}],['▲',{c:57416,rep:1}],['▼',{c:57424,rep:1}],['▶',{c:57421,rep:1}],
+  ['Del',{c:57427,rep:1}],['Ins',{c:57426}],['Home',{c:57415}],['End',{c:57423}],['PgUp',{c:57417,rep:1}],['PgDn',{c:57425,rep:1}],
+  ['F1',{c:0x3B}],['F2',{c:0x3C}],['F3',{c:0x3D}],['F4',{c:0x3E}],['F5',{c:0x3F}],['F6',{c:0x40}],['F7',{c:0x41}],['F8',{c:0x42}],['F9',{c:0x43}],['F10',{c:0x44}],['F11',{c:0x57}],['F12',{c:0x58}],
+  ['Caps',{c:0x3A}],['⌄','close']
+];
+
+const kbEl=$('kb'),keysEl=$('keys'),accEl=$('acc');
+function buildAcc(){
+  accEl.innerHTML='';
+  ACC.forEach(([t,v])=>{
+    const b=document.createElement('div');b.className='a'+(v==='close'?' close':'');b.textContent=t;
+    b._v=v;
+    if(typeof v==='string'&&v.startsWith('m:'))b.dataset.mod=v.slice(2);
+    accEl.appendChild(b);
+  });
+}
+function buildKeys(){
+  keysEl.innerHTML='';
+  ROWS[KB.layer].forEach(row=>{
+    const r=document.createElement('div');r.className='krow';
+    row.forEach(k=>{
+      const d=document.createElement('div');d.className='k';
+      if(k==='_h'){d.className+=' sp';d.dataset.w='';d.style.flexGrow='.5'}
+      else if(Array.isArray(k)){
+        d.textContent=k[0];d._v=k[1];if(k[2])d.classList.add(k[2]);d.dataset.w=k[3];
+        if(k[1]==='shift')d.id='kShift';
+        if(k[1]==='space'){d.textContent=' ';d.style.fontSize='14px'}
+      }else{d._v='ch:'+k;d._ch=k;d.textContent=k;if(KB.layer==='abc')d.dataset.letter='1'}
+      r.appendChild(d);
+    });
+    keysEl.appendChild(r);
+  });
+  refreshKb();
+}
+function refreshKb(){
+  const up=KB.shift||KB.lock;
+  keysEl.querySelectorAll('.k[data-letter]').forEach(k=>{k.textContent=up?k._ch.toUpperCase():k._ch});
+  const s=$('kShift');if(s){s.classList.toggle('lock',KB.lock);s.classList.toggle('on',KB.shift&&!KB.lock);s.textContent=KB.lock?'⇪':(KB.shift?'⬆':'⇧')}
+  accEl.querySelectorAll('.a[data-mod]').forEach(a=>a.classList.toggle('on',!!KB[a.dataset.mod]));
+}
+function sendK(a){try{emu&&emu.keyboard_send_scancodes(a)}catch(e){console.warn(e)}}
+/* 한 번 누름: 수정키 누르기 → 키 make … (뗄 때) break → 수정키 떼기 */
+function kDown(def){
+  const mods=[];
+  const useShift=def.sh||((def.letter||def.acc)&&(KB.shift||KB.lock));
+  if(KB.ctrl||def.ctrl)mods.push(MOD.ctrl);
+  if(KB.alt)mods.push(MOD.alt);
+  if(KB.win)mods.push(MOD.win);
+  if(useShift)mods.push(MOD.shift);
+  def.mods=mods;
+  sendK([...mods,def.c]);
+  if(KB.ctrl||KB.alt||KB.win||(KB.shift&&!KB.lock)){KB.ctrl=KB.alt=KB.win=false;if(!KB.lock)KB.shift=false;refreshKb()}
+}
+function kUp(def){
+  sendK([def.c|0x80,...[...(def.mods||[])].reverse().map(c=>c|0x80)]);
+}
+const press=new Map();
+function resolve(el){
+  const v=el._v;if(!v)return null;
+  if(typeof v==='object')return{kind:'key',def:{c:v.c,rep:v.rep,acc:1}};
+  if(v==='start')return{kind:'key',def:{c:1,ctrl:1,acc:1}};   /* Ctrl+Esc = 시작 메뉴 */
+  if(v==='close')return{kind:'close'};
+  if(v.startsWith('m:'))return{kind:'mod',m:v.slice(2)};
+  if(v.startsWith('l:'))return{kind:'layer',l:v.slice(2)};
+  if(v==='shift')return{kind:'shift'};
+  if(v.startsWith('ch:')){const ch=el._ch,s=SC[ch];if(!s)return null;return{kind:'key',def:{c:s[0],sh:s[1],letter:KB.layer==='abc',rep:1},bub:1,label:el.textContent}}
+  const sp=SPECIAL[v];if(sp)return{kind:'key',def:{c:sp.c,rep:sp.rep,letter:sp.letter}};
+  return null;
+}
+const bubEl=$('bub');
+function showBub(el,txt){
+  const r=el.getBoundingClientRect();
+  bubEl.textContent=txt;bubEl.style.display='flex';
+  bubEl.style.width=(r.width+16)+'px';bubEl.style.left=(r.left-8)+'px';bubEl.style.top=(r.top-60)+'px';
+}
+const hideBub=()=>{bubEl.style.display='none'};
+kbEl.addEventListener('contextmenu',e=>e.preventDefault());
+kbEl.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.k,.a');if(!el||el.classList.contains('sp'))return;
+  e.preventDefault();
+  try{el.setPointerCapture(e.pointerId)}catch(_){}
+  const r=resolve(el);if(!r)return;
+  el.classList.add('down');
+  const st={el,r,timer:null,iv:null};press.set(e.pointerId,st);
+  if(r.kind==='close'){hideKb();return}
+  if(r.kind==='mod'){KB[r.m]=!KB[r.m];refreshKb();return}
+  if(r.kind==='layer'){KB.layer=r.l;if(r.l!=='abc'){KB.shift=false;KB.lock=false}buildKeys();return}
+  if(r.kind==='shift'){
+    const now=performance.now();
+    if(KB.lock){KB.lock=false;KB.shift=false}
+    else if(KB.shift&&now-KB.lastShift<400){KB.lock=true}
+    else KB.shift=!KB.shift;
+    KB.lastShift=now;refreshKb();return;
+  }
+  if(r.kind==='key'){
+    if(r.bub&&!kbEl.classList.contains('float'))showBub(el,el.textContent);
+    kDown(r.def);
+    if(r.def.rep){
+      st.timer=setTimeout(()=>{st.iv=setInterval(()=>sendK([r.def.c]),55)},420);
+    }
+  }
+});
+function kRelease(e){
+  const st=press.get(e.pointerId);if(!st)return;press.delete(e.pointerId);
+  st.el.classList.remove('down');hideBub();
+  clearTimeout(st.timer);clearInterval(st.iv);
+  if(st.r.kind==='key')kUp(st.r.def);
+}
+kbEl.addEventListener('pointerup',kRelease);
+kbEl.addEventListener('pointercancel',kRelease);
+kbEl.addEventListener('lostpointercapture',kRelease);
+
+function kbLayout(){
+  /* 화면이 낮거나(가로 모드) 전체화면이면 화면 위에 떠서 표시, 그 외에는 화면 아래에 붙여 화면을 줄임 */
+  const small=innerHeight<540||!!document.fullscreenElement||document.body.classList.contains('fsx');
+  kbEl.classList.toggle('float',small);
+  const tools=$('fsTools');
+  setTimeout(fit,30);
+}
+function showKb(){kbEl.classList.add('show');$('kbBtn').classList.add('on');kbLayout();setTimeout(fit,50)}
+function hideKb(){kbEl.classList.remove('show');$('kbBtn').classList.remove('on');hideBub();setTimeout(fit,50)}
+function toggleKb(){kbEl.classList.contains('show')?hideKb():showKb()}
+$('kbBtn').onclick=toggleKb;
+$('fsKb').onclick=toggleKb;
+buildAcc();buildKeys();
+document.querySelectorAll('.k,.a').forEach(()=>{});
+
+/* ---------- 단축키 ---------- */
+addEventListener('keydown',e=>{
+  if(e.key==='F11'){e.preventDefault();toggleFullscreen()}
+});
+
+/* ---------- 시작 ---------- */
+ov(OS.n,`<b>${OS.n}</b> 에뮬레이터입니다.<br>서버의 <b>os/${OSID}/${OSID}.img</b>(또는 .zip)를 자동으로 불러옵니다.`,{btns:[['▶ '+OS.n+' 시작',()=>start(true)],['💾 이미지 불러오기',pickLocal]]});
+addEventListener('load',()=>{setTimeout(()=>start(true),200)});
+</script>
+</body>
+</html>
