@@ -1,1 +1,23 @@
-{"v":1,"rev":0,"themes":[],"ov":{},"del":[]}
+{
+ "v": 1,
+ "rev": 1,
+ "themes": [
+  {
+   "id": "retro",
+   "name": "레트로",
+   "skin": "default",
+   "colors": {
+    "accent": "#3d7bff",
+    "title": "#ff3df0",
+    "text": "#f0e9ff",
+    "pageA": "#2b0b66",
+    "pageB": "#05010f",
+    "cardBase": "#1a0a3d"
+   },
+   "css": "pctheme/retro.css",
+   "js": "pctheme/retro.js"
+  }
+ ],
+ "ov": {},
+ "del": []
+}

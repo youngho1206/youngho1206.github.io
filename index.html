@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="게임에뮬레이터">
-<title>영호의 웹게임에뮬레이터</title>
+<title>RETRO GAME UNIVERSE · 영호의 게임에뮬레이터</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
 var T={m:'mobile.html',d:'desktop.html'};
@@ -96,12 +96,13 @@ header p{margin:14px 0 0;color:var(--mut);font:300 clamp(13px,1.9vw,16px) var(--
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<link rel="stylesheet" href="retro.css?v=1">
 </head>
 <body>
 <div class="bg"><i></i><i></i></div>
 <header>
-  <h1>최영호의 게임에뮬레이터</h1>
-  <p>사용 중인 기기에 맞는 화면을 선택하세요</p>
+  <h1>RETRO GAME UNIVERSE</h1>
+  <p class="rg-sub">추억의 게임 속으로 떠나는 시간 여행 — 기기를 골라 게임을 시작하세요</p>
 </header>
 <main class="choices">
   <a class="card" id="cm" href="mobile.html" data-k="m">
@@ -193,5 +194,6 @@ document.querySelectorAll('.card').forEach(function(a){
  a.addEventListener('click',function(e){e.preventDefault();go(a.dataset.k,document.getElementById('keep').checked)});
 });
 </script>
+<script src="retro.js?v=1"></script>
 </body>
 </html>

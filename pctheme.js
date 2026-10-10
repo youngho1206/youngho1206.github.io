@@ -97,6 +97,10 @@ function apply(id,draft){
  const ov=draft?{}:(S.data.ov[t.id]||{});
  const pick=k=>(k in ov)?ov[k]:t[k];
  root.dataset.skin=SKINS[t.skin]?SKINS[t.skin].skin:'arcade';
+ /* 테마 전용 CSS / JS (예: pctheme/retro.css, retro.js) */
+ let EL=document.getElementById('pct-extra');
+ if(t.css){if(!EL){EL=document.createElement('link');EL.id='pct-extra';EL.rel='stylesheet';document.head.appendChild(EL)}if(EL.getAttribute('href')!==t.css)EL.setAttribute('href',t.css)}else if(EL)EL.remove();
+ if(t.js){if(window.PCRetro)window.PCRetro.on();else if(!document.getElementById('pct-extra-js')){const sc=document.createElement('script');sc.id='pct-extra-js';sc.src=t.js;document.body.appendChild(sc)}}else if(window.PCRetro)window.PCRetro.off();
  Object.keys(CVAR).forEach(k=>{const v=t.colors&&t.colors[k];if(v)root.style.setProperty(CVAR[k],v);else root.style.removeProperty(CVAR[k])});
  setBg($('#pagebg'),bgCss('',t.pageImg,t.pageShade));
  setBg($('#frame'),bgCss(pick('frameColor'),pick('frameImg'),pick('frameShade')));
