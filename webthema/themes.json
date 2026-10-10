@@ -1,5 +1,12 @@
 {
   "themes": [
-    { "id": "thema01", "name": "아침" }
+    {
+      "id": "thema01",
+      "name": "아침"
+    },
+    {
+      "id": "thema02",
+      "name": "여름"
+    }
   ]
 }
