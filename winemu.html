@@ -385,7 +385,11 @@ async function makeEmulator(d){
   if(emu){try{emu.destroy()}catch(e){try{emu.stop()}catch(_){}}emu=null}
   $('screen_container').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
   const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
-  const ram=Math.min(OS.ram,lowMem?32:OS.ram);
+  /* 95/98은 설치할 때 쓴 램(64MB)과 다르면 하드웨어 재감지로 종료/재시작 화면이 나올 수 있어 줄이지 않음. ?ram=숫자 로 직접 지정 가능 */
+  const ramQ=parseInt(qs.get('ram'),10);
+  const is9x=(OSID==='win95'||OSID==='win98');
+  const ram=(ramQ>=4&&ramQ<=256)?ramQ:Math.min(OS.ram,(lowMem&&!is9x)?32:OS.ram);
+  console.log('[ram]',ram,'MB');
   const o={
     wasm_path:lib.wasm,
     memory_size:ram*1048576,
