@@ -299,7 +299,7 @@ async function toDisk(name,blob,prog){
 
 /* ---- Windows 3.1 이미지 자동 패치 (메모리 상에서 FAT16 직접 수정) ----
    서버에 어떤 버전의 win31 이미지가 있든, 부팅 직전에 아래를 보장한다.
-   · SYSTEM.INI [386Enh] 에뮬레이터용 설정 · AUTOEXEC.BAT 정리 · WINS.BAT / WINE.BAT 추가 · 남은 WIN386.SWP 삭제 */
+   · SYSTEM.INI [386Enh] 에뮬레이터용 설정 · AUTOEXEC.BAT 정리(끝에 WIN.COM /S 자동 실행 → 부팅하자마자 윈도우 진입) · WINS.BAT / WINE.BAT 추가 · 남은 WIN386.SWP 삭제 */
 function patchWin31(buf){
  try{
   const u=new Uint8Array(buf),dv=new DataView(buf);
@@ -346,7 +346,7 @@ function patchWin31(buf){
    txt=txt.replace(m[0],m[0]+'EMMExclude=A000-EFFF\r\nNoEMMDriver=TRUE\r\nSystemROMBreakPoint=FALSE\r\nVirtualHDIRQ=FALSE\r\nTimerCriticalSection=10000\r\nUniqueDOSPSP=TRUE\r\nPSPIncrement=5\r\n');
    write(wd,'SYSTEM.INI',enc(txt));done.push('SYSTEM.INI');
   }
-  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\;C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\nC:\\DOS\\SMARTDRV.EXE /X\n';
+  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\;C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\nC:\\DOS\\SMARTDRV.EXE /X\nC:\\WINDOWS\\WIN.COM /S\n';
   const cur=read(null,'AUTOEXEC.BAT');
   if(!cur||dec(cur).replace(/\r/g,'')!==ae){if(cur)write(null,'AUTOEXEC.BAK',cur);write(null,'AUTOEXEC.BAT',enc(ae));done.push('AUTOEXEC.BAT')}
   const wb=enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'),cb=read(null,'WIN.BAT');
