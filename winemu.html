@@ -299,7 +299,30 @@ async function toDisk(name,blob,prog){
     const r=await unzipDisk(buf,prog);buf=r.buf;n=r.name.toLowerCase();
   }
   if(buf.byteLength>512&&new TextDecoder().decode(new Uint8Array(buf,buf.byteLength-512,8))==='conectix')buf=buf.slice(0,buf.byteLength-512);
-  return{k:n.endsWith('.iso')?'cd':buf.byteLength<=2949120?'fd':'hd',buf,name};
+  const k=n.endsWith('.iso')?'cd':buf.byteLength<=2949120?'fd':'hd';
+  if(k==='hd'){const r=fixGeom(buf);console.log('[disk]',mb(buf.byteLength),r||'(변경 없음)');if(r)toast('디스크 점검: '+r,9000)}
+  return{k,buf,name};
+}
+/* ---- 하드디스크 이미지 지오메트리 맞춤 ----
+   DOSBox-X 등에서 만든 FAT16 이미지는 부트섹터(BPB)에 적힌 헤드/섹터 수(예: 255/63)가 v86이 BIOS에 알려주는 값(16헤드/63섹터)과 다르면
+   윈도우95 부트섹터가 IO.SYS를 못 읽어 'Disk I/O error / Replace the disk' 가 뜬다 → 메모리 상에서만 16/63으로 맞춘다(원본 파일은 안 바뀜). */
+function fixGeom(buf){
+  try{
+    const u=new Uint8Array(buf),dv=new DataView(buf),total=Math.floor(u.length/512),out=[];
+    if(u.length<1024||u[510]!==0x55||u[511]!==0xAA)return'MBR 없음(통짜 이미지)';
+    for(const pt of[446,462,478,494]){
+      const t=u[pt+4],st=dv.getUint32(pt+8,true),n=dv.getUint32(pt+12,true);
+      if(!t||!st||!n)continue;
+      out.push('파티션 0x'+t.toString(16)+(t===0x0B||t===0x0C?'(FAT32)':''));
+      if(st+n>total)out.push('⚠ 파티션('+st+'+'+n+')이 이미지 크기('+total+'섹터)보다 큼 – 이미지가 잘렸을 수 있음');
+      if(![1,4,6].includes(t))continue;
+      const o=st*512;
+      if(o+512>u.length||u[o+510]!==0x55||u[o+511]!==0xAA||dv.getUint16(o+11,true)!==512)continue;
+      const spt=dv.getUint16(o+24,true),hd=dv.getUint16(o+26,true);
+      if(spt!==63||hd!==16){dv.setUint16(o+24,63,true);dv.setUint16(o+26,16,true);out.push('BPB '+hd+'헤드/'+spt+'섹터 → 16/63으로 맞춤')}
+    }
+    return out.join(' · ');
+  }catch(e){return''}
 }
 
 /* ---- Windows 3.1 이미지 자동 패치 (메모리 상에서 FAT16 직접 수정) ----
