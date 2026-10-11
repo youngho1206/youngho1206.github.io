@@ -191,7 +191,7 @@ let _tt;function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display=
 let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null;
 $('osSel').value=OSID;
 $('osSel').onchange=e=>{location.search='?os='+e.target.value};
-$('exitBtn').onclick=e=>{e.preventDefault();if(history.length>1&&document.referrer)history.back();else location.href='index.html'};
+$('exitBtn').onclick=e=>{e.preventDefault();location.href='index.html'};   /* 나가기: 항상 index.html 로 이동 */
 document.querySelectorAll('.toolbar button').forEach(b=>b.addEventListener('click',()=>b.blur()));
 
 /* ---------- 안내창 ---------- */
@@ -230,6 +230,7 @@ async function probe(id){
 }
 let _cache;
 const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os3'):Promise.resolve(null)).catch(()=>null));
+const memBlob=ab=>({size:ab.byteLength,buf:ab,arrayBuffer:async()=>ab});
 async function fetchBlob(f,onProg){
   let err;
   for(let t=0;t<3;t++){
@@ -237,24 +238,30 @@ async function fetchBlob(f,onProg){
       const r=await fetch(f.u,{cache:'no-cache'});
       if(!r.ok)throw Error('서버 응답 '+r.status);
       const total=f.size||+r.headers.get('content-length')||0;
-      if(!r.body||!r.body.getReader){const b=await r.blob();onProg(b.size,total||b.size);return b}
+      /* Blob 대신 메모리 버퍼로 직접 모음 (시크릿 모드/저장공간 부족 시 Blob 읽기 오류 'requested file could not be read' 방지) */
+      if(!r.body||!r.body.getReader){const ab=await r.arrayBuffer();onProg(ab.byteLength,total||ab.byteLength);return memBlob(ab)}
       const rd=r.body.getReader(),parts=[];let got=0;
       for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;onProg(got,total)}
-      return new Blob(parts);
+      const out=new Uint8Array(got);let pos=0;for(const p of parts){out.set(p,pos);pos+=p.length}
+      parts.length=0;
+      return memBlob(out.buffer);
     }catch(e){err=e;if(t<2)await sleep(700*(t+1))}
   }
   throw err;
 }
 async function getServerBlob(f,label){
   const cache=await getCache();
-  try{const hit=cache&&await cache.match(f.u);if(hit&&f.size&&f.ver&&hit.headers.get('x-ver')===f.ver){const b=await hit.blob();if(b.size===f.size)return b}}catch(_){}
+  try{
+    const hit=cache&&await cache.match(f.u);
+    if(hit&&f.size&&f.ver&&hit.headers.get('x-ver')===f.ver){const ab=await hit.arrayBuffer();if(ab.byteLength===f.size)return memBlob(ab)}
+  }catch(_){try{cache&&await cache.delete(f.u)}catch(__){}}   /* 읽을 수 없는 캐시는 지우고 서버에서 다시 받음 */
   const t0=performance.now();let last=0;
   const blob=await fetchBlob(f,(got,total)=>{
     const now=performance.now();if(now-last<150)return;last=now;
     const sp=got/Math.max(.001,(now-t0)/1000);
     ov(OS.n,label||'서버에서 이미지를 받는 중…',{pct:total?got/total*100:50,sub:`${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`});
   });
-  try{cache&&await cache.put(f.u,new Response(blob,{headers:{'x-ver':f.ver||''}}))}catch(_){}
+  try{cache&&await cache.put(f.u,new Response(blob.buf.slice(0),{headers:{'x-ver':f.ver||''}}))}catch(_){try{cache&&await cache.delete(f.u)}catch(__){}}
   return blob;
 }
 
