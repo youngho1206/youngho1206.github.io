@@ -89,6 +89,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
  .a.down{background:#8e8e93}
  .bub{background:#6b6b6f;color:#fff}
 }
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:92vw;background:rgba(0,0,0,.88);color:#fff;border:1px solid #888;padding:8px 12px;font:13px/1.5 Arial,"Malgun Gothic";z-index:60;display:none;pointer-events:none;text-align:center}
 @media(max-width:700px){.status{display:none}.help{display:none}.toolbar button,.toolbar label,.toolbar a.btn{padding:8px 9px}}
 </style>
 </head>
@@ -148,6 +149,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
   <div class="help" id="help">화면을 클릭/터치하면 마우스가 연결됩니다. ESC로 마우스 해제 · F11 전체화면 · v86 x86 에뮬레이터</div>
 </div>
 <div class="bub" id="bub"></div>
+<div id="toast"></div>
 
 <script>
 "use strict";
@@ -175,6 +177,7 @@ const mb=b=>(b/1048576).toFixed(1)+'MB';
 const fmt=s=>(isFinite(s)&&s>=0)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const status=t=>{$('status').textContent=t};
+let _tt;function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(_tt);_tt=setTimeout(()=>{t.style.display='none'},ms||4000)}   /* 모바일은 상태줄이 숨겨져서 안내를 화면에 직접 표시 */
 
 let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null;
 $('osSel').value=OSID;
@@ -199,20 +202,21 @@ function noImage(extra){
 }
 
 /* ---------- 서버 이미지 찾기 / 받기 ---------- */
+async function probeUrl(u){
+  try{
+    const ac=new AbortController();
+    const r=await fetch(u,{headers:{Range:'bytes=0-0'},cache:'no-store',signal:ac.signal});
+    const ct=r.headers.get('content-type')||'';let size=0;
+    if(r.status===206){const m=(r.headers.get('content-range')||'').match(/\/(\d+)\s*$/);size=m?+m[1]:0}
+    else if(r.ok)size=+r.headers.get('content-length')||0;
+    const ok=r.ok&&!/html/i.test(ct);
+    try{ac.abort()}catch(_){}
+    if(ok)return{u,size};
+  }catch(_){}
+  return null;
+}
 async function probe(id){
-  for(const e of['img','zip','iso']){
-    const u=`os/${id}/${id}.${e}`;
-    try{
-      const ac=new AbortController();
-      const r=await fetch(u,{headers:{Range:'bytes=0-0'},cache:'no-store',signal:ac.signal});
-      const ct=r.headers.get('content-type')||'';let size=0;
-      if(r.status===206){const m=(r.headers.get('content-range')||'').match(/\/(\d+)\s*$/);size=m?+m[1]:0}
-      else if(r.ok)size=+r.headers.get('content-length')||0;
-      const ok=r.ok&&!/html/i.test(ct);
-      try{ac.abort()}catch(_){}
-      if(ok)return{u,size};
-    }catch(_){}
-  }
+  for(const e of['img','zip','iso']){const f=await probeUrl(`os/${id}/${id}.${e}`);if(f)return f}
   return null;
 }
 let _cache;
@@ -232,14 +236,14 @@ async function fetchBlob(f,onProg){
   }
   throw err;
 }
-async function getServerBlob(f){
+async function getServerBlob(f,label){
   const cache=await getCache();
   try{const hit=cache&&await cache.match(f.u);if(hit&&f.size){const b=await hit.blob();if(b.size===f.size)return b}}catch(_){}
   const t0=performance.now();let last=0;
   const blob=await fetchBlob(f,(got,total)=>{
     const now=performance.now();if(now-last<150)return;last=now;
     const sp=got/Math.max(.001,(now-t0)/1000);
-    ov(OS.n,'서버에서 이미지를 받는 중…',{pct:total?got/total*100:50,sub:`${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`});
+    ov(OS.n,label||'서버에서 이미지를 받는 중…',{pct:total?got/total*100:50,sub:`${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`});
   });
   try{cache&&await cache.put(f.u,new Response(blob))}catch(_){}
   return blob;
@@ -253,7 +257,8 @@ async function needZip(){
   throw Error('ZIP 해제 도구를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
 }
 const DISK_RE=/\.(img|ima|iso|vhd|vfd|flp)$/i;
-async function unzipDisk(buf,prog){
+async function unzipDisk(buf,prog,re,what){
+  re=re||DISK_RE;what=what||'디스크 이미지(img/iso)';
   const u8=new Uint8Array(buf),dv=new DataView(buf);
   let e=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
   if(e>=0){
@@ -264,8 +269,8 @@ async function unzipDisk(buf,prog){
       list.push({name:new TextDecoder().decode(u8.subarray(p+46,p+46+nl)),method,csz,usz,lho});
       p+=46+nl+el+cl;
     }
-    const ent=list.find(x=>DISK_RE.test(x.name)&&x.usz>0);
-    if(!ent)throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
+    const ent=list.find(x=>re.test(x.name)&&x.usz>0);
+    if(!ent)throw Error('ZIP 안에 '+what+'이 없습니다');
     const start=ent.lho+30+dv.getUint16(ent.lho+26,true)+dv.getUint16(ent.lho+28,true);
     const comp=u8.subarray(start,start+ent.csz);
     if(ent.method===0)return{name:ent.name,buf:comp.slice().buffer};
@@ -281,8 +286,8 @@ async function unzipDisk(buf,prog){
   }
   await needZip();
   const z=await JSZip.loadAsync(buf);
-  const im=Object.values(z.files).find(f=>!f.dir&&DISK_RE.test(f.name));
-  if(!im)throw Error('ZIP 안에 디스크 이미지(img/iso)가 없습니다');
+  const im=Object.values(z.files).find(f=>!f.dir&&re.test(f.name));
+  if(!im)throw Error('ZIP 안에 '+what+'이 없습니다');
   const a=await im.async('uint8array',m=>prog&&prog(m.percent));
   return{name:im.name,buf:(a.byteOffset===0&&a.byteLength===a.buffer.byteLength)?a.buffer:a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength)};
 }
@@ -387,20 +392,15 @@ async function loadV86(){
    Windows 95의 '제어기 정보 데이터베이스 작성'(새 하드웨어 감지)을 건너뛰기 위한 용도. */
 async function loadServerState(id,prog){
   for(const ext of['.v86state','.v86state.zip']){
-    const u='os/'+id+'/'+id+ext;
-    if(!await urlOk(u))continue;
+    const f=await probeUrl('os/'+id+'/'+id+ext);
+    if(!f)continue;
     try{
-      const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;
-      let buf=await r.arrayBuffer();
-      if(ext.endsWith('.zip')){
-        await needZip();
-        const z=await JSZip.loadAsync(buf);
-        const f=Object.values(z.files).find(x=>!x.dir);if(!f)continue;
-        const a=await f.async('uint8array',m=>prog&&prog(m.percent));
-        buf=a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);
-      }
-      return buf;
-    }catch(e){console.warn('상태 파일 불러오기 실패',e)}
+      const blob=await getServerBlob(f,'저장된 상태를 받는 중…');   /* 한 번 받으면 브라우저에 보관되어 다음부터 빠름 */
+      if(!ext.endsWith('.zip'))return await blob.arrayBuffer();
+      ov(OS.n,'상태 파일 압축 해제 중…',{pct:0});
+      const r=await unzipDisk(await blob.arrayBuffer(),prog,/./,'상태 파일');
+      return r.buf;
+    }catch(e){console.warn('상태 파일 불러오기 실패',e);toast('상태 파일 불러오기 실패: '+(e&&e.message||e),9000)}
   }
   return null;
 }
@@ -435,8 +435,15 @@ async function makeEmulator(d){
   if(stateBuf){
     const sb=stateBuf;
     emu.add_listener('emulator-ready',async()=>{
-      try{status('저장된 상태 복원 중…');await emu.restore_state(sb.slice(0));emu.run();status(diskName+' 실행 중 (저장된 상태)')}
-      catch(err){console.error('상태 복원 실패',err);status('상태 복원 실패 – 일반 부팅');try{emu.restart();emu.run()}catch(_){}}
+      try{
+        status('저장된 상태 복원 중…');toast('저장된 상태 복원 중…',3000);
+        await emu.restore_state(sb);emu.run();
+        status(diskName+' 실행 중 (저장된 상태)');toast('저장된 상태로 시작했습니다',2500);
+      }catch(err){
+        console.error('상태 복원 실패',err);
+        toast('상태 복원 실패: '+(err&&err.message||err)+' → 일반 부팅합니다',14000);
+        status('상태 복원 실패 – 일반 부팅');try{emu.restart();emu.run()}catch(_){}
+      }
     });
   }
   emu.add_listener('emulator-started',()=>{adapterOff();status(diskName+' 실행 중');fit();setTimeout(fit,300)});
@@ -465,6 +472,7 @@ async function start(force){
     ov(OS.n,'저장된 상태 확인 중…',{pct:90});
     stateBuf=await loadServerState(OSID,q=>ov(OS.n,'상태 파일 압축 해제 중…',{pct:q}));
     if(my!==booting)return;
+    if(!stateBuf&&OSID==='win95')toast('os/win95/win95.v86state(.zip) 상태 파일을 찾지 못해 일반 부팅합니다',9000);
     await makeEmulator(d);
   }catch(e){
     console.error(e);status('오류');
