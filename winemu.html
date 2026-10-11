@@ -191,7 +191,7 @@ let _tt;function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display=
 let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null;
 $('osSel').value=OSID;
 $('osSel').onchange=e=>{location.search='?os='+e.target.value};
-$('exitBtn').onclick=e=>{e.preventDefault();location.href='index.html'};   /* 나가기: 항상 index.html 로 이동 */
+$('exitBtn').onclick=e=>{e.preventDefault();if(history.length>1&&document.referrer)history.back();else location.href='index.html'};
 document.querySelectorAll('.toolbar button').forEach(b=>b.addEventListener('click',()=>b.blur()));
 
 /* ---------- 안내창 ---------- */
