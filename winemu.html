@@ -176,7 +176,7 @@ const fmt=s=>(isFinite(s)&&s>=0)?Math.floor(s/60)+':'+String(Math.round(s%60)).p
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const status=t=>{$('status').textContent=t};
 
-let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1;
+let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null;
 $('osSel').value=OSID;
 $('osSel').onchange=e=>{location.search='?os='+e.target.value};
 $('exitBtn').onclick=e=>{e.preventDefault();if(history.length>1&&document.referrer)history.back();else location.href='index.html'};
@@ -382,13 +382,36 @@ async function loadV86(){
   return L=B;
 }
 
+/* ---------- 저장된 상태(스냅샷) 자동 불러오기 ----------
+   os/<id>/<id>.v86state (또는 .v86state.zip) 이 서버에 있으면 부팅 과정 없이 그 시점(바탕화면)에서 바로 시작.
+   Windows 95의 '제어기 정보 데이터베이스 작성'(새 하드웨어 감지)을 건너뛰기 위한 용도. */
+async function loadServerState(id,prog){
+  for(const ext of['.v86state','.v86state.zip']){
+    const u='os/'+id+'/'+id+ext;
+    if(!await urlOk(u))continue;
+    try{
+      const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;
+      let buf=await r.arrayBuffer();
+      if(ext.endsWith('.zip')){
+        await needZip();
+        const z=await JSZip.loadAsync(buf);
+        const f=Object.values(z.files).find(x=>!x.dir);if(!f)continue;
+        const a=await f.async('uint8array',m=>prog&&prog(m.percent));
+        buf=a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);
+      }
+      return buf;
+    }catch(e){console.warn('상태 파일 불러오기 실패',e)}
+  }
+  return null;
+}
+
 /* ---------- 에뮬레이터 시작 ---------- */
 async function makeEmulator(d){
   const lib=await loadV86();
   if(emu){try{emu.destroy()}catch(e){try{emu.stop()}catch(_){}}emu=null}
   $('screen_container').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
   const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
-  const ram=Math.min(OS.ram,lowMem?32:OS.ram);
+  const ram=(stateBuf||OSID==='win95')?OS.ram:Math.min(OS.ram,lowMem?32:OS.ram);  /* Win95/상태 파일은 RAM 고정(저장·복원 RAM이 같아야 함) */
   const o={
     wasm_path:lib.wasm,
     memory_size:ram*1048576,
@@ -396,7 +419,7 @@ async function makeEmulator(d){
     screen_container:$('screen_container'),
     bios:{url:lib.bios},
     vga_bios:{url:lib.vga},
-    autostart:true,
+    autostart:!stateBuf,
     disable_mouse:false,
     disable_keyboard:false,
     preserve_mac_from_state_image:true
@@ -408,6 +431,13 @@ async function makeEmulator(d){
   }catch(err){
     console.error(err);status('시작 실패: '+err.message);
     ov(OS.n,'시작 실패: '+err.message,{btns:[['다시 시도',()=>start(true)]]});return;
+  }
+  if(stateBuf){
+    const sb=stateBuf;
+    emu.add_listener('emulator-ready',async()=>{
+      try{status('저장된 상태 복원 중…');await emu.restore_state(sb.slice(0));emu.run();status(diskName+' 실행 중 (저장된 상태)')}
+      catch(err){console.error('상태 복원 실패',err);status('상태 복원 실패 – 일반 부팅');try{emu.restart();emu.run()}catch(_){}}
+    });
   }
   emu.add_listener('emulator-started',()=>{adapterOff();status(diskName+' 실행 중');fit();setTimeout(fit,300)});
   emu.add_listener('screen-set-mode',()=>{setTimeout(fit,30);setTimeout(fit,400)});
@@ -432,6 +462,9 @@ async function start(force){
     if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
     disk=d;diskName=f.u.split('/').pop();
     if(my!==booting)return;
+    ov(OS.n,'저장된 상태 확인 중…',{pct:90});
+    stateBuf=await loadServerState(OSID,q=>ov(OS.n,'상태 파일 압축 해제 중…',{pct:q}));
+    if(my!==booting)return;
     await makeEmulator(d);
   }catch(e){
     console.error(e);status('오류');
@@ -446,7 +479,7 @@ async function loadLocalFile(file){
     const d=await toDisk(file.name,file,q=>ov(OS.n,'이미지 압축 해제 중…',{pct:q}));
     if(my!==booting)return;
     if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
-    disk=d;diskName=file.name;
+    disk=d;diskName=file.name;stateBuf=null;
     await makeEmulator(d);
   }catch(e){
     console.error(e);status('오류');
