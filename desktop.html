@@ -253,9 +253,23 @@ body.mob.fs.port #rot{display:flex}
 
 /* ---------- 레트로 콘솔 아이콘(PNG, icons/ 폴더) ---------- */
 /* 모든 아이콘을 먼저 내려받아 한 번에 표시 (최대 5초 대기 후 진행) */
-const ICONS_READY=WT.ready.then(()=>Promise.race([
- Promise.all(Object.values(IMG).map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=WT.src(n);if(i.decode)i.decode().then(r,r)}))),
- new Promise(r=>setTimeout(r,5000))]));
+/* WT.ready 가 끝내 해결되지 않거나 오류가 나도 목록이 막히지 않도록 3초 제한 + 오류 무시 */
+const ICONS_READY=Promise.race([
+ Promise.resolve().then(()=>window.WT&&WT.ready).catch(()=>0),
+ new Promise(r=>setTimeout(r,3000))
+]).then(()=>Promise.race([
+ Promise.all(Object.values(IMG).map(n=>new Promise(r=>{
+  try{const i=new Image();i.onload=i.onerror=()=>r();i.src=WT.src(n);if(i.decode)i.decode().then(r,r)}catch(_){r()}
+ }))),
+ new Promise(r=>setTimeout(r,5000))])).catch(()=>0);
+/* 아이콘 이미지가 한 번 실패하면 주소 뒤에 값을 붙여 1회 재시도 */
+document.addEventListener('error',e=>{
+ const t=e.target;
+ if(t&&t.tagName==='IMG'&&t.closest&&t.closest('#cards,#cats')&&!t.dataset.retry){
+  t.dataset.retry='1';const s=t.getAttribute('src')||'';
+  setTimeout(()=>{t.src=s+(s.indexOf('?')>-1?'&':'?')+'r='+Date.now()},600);
+ }
+},true);
 function icon(c){
  return `<img src="${WT.src(IMG[c.id])}" data-k="${IMG[c.id]}" alt="${c.n}" width="256" height="256" draggable="false">`;
 }
@@ -1046,6 +1060,30 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  if(window.ResizeObserver){const ro=new ResizeObserver(apply);ro.observe($$('stage'));ro.observe($$('pstage'))}
  ['resize','orientationchange','fullscreenchange','webkitfullscreenchange'].forEach(v=>addEventListener(v,()=>setTimeout(apply,80)));
  apply();
+})();
+</script>
+<script>
+/* ===== 목록 표시 감시: 카드가 비었거나 안 보이면 강제로 보이게 하고, 그래도 안 되면 1회 새로고침 ===== */
+(function(){
+ function shown(){
+  const c=document.getElementById('cards');if(!c)return true;
+  const it=c.children[0];if(!it)return false;
+  const r=it.getBoundingClientRect(),cs=getComputedStyle(it);
+  return r.width>0&&r.height>0&&cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity)>0.05;
+ }
+ function check(n){
+  if(shown()){try{sessionStorage.removeItem('iconRetry')}catch(_){}return}
+  if(n===1){
+   const s=document.createElement('style');s.id='forceShow';
+   s.textContent='#list,#cards,#cards>*{opacity:1!important;visibility:visible!important}';
+   document.head.appendChild(s);
+  }
+  if(n<4){setTimeout(()=>check(n+1),1000);return}
+  let done=0;try{done=sessionStorage.getItem('iconRetry')==='1';sessionStorage.setItem('iconRetry','1')}catch(_){}
+  if(!done)location.reload();
+ }
+ addEventListener('load',()=>setTimeout(()=>check(0),1500));
+ addEventListener('pageshow',e=>{if(e.persisted)setTimeout(()=>check(0),500)});
 })();
 </script>
 <script src="pcplus.js?v=2"></script>
