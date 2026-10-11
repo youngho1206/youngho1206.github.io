@@ -114,6 +114,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
     <label>💾 이미지 불러오기<input id="imageFile" type="file" accept=".img,.ima,.vhd,.vfd,.flp,.iso,.zip,application/octet-stream,application/zip"></label>
     <button id="save">⬇ 상태 저장</button>
     <label>⬆ 상태 불러오기<input id="stateFile" type="file" accept=".bin,.state,.v86state,application/octet-stream"></label>
+    <button id="saveDisk" title="웹에서 감지·설정을 끝낸 디스크를 zip으로 저장">💾 디스크 저장</button>
     <span class="status" id="status"></span>
   </div>
 
@@ -513,6 +514,47 @@ $('stateFile').onchange=async e=>{
   status('상태 불러오는 중…');
   const data=await f.arrayBuffer();
   emu.stop();await emu.restore_state(data);emu.run();status('상태 불러오기 완료');
+};
+
+/* ---------- 디스크 저장 (웹에서 하드웨어 감지·설정을 끝낸 디스크를 zip 으로 받기) ----------
+   사용법: 윈도우95가 뜨면 '새 하드웨어' 마법사/감지를 모두 끝내고 화면 설정(VBE 256색 등)을 한 뒤,
+   시작 → 시스템 종료 → '컴퓨터를 꺼도 좋습니다' 화면에서 이 버튼을 누른다. 받은 zip 을 os/<id>/ 에 올리면 다음부터 감지 없이 부팅. */
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRCT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+async function deflateParts(u,prog){
+  const cs=new CompressionStream('deflate-raw'),w=cs.writable.getWriter(),rd=cs.readable.getReader(),parts=[];
+  const reader=(async()=>{for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value)}})();
+  const CH=1<<20;
+  for(let o=0;o<u.length;o+=CH){await w.write(u.subarray(o,Math.min(u.length,o+CH)));prog&&prog(o/u.length*100)}
+  await w.close();await reader;return parts;
+}
+async function makeZip(name,u,prog){
+  const parts=await deflateParts(u,prog),csz=parts.reduce((a,p)=>a+p.length,0),nm=new TextEncoder().encode(name),crc=crc32(u);
+  const lh=new DataView(new ArrayBuffer(30));
+  lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,8,true);lh.setUint16(12,0x21,true);
+  lh.setUint32(14,crc,true);lh.setUint32(18,csz,true);lh.setUint32(22,u.length,true);lh.setUint16(26,nm.length,true);
+  const cd=new DataView(new ArrayBuffer(46));
+  cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x0800,true);cd.setUint16(10,8,true);cd.setUint16(14,0x21,true);
+  cd.setUint32(16,crc,true);cd.setUint32(20,csz,true);cd.setUint32(24,u.length,true);cd.setUint16(28,nm.length,true);
+  const eo=new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true);eo.setUint16(8,1,true);eo.setUint16(10,1,true);eo.setUint32(12,46+nm.length,true);eo.setUint32(16,30+nm.length+csz,true);
+  return new Blob([lh,nm,...parts,cd,nm,eo],{type:'application/zip'});
+}
+$('saveDisk').onclick=async()=>{
+  if(!emu||!disk||disk.k!=='hd'){alert('먼저 '+OS.n+'을(를) 시작해서 하드디스크 이미지로 부팅하세요.');return}
+  const was=emu.is_running();try{emu.stop()}catch(_){}
+  try{
+    const u=new Uint8Array(disk.buf);let blob,fn;
+    if(typeof CompressionStream==='function'){
+      status('디스크 압축 중… 0%');
+      blob=await makeZip(OSID+'.img',u,p=>status('디스크 압축 중… '+Math.round(p)+'%'));fn=OSID+'.zip';
+    }else{blob=new Blob([u],{type:'application/octet-stream'});fn=OSID+'.img'}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+    status('디스크 저장 완료: '+fn+' ('+mb(blob.size)+')');
+    toast(fn+' 저장 완료 ('+mb(blob.size)+')'+(blob.size>95*1048576?' – GitHub 파일 제한(100MB)에 가까우니 주의':''),8000);
+  }catch(e){console.error(e);status('디스크 저장 실패');alert('디스크 저장 실패: '+(e&&e.message||e))}
+  if(was){try{emu.run()}catch(_){}}
 };
 /* 파일 끌어놓기 */
 $('screen').addEventListener('dragover',e=>e.preventDefault());
