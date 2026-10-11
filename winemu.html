@@ -378,10 +378,7 @@ async function loadV86(){
   for(const c of libs){try{await loadScript(c.lib);if(window.V86||window.V86Starter){B=c;break}}catch(e){lastErr=e}}
   if(!B)throw Error('v86 엔진을 불러오지 못했습니다. os/v86/libv86.js, os/v86/v86.wasm 파일을 확인하세요. '+(lastErr&&lastErr.message||''));
   const gh='https://cdn.jsdelivr.net/gh/copy/v86@master/bios/';
-  /* Windows 95는 seabios.bin으로 부팅하면 로고 직후 종료 화면으로 빠짐 → bochs-bios.bin 사용 (서버 테스트로 확인) */
-  B.bios=OSID==='win95'
-    ?await firstOk(['os/v86/bochs-bios.bin','v86/bochs-bios.bin',gh+'bochs-bios.bin','os/v86/seabios.bin','v86/seabios.bin',gh+'seabios.bin'])
-    :await firstOk(['os/v86/seabios.bin','v86/seabios.bin',gh+'seabios.bin']);
+  B.bios=await firstOk(['os/v86/seabios.bin','v86/seabios.bin',gh+'seabios.bin']);   /* 모든 윈도우 공통 바이오스 */
   B.vga=await firstOk(['os/v86/vgabios.bin','v86/vgabios.bin',gh+'vgabios.bin']);
   console.log('[v86]',B);
   return L=B;
@@ -393,7 +390,7 @@ async function makeEmulator(d){
   if(emu){try{emu.destroy()}catch(e){try{emu.stop()}catch(_){}}emu=null}
   $('screen_container').innerHTML='<div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas>';
   const lowMem=(navigator.deviceMemory&&navigator.deviceMemory<=4)||innerWidth<700;
-  const ram=(stateBuf||OSID==='win95')?OS.ram:Math.min(OS.ram,lowMem?32:OS.ram);  /* Win95/상태 파일은 RAM 고정(저장·복원 RAM이 같아야 함) */
+  const ram=stateBuf?OS.ram:Math.min(OS.ram,lowMem?32:OS.ram);  /* 상태 파일 복원 때만 RAM 고정 */
   const o={
     wasm_path:lib.wasm,
     memory_size:ram*1048576,
