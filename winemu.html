@@ -211,7 +211,7 @@ async function probeUrl(u){
     else if(r.ok)size=+r.headers.get('content-length')||0;
     const ok=r.ok&&!/html/i.test(ct);
     try{ac.abort()}catch(_){}
-    if(ok)return{u,size};
+    if(ok)return{u,size,ver:r.headers.get('etag')||r.headers.get('last-modified')||''};
   }catch(_){}
   return null;
 }
@@ -220,7 +220,7 @@ async function probe(id){
   return null;
 }
 let _cache;
-const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os2'):Promise.resolve(null)).catch(()=>null));
+const getCache=()=>_cache||(_cache=(self.caches?caches.open('cyh-os3'):Promise.resolve(null)).catch(()=>null));
 async function fetchBlob(f,onProg){
   let err;
   for(let t=0;t<3;t++){
@@ -238,14 +238,14 @@ async function fetchBlob(f,onProg){
 }
 async function getServerBlob(f,label){
   const cache=await getCache();
-  try{const hit=cache&&await cache.match(f.u);if(hit&&f.size){const b=await hit.blob();if(b.size===f.size)return b}}catch(_){}
+  try{const hit=cache&&await cache.match(f.u);if(hit&&f.size&&f.ver&&hit.headers.get('x-ver')===f.ver){const b=await hit.blob();if(b.size===f.size)return b}}catch(_){}
   const t0=performance.now();let last=0;
   const blob=await fetchBlob(f,(got,total)=>{
     const now=performance.now();if(now-last<150)return;last=now;
     const sp=got/Math.max(.001,(now-t0)/1000);
     ov(OS.n,label||'서버에서 이미지를 받는 중…',{pct:total?got/total*100:50,sub:`${mb(got)}${total?' / '+mb(total):''} · ${mb(sp)}/s${total&&sp>0?' · 남은 시간 '+fmt((total-got)/sp):''}`});
   });
-  try{cache&&await cache.put(f.u,new Response(blob))}catch(_){}
+  try{cache&&await cache.put(f.u,new Response(blob,{headers:{'x-ver':f.ver||''}}))}catch(_){}
   return blob;
 }
 
@@ -387,24 +387,6 @@ async function loadV86(){
   return L=B;
 }
 
-/* ---------- 저장된 상태(스냅샷) 자동 불러오기 ----------
-   os/<id>/<id>.v86state (또는 .v86state.zip) 이 서버에 있으면 부팅 과정 없이 그 시점(바탕화면)에서 바로 시작.
-   Windows 95의 '제어기 정보 데이터베이스 작성'(새 하드웨어 감지)을 건너뛰기 위한 용도. */
-async function loadServerState(id,prog){
-  for(const ext of['.v86state','.v86state.zip']){
-    const f=await probeUrl('os/'+id+'/'+id+ext);
-    if(!f)continue;
-    try{
-      const blob=await getServerBlob(f,'저장된 상태를 받는 중…');   /* 한 번 받으면 브라우저에 보관되어 다음부터 빠름 */
-      if(!ext.endsWith('.zip'))return await blob.arrayBuffer();
-      ov(OS.n,'상태 파일 압축 해제 중…',{pct:0});
-      const r=await unzipDisk(await blob.arrayBuffer(),prog,/./,'상태 파일');
-      return r.buf;
-    }catch(e){console.warn('상태 파일 불러오기 실패',e);toast('상태 파일 불러오기 실패: '+(e&&e.message||e),9000)}
-  }
-  return null;
-}
-
 /* ---------- 에뮬레이터 시작 ---------- */
 async function makeEmulator(d){
   const lib=await loadV86();
@@ -469,10 +451,7 @@ async function start(force){
     if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
     disk=d;diskName=f.u.split('/').pop();
     if(my!==booting)return;
-    ov(OS.n,'저장된 상태 확인 중…',{pct:90});
-    stateBuf=await loadServerState(OSID,q=>ov(OS.n,'상태 파일 압축 해제 중…',{pct:q}));
-    if(my!==booting)return;
-    if(!stateBuf&&OSID==='win95')toast('os/win95/win95.v86state(.zip) 상태 파일을 찾지 못해 일반 부팅합니다',9000);
+    stateBuf=null;   /* 서버 상태 파일(.v86state)은 찾지 않고 항상 일반 부팅 */
     await makeEmulator(d);
   }catch(e){
     console.error(e);status('오류');
