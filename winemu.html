@@ -120,6 +120,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
     <label class="mx" data-slot="cd" title="CD-ROM(ISO) 이미지 넣기">📀 CD-ROM<input id="cdFile" type="file" accept=".iso,.bin,.img,.zip,application/octet-stream,application/zip"></label>
     <button class="mx" data-slot="cd" id="cdEject" title="CD-ROM 꺼내기">⏏</button>
     <label>💾 이미지 불러오기<input id="imageFile" type="file" accept=".img,.ima,.vhd,.vfd,.flp,.iso,.zip,application/octet-stream,application/zip"></label>
+    <label title="바로 윈도우가 실행되는 ZIP(안에 디스크 이미지) 불러와서 즉시 실행">📦 ZIP 바로실행<input id="zipRunFile" type="file" accept=".zip,application/zip,application/x-zip-compressed"></label>
     <button id="save">⬇ 상태 저장</button>
     <label>⬆ 상태 불러오기<input id="stateFile" type="file" accept=".bin,.state,.v86state,application/octet-stream"></label>
     <button id="saveDisk" title="웹에서 감지·설정을 끝낸 디스크를 zip으로 저장">💾 디스크 저장</button>
@@ -188,7 +189,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const status=t=>{$('status').textContent=t};
 let _tt;function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(_tt);_tt=setTimeout(()=>{t.style.display='none'},ms||4000)}   /* 모바일은 상태줄이 숨겨져서 안내를 화면에 직접 표시 */
 
-let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null;
+let emu=null,L=null,disk=null,diskName='',booting=0,zoom=1,stateBuf=null,skipAuto=false;   /* skipAuto: ZIP 바로실행 때 자동 부팅 입력/패치 생략 */
 $('osSel').value=OSID;
 $('osSel').onchange=e=>{location.search='?os='+e.target.value};
 $('exitBtn').onclick=e=>{e.preventDefault();location.href='index.html'};   /* 나가기: 항상 index.html 로 이동 */
@@ -533,7 +534,7 @@ async function makeEmulator(d){
       }
     });
   }
-  emu.add_listener('emulator-started',()=>{adapterOff();status(diskName+' 실행 중');fit();setTimeout(fit,300);if(!stateBuf)autoBoot()});
+  emu.add_listener('emulator-started',()=>{adapterOff();status(diskName+' 실행 중');fit();setTimeout(fit,300);if(!stateBuf&&!skipAuto)autoBoot()});
   emu.add_listener('screen-set-mode',()=>{setTimeout(fit,30);setTimeout(fit,400)});
   emu.add_listener('download-error',e=>ov(OS.n,'파일 다운로드 오류: '+((e&&e.file_name)||'알 수 없음'),{btns:[['다시 시도',()=>start(true)]]}));
   adapterOff();
@@ -543,6 +544,8 @@ async function makeEmulator(d){
 /* 서버 이미지(또는 이미 읽어둔 이미지)로 시작 */
 async function start(force){
   const my=++booting;
+  if(!disk||!force)skipAuto=false;
+  if(force&&!disk)skipAuto=false;
   try{
     if(disk&&!force){await makeEmulator(disk);return}
     ov(OS.n,'서버에서 이미지를 찾는 중…',{pct:3});status('이미지 찾는 중…');
@@ -571,13 +574,31 @@ async function loadLocalFile(file){
     const d=await toDisk(file.name,file,q=>ov(OS.n,'이미지 압축 해제 중…',{pct:q}));
     if(my!==booting)return;
     if(OSID==='win31'&&d.k==='hd'){const r=patchWin31(d.buf);console.log('[win31]',r)}
-    disk=d;diskName=file.name;stateBuf=null;
+    disk=d;diskName=file.name;stateBuf=null;skipAuto=false;
     await makeEmulator(d);
   }catch(e){
     console.error(e);status('오류');
     ov(OS.n,'오류: '+(e&&e.message||e),{btns:[['💾 이미지 불러오기',pickLocal]]});
   }
 }
+/* ZIP 바로실행: 이미 윈도우가 설치·설정된 디스크 이미지가 든 ZIP → 패치/자동 키 입력 없이 그대로 부팅 */
+async function loadZipRun(file){
+  if(!file)return;
+  if(!/\.zip$/i.test(file.name)){toast('ZIP 파일을 선택해 주세요',4000);return}
+  const my=++booting;
+  try{
+    ov(OS.n,file.name+' 읽는 중…',{pct:10});status(file.name+' 읽는 중');
+    const d=await toDisk(file.name,file,q=>ov(OS.n,'ZIP 압축 해제 중…',{pct:q}));
+    if(my!==booting)return;
+    disk=d;diskName=file.name;stateBuf=null;skipAuto=true;
+    await makeEmulator(d);
+    toast('ZIP 이미지로 바로 실행합니다',3000);
+  }catch(e){
+    console.error(e);status('오류');
+    ov(OS.n,'오류: '+(e&&e.message||e),{btns:[['📦 ZIP 바로실행',()=>{$('zipRunFile').value='';$('zipRunFile').click()}],['💾 이미지 불러오기',pickLocal]]});
+  }
+}
+$('zipRunFile').onchange=e=>{const f=e.target.files[0];e.target.value='';loadZipRun(f)};
 /* ---------- 플로피 / CD-ROM 이미지 넣기·꺼내기 ----------
    · 윈도우 1.0 / 2.0 / 3.0 : 3.5" 플로피(A:) + 5.25" 플로피(B:)
    · 윈도우 95 / 98          : 3.5" 플로피(A:) + CD-ROM
@@ -647,7 +668,7 @@ $('pause').onclick=()=>{
   if(emu.is_running()){emu.stop();status('일시정지');$('pause').textContent='▶ 계속';}
   else{emu.run();status(diskName+' 실행 중');$('pause').textContent='⏸ 일시정지';}
 };
-$('reset').onclick=()=>{if(!emu)return;try{emu.restart();status('재시작');autoBoot()}catch(e){console.error(e)}};
+$('reset').onclick=()=>{if(!emu)return;try{emu.restart();status('재시작');if(!skipAuto)autoBoot()}catch(e){console.error(e)}};
 $('save').onclick=async()=>{
   if(!emu){alert('먼저 '+OS.n+'을(를) 시작하세요.');return}
   status('상태 저장 중…');
