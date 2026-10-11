@@ -119,6 +119,8 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
     <button class="mx" data-slot="fdb" id="fdbEject" title="5.25인치 플로피 꺼내기">⏏</button>
     <label class="mx" data-slot="cd" title="CD-ROM(ISO) 이미지 넣기">📀 CD-ROM<input id="cdFile" type="file" accept=".iso,.bin,.img,.zip,application/octet-stream,application/zip"></label>
     <button class="mx" data-slot="cd" id="cdEject" title="CD-ROM 꺼내기">⏏</button>
+    <label class="mx" data-slot="hdb" title="내 기기의 폴더를 윈도우 드라이브(D: 등)로 공유">📁 폴더 공유<input id="hdbFile" type="file" webkitdirectory multiple></label>
+    <button class="mx" data-slot="hdb" id="hdbEject" title="공유 폴더 해제">⏏</button>
     <label>💾 이미지 불러오기<input id="imageFile" type="file" accept=".img,.ima,.vhd,.vfd,.flp,.iso,.zip,application/octet-stream,application/zip"></label>
     <label title="바로 윈도우가 실행되는 ZIP(안에 디스크 이미지) 불러와서 즉시 실행">📦 ZIP 바로실행<input id="zipRunFile" type="file" accept=".zip,application/zip,application/x-zip-compressed"></label>
     <button id="save">⬇ 상태 저장</button>
@@ -513,6 +515,7 @@ async function makeEmulator(d){
   if(media.fda&&MEDIA_OS.fda.includes(OSID))o.fda={buffer:media.fda};
   if(media.fdb&&MEDIA_OS.fdb.includes(OSID))o.fdb={buffer:media.fdb};
   if(media.cd&&d.k!=='cd'&&MEDIA_OS.cd.includes(OSID))o.cdrom={buffer:media.cd};
+  if(media.hdb&&d.k==='hd')o.hdb={buffer:media.hdb};   /* 공유 폴더 = 두 번째 하드디스크(FAT16) */
   ovHide();status(OS.n+' 시작 중…');
   try{
     emu=new(window.V86||window.V86Starter)(o);
@@ -603,10 +606,10 @@ $('zipRunFile').onchange=e=>{const f=e.target.files[0];e.target.value='';loadZip
    · 윈도우 1.0 / 2.0 / 3.0 : 3.5" 플로피(A:) + 5.25" 플로피(B:)
    · 윈도우 95 / 98          : 3.5" 플로피(A:) + CD-ROM
    에뮬레이터가 켜져 있으면 바로 바꿔 끼우고, 꺼져 있으면 다음 시작 때 자동으로 들어갑니다. */
-const MEDIA_OS={fda:['win10','win20','win30','win95','win98'],fdb:['win10','win20','win30'],cd:['win95','win98']};
-const MEDIA_NAME={fda:'3.5" 플로피',fdb:'5.25" 플로피',cd:'CD-ROM'};
-const MEDIA_API={fda:'fda',fdb:'fdb',cd:'cdrom'};
-const media={fda:null,fdb:null,cd:null,names:{}};
+const MEDIA_OS={fda:['win10','win20','win30','win95','win98'],fdb:['win10','win20','win30'],cd:['win95','win98'],hdb:['win10','win20','win30','win31','win95','win98']};
+const MEDIA_NAME={fda:'3.5" 플로피',fdb:'5.25" 플로피',cd:'CD-ROM',hdb:'공유 폴더'};
+const MEDIA_API={fda:'fda',fdb:'fdb',cd:'cdrom',hdb:'hdb'};
+const media={fda:null,fdb:null,cd:null,hdb:null,names:{}};
 const FLOP_SIZES=[163840,184320,327680,368640,737280,1228800,1474560,2949120];
 function refreshMedia(){
   document.querySelectorAll('.mx').forEach(el=>{
@@ -659,6 +662,137 @@ async function loadMedia(slot,file){
   $(inp).onchange=e=>{const f=e.target.files[0];e.target.value='';loadMedia(s,f)};
   $(ej).onclick=async()=>{media[s]=null;delete media.names[s];refreshMedia();await applyMedia(s,true)};
 });
+/* ---------- 폴더 공유 ----------
+   내 기기에서 고른 폴더를 메모리에서 FAT16 디스크로 만들어 두 번째 하드디스크(hdb)로 연결 → 윈도우에서 D: 등 새 드라이브로 보임.
+   · 긴 파일명/한글 이름 지원(LFN)  · 윈도우 안에서 파일 추가·수정 가능(단, 내 기기 폴더에는 되돌려 저장되지 않음, 재시작하면 사라짐)
+   · 적용하려면 에뮬레이터를 다시 시작해야 함 */
+const FN_OK=/^[A-Z0-9!#$%&'()\-@^_`{}~]{1,8}(\.[A-Z0-9!#$%&'()\-@^_`{}~]{1,3})?$/;
+function dosDT(ms){const d=new Date(ms||Date.now());let y=d.getFullYear();if(y<1980)y=1980;if(y>2107)y=2107;return[((y-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1)]}
+function lfnSum(n){let s=0;for(let i=0;i<11;i++)s=(((s&1)<<7)+(s>>1)+n[i])&255;return s}
+function assignNames(dir){
+  const used=new Set();let slots=0;
+  const cl=s=>s.toUpperCase().replace(/[ .]/g,'').replace(/[^A-Z0-9!#$%&'()\-@^_`{}~]/g,'_');
+  for(const k of dir.kids){
+    const nm=k.name,dot=nm.lastIndexOf('.');
+    const b=dot>0?nm.slice(0,dot):nm,e=dot>0?nm.slice(dot+1):'';
+    let B=cl(b)||'_',E=cl(e).slice(0,3),B8,lossless=false;
+    if(nm===nm.toUpperCase()&&FN_OK.test(nm)&&!used.has(B.padEnd(8)+E.padEnd(3))){lossless=true;B8=B}
+    else{for(let n=1;;n++){const t='~'+n;B8=B.slice(0,8-t.length)+t;if(!used.has(B8.padEnd(8)+E.padEnd(3)))break}}
+    const key=B8.padEnd(8)+E.padEnd(3);used.add(key);
+    k.s83=Uint8Array.from(key,c=>c.charCodeAt(0));k.lfn=!lossless;
+    slots+=1+(k.lfn?Math.ceil(nm.length/13):0);
+  }
+  dir.slots=slots;
+}
+async function mkFatImage(files,prog){
+  const root={name:'',dir:true,kids:[],map:new Map(),root:true};
+  const label=((files[0].webkitRelativePath||'').split('/')[0]||'SHARED').toUpperCase().replace(/[^A-Z0-9_\-]/g,'_').slice(0,11)||'SHARED';
+  let nfiles=0;
+  for(const f of files){
+    const parts=(f.webkitRelativePath||f.name).split('/').slice(1).filter(Boolean);
+    if(!parts.length)continue;
+    let cur=root;
+    for(let i=0;i<parts.length-1;i++){let d=cur.map.get(parts[i]);if(!d){d={name:parts[i],dir:true,kids:[],map:new Map(),mt:f.lastModified};cur.map.set(parts[i],d);cur.kids.push(d)}cur=d}
+    cur.kids.push({name:parts[parts.length-1],file:f,size:f.size,mt:f.lastModified});nfiles++;
+  }
+  if(!nfiles)throw Error('폴더에 파일이 없습니다');
+  const dirs=[root];for(let i=0;i<dirs.length;i++)for(const k of dirs[i].kids)if(k.dir)dirs.push(k);
+  const fl=[];let dataTotal=0;
+  for(const d of dirs){assignNames(d);for(const k of d.kids)if(!k.dir){fl.push(k);dataTotal+=k.size}}
+  if(dataTotal>800*1048576)throw Error('폴더가 너무 큽니다 ('+mb(dataTotal)+'). 800MB 이하 폴더를 선택하세요');
+  const rootent=Math.max(512,Math.ceil((root.slots+1)/16)*16),rootsec=rootent*32/512;
+  dirs.forEach(d=>{d.bytes=(d.slots+(d.root?1:2))*32});
+  let spc=0,need=0;
+  for(const s of[1,2,4,8,16,32,64]){
+    const cb=s*512;let n=0;
+    for(const d of dirs)if(!d.root)n+=Math.max(1,Math.ceil(d.bytes/cb));
+    for(const f of fl)n+=Math.ceil(f.size/cb);
+    if(n<=64000){spc=s;need=n;break}
+  }
+  if(!spc)throw Error('파일이 너무 많거나 큽니다');
+  const cb=spc*512;
+  const ncl=Math.min(65000,Math.max(4100,need+Math.ceil(32*1048576/cb)));   /* 윈도우에서 쓸 수 있도록 여유 공간 약 32MB */
+  const fatsz=Math.ceil((ncl+2)*2/512),ds=1+2*fatsz+rootsec,part=ds+ncl*spc,total=63+part;
+  let img;try{img=new Uint8Array(total*512)}catch(e){throw Error('메모리가 부족합니다. 더 작은 폴더를 선택하세요')}
+  const dv=new DataView(img.buffer);
+  const fat=new Uint16Array(ncl+2);fat[0]=0xFFF8;fat[1]=0xFFFF;
+  let next=2;
+  const alloc=n=>{const c0=next;for(let i=0;i<n;i++){fat[next]=(i+1<n)?next+1:0xFFFF;next++}return c0};
+  for(const d of dirs)if(!d.root)d.c0=alloc(Math.max(1,Math.ceil(d.bytes/cb)));
+  for(const f of fl)f.c0=f.size?alloc(Math.ceil(f.size/cb)):0;
+  const cOff=c=>(63+ds+(c-2)*spc)*512;
+  /* MBR */
+  const chs=lba=>{const c=Math.floor(lba/1008);if(c>1023)return[0xFE,0xFF,0xFF];return[Math.floor(lba/63)%16,(lba%63+1)|((c>>8)<<6),c&255]};
+  const pt=446;img[pt]=0;img.set(chs(63),pt+1);img[pt+4]=part>=65536?6:4;img.set(chs(total-1),pt+5);
+  dv.setUint32(pt+8,63,true);dv.setUint32(pt+12,part,true);img[510]=0x55;img[511]=0xAA;
+  /* 부트섹터(BPB) */
+  const B=63*512;
+  img.set([0xEB,0x3C,0x90],B);img.set(Array.from('MSDOS5.0',c=>c.charCodeAt(0)),B+3);
+  dv.setUint16(B+11,512,true);img[B+13]=spc;dv.setUint16(B+14,1,true);img[B+16]=2;dv.setUint16(B+17,rootent,true);
+  dv.setUint16(B+19,part<65536?part:0,true);img[B+21]=0xF8;dv.setUint16(B+22,fatsz,true);dv.setUint16(B+24,63,true);dv.setUint16(B+26,16,true);
+  dv.setUint32(B+28,63,true);dv.setUint32(B+32,part<65536?0:part,true);img[B+36]=0x80;img[B+38]=0x29;dv.setUint32(B+39,(Date.now()&0xFFFFFFFF)>>>0,true);
+  img.set(Array.from(label.padEnd(11),c=>c.charCodeAt(0)),B+43);img.set(Array.from('FAT16   ',c=>c.charCodeAt(0)),B+54);
+  img[B+510]=0x55;img[B+511]=0xAA;
+  /* FAT 2개 */
+  for(let i=0;i<2;i++){const o=B+(1+i*fatsz)*512;for(let c=0;c<fat.length;c++)dv.setUint16(o+c*2,fat[c],true)}
+  /* 디렉터리 */
+  const rootOff=B+(1+2*fatsz)*512;
+  const now=dosDT(Date.now());
+  const ent=(o,name11,attr,cl,size,dt)=>{img.set(name11,o);img[o+11]=attr;dv.setUint16(o+14,dt[1],true);dv.setUint16(o+16,dt[0],true);dv.setUint16(o+18,dt[0],true);dv.setUint16(o+22,dt[1],true);dv.setUint16(o+24,dt[0],true);dv.setUint16(o+26,cl,true);dv.setUint32(o+28,size,true)};
+  for(const d of dirs){
+    let o=d.root?rootOff:cOff(d.c0);
+    if(d.root){ent(o,Uint8Array.from(label.padEnd(11),c=>c.charCodeAt(0)),0x08,0,0,now);o+=32}
+    else{
+      const dt=dosDT(d.mt);
+      ent(o,Uint8Array.from('.          ',c=>c.charCodeAt(0)),0x10,d.c0,0,dt);o+=32;
+      ent(o,Uint8Array.from('..         ',c=>c.charCodeAt(0)),0x10,d.parent&&!d.parent.root?d.parent.c0:0,0,dt);o+=32;
+    }
+    for(const k of d.kids){
+      if(k.dir)k.parent=d;
+      if(k.lfn){
+        const n=k.name,cnt=Math.ceil(n.length/13),sum=lfnSum(k.s83);
+        const u=[];for(let i=0;i<cnt*13;i++)u.push(i<n.length?n.charCodeAt(i):(i===n.length?0:0xFFFF));
+        for(let s=cnt;s>=1;s--){
+          img[o]=s|(s===cnt?0x40:0);img[o+11]=0x0F;img[o+12]=0;img[o+13]=sum;
+          const base=(s-1)*13;
+          [1,3,5,7,9,14,16,18,20,22,24,28,30].forEach((off,j)=>dv.setUint16(o+off,u[base+j],true));
+          o+=32;
+        }
+      }
+      ent(o,k.s83,k.dir?0x10:0x20,k.dir?k.c0:k.c0,k.dir?0:k.size,dosDT(k.mt));o+=32;
+    }
+  }
+  /* 파일 내용 */
+  let done=0;
+  for(const f of fl){
+    if(f.size){
+      const ab=await f.file.arrayBuffer();
+      img.set(new Uint8Array(ab),cOff(f.c0));
+    }
+    done+=f.size;prog&&prog(dataTotal?done/dataTotal*100:100);
+    if(fl.length>50)await sleep(0);
+  }
+  return{buf:img.buffer,count:nfiles,size:dataTotal,label};
+}
+async function loadFolder(list){
+  const files=Array.from(list||[]);
+  if(!files.length)return;
+  try{
+    ov(OS.n,'폴더를 드라이브로 변환 중…',{pct:0});status('폴더 변환 중');
+    const r=await mkFatImage(files,p=>ov(OS.n,'폴더를 드라이브로 변환 중…',{pct:p,sub:'파일 '+files.length+'개'}));
+    media.hdb=r.buf;media.names.hdb=r.label+' ('+r.count+'개 파일, '+mb(r.size)+')';
+    refreshMedia();
+    if(emu)ovHide();else if(disk)ovHide();
+    status('폴더 준비 완료: '+r.label);
+    toast('폴더 "'+r.label+'" 준비 완료 – 윈도우 안에서 새 드라이브(D: 등)로 보입니다',6000);
+    await applyMedia('hdb',false);
+  }catch(e){
+    console.error(e);status('폴더 공유 실패');ovHide();
+    toast('폴더 공유 실패: '+(e&&e.message||e),8000);
+  }
+}
+$('hdbFile').onchange=e=>{const l=e.target.files;const a=l?Array.from(l):[];e.target.value='';loadFolder(a)};
+$('hdbEject').onclick=async()=>{media.hdb=null;delete media.names.hdb;refreshMedia();await applyMedia('hdb',true)};
 refreshMedia();
 
 $('boot').onclick=()=>start(!disk);
