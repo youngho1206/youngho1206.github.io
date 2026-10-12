@@ -406,6 +406,7 @@ function startGame(file){
     d.close();
     w.EJS_player='#game'; w.EJS_core=cur.core; w.EJS_gameName=gameName;
     w.EJS_gameUrl=new w.File([file],file.name);
+    if(cur.bios)w.EJS_biosUrl=new URL('bios/'+cur.bios,location.href).href; /* BIOS가 필요한 기종: 서버 bios 폴더에서 불러옴 */
     w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
