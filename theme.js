@@ -23,7 +23,7 @@
  const timeout=(ms)=>new Promise((_,rej)=>setTimeout(()=>rej(Error('timeout')),ms));
 
  /* 아이콘 주소: 테마에 아이콘이 있으면 그것, 없으면 icons/ 폴더 */
- WT.src=n=>(WT.map&&WT.map[n])?WT.map[n]:`icons/${n}.png?v=4`;
+ WT.src=n=>(WT.map&&WT.map[n])?WT.map[n]:`icons/${n}.png?v=5`;
  WT.refreshIcons=()=>{
   document.querySelectorAll('img[data-k]').forEach(i=>{
    const s=WT.src(i.dataset.k);if(i.getAttribute('src')!==s)i.src=s;
