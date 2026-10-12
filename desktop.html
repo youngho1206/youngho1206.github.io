@@ -772,6 +772,29 @@ $('#vscreen').addEventListener('mousedown',e=>{if(wantMouse()&&!pc.mcap){mouseCa
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&pc&&pc.mcap)mouseCapture(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
 addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
+/* ---- 화면 캡처용: 그래픽 화면은 그대로, 도스 글자 화면은 색까지 그림으로 만들어 줌 ---- */
+function shotCanvas(){
+ const cv=document.querySelector('#vscreen canvas');
+ if(cv&&cv.style.display!=='none'&&cv.width>1&&cv.height>1)return cv;
+ const tx=document.querySelector('#vscreen>div'),rows=[];
+ if(tx)tx.childNodes.forEach(r=>{
+  if(r.nodeType!==1||!r.childNodes.length)return;
+  const cells=[];
+  r.childNodes.forEach(s=>{const t=s.textContent||'';if(!t)return;const st=s.nodeType===1?s.style:null;cells.push({t:t.replace(/\u00a0/g,' '),fg:(st&&st.color)||'#aaaaaa',bg:(st&&st.backgroundColor)||'#000000'})});
+  rows.push(cells);
+ });
+ if(!rows.length){try{((pc.emu.screen_adapter.get_text_screen())||[]).forEach(l=>rows.push([{t:String(l),fg:'#aaaaaa',bg:'#000000'}]))}catch(_){}}
+ if(!rows.length)return null;
+ const cols=Math.max(80,...rows.map(r=>r.reduce((a,c)=>a+c.t.length,0))),R=Math.max(25,rows.length),cw=18,ch=32;
+ const c=document.createElement('canvas');c.width=cols*cw;c.height=R*ch;
+ const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);
+ x.font='bold '+(ch-6)+'px "Courier New",Consolas,monospace';x.textAlign='center';x.textBaseline='middle';
+ rows.forEach((cells,ri)=>{let col=0;cells.forEach(cl=>{for(const chr of cl.t){const px=col*cw;
+  if(cl.bg&&cl.bg!=='rgb(0, 0, 0)'&&cl.bg!=='#000000'){x.fillStyle=cl.bg;x.fillRect(px,ri*ch,cw,ch)}
+  if(chr!==' '){x.fillStyle=cl.fg;x.fillText(chr,px+cw/2,ri*ch+ch/2+1)}
+  col++}})});
+ return c;
+}
 const A={
  start(){if(pc.running){pc.emu.restart();toast('재시작');return}pc.local=null;pc.vhd=null;boot()},
  async local(){const f=await pickFile('.img,.ima,.iso,.vhd,.zip');pc.local=f;pc.vhd=null;boot()},
@@ -784,9 +807,11 @@ const A={
  },
  cap(){
   if(!pc.running)return toast('실행 중일 때만 캡처할 수 있습니다');
-  const cv=$('#vscreen canvas');
-  if(!cv||cv.style.display==='none')return toast('그래픽(Windows) 화면에서 캡처할 수 있습니다');
-  cv.toBlob(b=>{dlFile(b,`${pc.os.id.toUpperCase()}_${stamp()}.PNG`);toast('📷 캡처 저장됨')});
+  const src=shotCanvas();
+  if(!src)return toast('캡처할 화면이 아직 없습니다');
+  const o=document.createElement('canvas');o.width=src.width;o.height=src.height;
+  const x=o.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,o.width,o.height);x.drawImage(src,0,0);
+  o.toBlob(b=>{if(!b)return toast('캡처 실패');dlFile(b,`${pc.os.id.toUpperCase()}_${stamp()}.PNG`);toast('📷 캡처 저장됨 ('+o.width+'×'+o.height+')')},'image/png');
  },
  async vsave(){
   if(!pc.running)return toast('실행 중일 때만 저장할 수 있습니다');

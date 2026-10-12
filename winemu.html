@@ -38,6 +38,9 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
 .bar{height:14px;background:#000;border:2px solid;border-color:#555 #fff #fff #555;margin:12px 0 4px;display:none}
 .bar i{display:block;height:100%;width:0;background:#000080}
 .help{background:#c0c0c0;color:#111;padding:6px 9px;font-size:11px;flex-shrink:0}
+#flash{position:absolute;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none}
+#flash.on{animation:flashA .28s ease-out}
+@keyframes flashA{0%{opacity:.75}100%{opacity:0}}
 
 /* ===== 마우스 설정 창 ===== */
 #mpop{position:absolute;z-index:8;left:8px;top:8px;width:min(300px,calc(100% - 16px));background:#c0c0c0;color:#111;border:2px solid;border-color:#fff #555 #555 #fff;padding:10px;display:none;font:13px Arial,"Malgun Gothic"}
@@ -111,6 +114,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
     <button id="pause">⏸ 일시정지</button>
     <button id="reset">↻ 재시작</button>
     <button id="fullscreen">⛶ 전체화면</button>
+    <button id="capBtn" title="지금 에뮬레이터에 보이는 화면을 사진(PNG)으로 저장">📷 화면캡처</button>
     <button id="mouseBtn">🖱 마우스</button>
     <button id="kbBtn">⌨ 키보드</button>
     <label class="mx" data-slot="fda" title="3.5인치 플로피 디스켓 이미지 넣기">💽 3.5" 플로피<input id="fdaFile" type="file" accept=".img,.ima,.vfd,.flp,.dsk,.zip,application/octet-stream,application/zip"></label>
@@ -132,6 +136,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
   <div class="screen" id="screen">
     <div id="screen_container"><div style="white-space:pre;font:14px monospace;line-height:14px"></div><canvas style="display:none"></canvas></div>
     <div id="pad"></div>
+    <div id="flash"></div>
 
     <div id="mpop">
       <h3>🖱 마우스 설정</h3>
@@ -140,7 +145,7 @@ html,body{margin:0;width:100%;height:100%;background:#000;color:#eee;font-family
       <small>PC/OTG 마우스: 화면을 클릭하면 마우스가 잡혀 화면 끝에서도 계속 움직입니다(ESC로 해제).<br>터치: 드래그=커서 이동 · 탭=클릭 · 탭 후 바로 드래그=끌기 · 두 손가락 탭=우클릭 · 두 손가락 드래그=스크롤</small>
     </div>
 
-    <div id="fsTools"><button id="fsKb">⌨ 키보드</button><button id="fsMouse">🖱</button><button id="exitFullscreenOverlay" type="button">✕ 전체화면 해제</button></div>
+    <div id="fsTools"><button id="fsCap">📷 캡처</button><button id="fsKb">⌨ 키보드</button><button id="fsMouse">🖱</button><button id="exitFullscreenOverlay" type="button">✕ 전체화면 해제</button></div>
 
     <div class="overlay" id="overlay">
       <div class="card">
@@ -393,8 +398,9 @@ function patchWin31(buf){
    txt=txt.replace(m[0],m[0]+'EMMExclude=A000-EFFF\r\nNoEMMDriver=TRUE\r\nSystemROMBreakPoint=FALSE\r\nVirtualHDIRQ=FALSE\r\nTimerCriticalSection=10000\r\nUniqueDOSPSP=TRUE\r\nPSPIncrement=5\r\n');
    write(wd,'SYSTEM.INI',enc(txt));done.push('SYSTEM.INI');
   }
-  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\;C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\nC:\\DOS\\SMARTDRV.EXE /X\nC:\\WINDOWS\\WIN.COM /S\n';
   const cur=read(null,'AUTOEXEC.BAT');
+  const mc=cur?dec(cur).split(/\r?\n/).find(l=>/mscdex/i.test(l)&&!/^\s*(rem\b|::)/i.test(l)):null;   /* CD-ROM 드라이버(MSCDEX) 줄은 그대로 살려 둠 → 도스 기반 윈도우에서도 CD 사용 가능 */
+  const ae='@ECHO OFF\nPROMPT $p$g\nPATH C:\\;C:\\WINDOWS;C:\\DOS\nSET TEMP=C:\\DOS\n'+(mc?mc.trim()+'\n':'')+'C:\\DOS\\SMARTDRV.EXE /X\nC:\\WINDOWS\\WIN.COM /S\n';
   if(!cur||dec(cur).replace(/\r/g,'')!==ae){if(cur)write(null,'AUTOEXEC.BAK',cur);write(null,'AUTOEXEC.BAT',enc(ae));done.push('AUTOEXEC.BAT')}
   const wb=enc('@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'),cb=read(null,'WIN.BAT');
   if(!cb||dec(cb).replace(/\r/g,'')!=='@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S\n'){write(null,'WIN.BAT',wb);done.push('WIN.BAT')}
@@ -603,10 +609,12 @@ async function loadZipRun(file){
 }
 $('zipRunFile').onchange=e=>{const f=e.target.files[0];e.target.value='';loadZipRun(f)};
 /* ---------- 플로피 / CD-ROM 이미지 넣기·꺼내기 ----------
-   · 윈도우 1.0 / 2.0 / 3.0 : 3.5" 플로피(A:) + 5.25" 플로피(B:)
-   · 윈도우 95 / 98          : 3.5" 플로피(A:) + CD-ROM
+   · 윈도우 1.0 / 2.0 / 3.0 / 3.1 / 95 / 98 : 3.5" 플로피(A:) + CD-ROM  (모든 윈도우 공통)
+   · 윈도우 1.0 / 2.0 / 3.0                  : 5.25" 플로피(B:) 추가
+   · 도스 기반 윈도우(1.0~3.1)는 디스크 안에 CD-ROM 드라이버(MSCDEX)가 있어야 CD가 드라이브 문자로 보입니다.
    에뮬레이터가 켜져 있으면 바로 바꿔 끼우고, 꺼져 있으면 다음 시작 때 자동으로 들어갑니다. */
-const MEDIA_OS={fda:['win10','win20','win30','win95','win98'],fdb:['win10','win20','win30'],cd:['win95','win98'],hdb:['win10','win20','win30','win31','win95','win98']};
+const MEDIA_OS={fda:['win10','win20','win30','win31','win95','win98'],fdb:['win10','win20','win30'],cd:['win10','win20','win30','win31','win95','win98'],hdb:['win10','win20','win30','win31','win95','win98']};
+const DOSBASED=['win10','win20','win30','win31'];   /* 도스 위에서 도는 윈도우: CD를 쓰려면 이미지 안에 CD-ROM 드라이버(MSCDEX)가 필요 */
 const MEDIA_NAME={fda:'3.5" 플로피',fdb:'5.25" 플로피',cd:'CD-ROM',hdb:'공유 폴더'};
 const MEDIA_API={fda:'fda',fdb:'fdb',cd:'cdrom',hdb:'hdb'};
 const media={fda:null,fdb:null,cd:null,hdb:null,names:{}};
@@ -656,6 +664,7 @@ async function loadMedia(slot,file){
     media[slot]=item;media.names[slot]=file.name;
     refreshMedia();
     await applyMedia(slot,false);
+    if(slot==='cd'&&DOSBASED.includes(OSID))toast('CD 이미지를 넣었습니다. '+OS.n+'은 디스크 안에 CD-ROM 드라이버(MSCDEX)가 설정돼 있어야 CD가 드라이브로 보입니다.',9000);
   }catch(e){console.error(e);toast(MEDIA_NAME[slot]+' 불러오기 실패: '+(e&&e.message||e),6000)}
 }
 [['fda','fdaFile','fdaEject'],['fdb','fdbFile','fdbEject'],['cd','cdFile','cdEject']].forEach(([s,inp,ej])=>{
@@ -1199,6 +1208,79 @@ $('kbBtn').onclick=toggleKb;
 $('fsKb').onclick=toggleKb;
 buildAcc();buildKeys();
 document.querySelectorAll('.k,.a').forEach(()=>{});
+
+
+/* =====================================================================
+   화면 캡처 : 지금 에뮬레이터에 보이는 화면을 PNG 사진 파일로 저장
+   · 그래픽 화면(윈도우)  → 화면 그대로(원본 해상도)
+   · 글자 화면(도스 프롬프트 등) → 색까지 그대로 그림으로 만들어 저장
+   · 아이폰/아이패드는 공유창이 열리므로 '이미지 저장'으로 사진 앱에 바로 저장할 수 있습니다.
+   ===================================================================== */
+const stampName=()=>{const n=new Date(),p=v=>String(v).padStart(2,'0');return n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+'_'+p(n.getHours())+p(n.getMinutes())+p(n.getSeconds())};
+function textScreenCanvas(){
+  const box=$('screen_container'),tx=box.querySelector('div');
+  const rows=[];
+  if(tx)tx.childNodes.forEach(r=>{
+    if(r.nodeType!==1||!r.childNodes.length)return;   /* 커서 등 빈 요소는 건너뜀 */
+    const cells=[];
+    r.childNodes.forEach(s=>{
+      const txt=s.textContent||'';if(!txt)return;
+      const st=s.nodeType===1?s.style:null;
+      cells.push({t:txt.replace(/\u00a0/g,' '),fg:(st&&st.color)||'#aaaaaa',bg:(st&&st.backgroundColor)||'#000000'});
+    });
+    rows.push(cells);
+  });
+  if(!rows.length&&emu&&emu.screen_adapter&&emu.screen_adapter.get_text_screen){   /* 예비: 색 정보 없이 글자만 */
+    try{(emu.screen_adapter.get_text_screen()||[]).forEach(l=>rows.push([{t:String(l),fg:'#aaaaaa',bg:'#000000'}]))}catch(_){}
+  }
+  if(!rows.length)return null;
+  const cols=Math.max(80,...rows.map(r=>r.reduce((a,c)=>a+c.t.length,0))),R=Math.max(25,rows.length);
+  const cw=18,ch=32,cv=document.createElement('canvas');cv.width=cols*cw;cv.height=R*ch;
+  const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,cv.width,cv.height);
+  x.font='bold '+(ch-6)+'px "Courier New",Consolas,monospace';x.textAlign='center';x.textBaseline='middle';
+  rows.forEach((cells,ri)=>{
+    let col=0;
+    cells.forEach(c=>{
+      for(const chr of c.t){
+        const px=col*cw;
+        if(c.bg&&c.bg!=='rgb(0, 0, 0)'&&c.bg!=='#000000'){x.fillStyle=c.bg;x.fillRect(px,ri*ch,cw,ch)}
+        if(chr!==' '){x.fillStyle=c.fg;x.fillText(chr,px+cw/2,ri*ch+ch/2+1)}
+        col++;
+      }
+    });
+  });
+  return cv;
+}
+function grabScreen(){
+  const cv=$('screen_container').querySelector('canvas');
+  if(cv&&cv.style.display!=='none'&&cv.width>1&&cv.height>1)return cv;
+  return textScreenCanvas();
+}
+async function captureScreen(){
+  if(!emu){toast('먼저 '+OS.n+'을(를) 시작한 뒤 캡처하세요',3500);return}
+  try{
+    const src=grabScreen();
+    if(!src){toast('캡처할 화면이 아직 없습니다',3500);return}
+    const out=document.createElement('canvas');out.width=src.width;out.height=src.height;
+    const x=out.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,out.width,out.height);x.drawImage(src,0,0);
+    const blob=await new Promise(r=>out.toBlob(r,'image/png'));
+    if(!blob)throw Error('이미지를 만들지 못했습니다');
+    const name=OSID.toUpperCase()+'_'+stampName()+'.png';
+    const fl=$('flash');fl.classList.remove('on');void fl.offsetWidth;fl.classList.add('on');
+    const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(ios&&navigator.canShare&&navigator.share){
+      try{
+        const f=new File([blob],name,{type:'image/png'});
+        if(navigator.canShare({files:[f]})){await navigator.share({files:[f]});toast('📷 캡처 완료: '+name,3000);return}
+      }catch(e){if(e&&e.name==='AbortError')return}   /* 공유창을 닫았으면 끝, 그 외 실패는 일반 저장으로 */
+    }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('📷 캡처 저장: '+name+' ('+src.width+'×'+src.height+')',3500);
+  }catch(e){console.error(e);toast('캡처 실패: '+(e&&e.message||e),5000)}
+}
+$('capBtn').onclick=captureScreen;
+$('fsCap').onclick=captureScreen;
 
 /* ---------- 단축키 ---------- */
 addEventListener('keydown',e=>{
