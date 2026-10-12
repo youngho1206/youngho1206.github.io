@@ -62,7 +62,11 @@ html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;oversc
   window.EJS_core=m.core;
   window.EJS_gameName=m.name;
   window.EJS_gameUrl=new File([m.file],m.file.name);   /* 이 화면(iframe)에서 만든 File */
-  window.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+  /* 호환모드 : 0=기본 · 1=기본+WebGL2 끄기 · 2=최신 엔진 · 3=최신 엔진+WebGL2 끄기 */
+  var mode=(m.mode|0)%4;
+  window.EJS_pathtodata='https://cdn.emulatorjs.org/'+(mode>=2?'latest':'stable')+'/data/';
+  if(mode%2===1)window.EJS_defaultOptions={'webgl2Enabled':'disabled'};
+  log('호환모드 '+(mode+1)+' · 엔진 '+(mode>=2?'latest':'stable')+' · WebGL2 '+(mode%2===1?'끔':'기본'));
   window.EJS_color=m.color;
   window.EJS_language='ko-KR';
   window.EJS_threads=false;          /* 아이폰 Safari 는 SharedArrayBuffer(스레드) 사용 불가 → 단일 스레드 코어 */
