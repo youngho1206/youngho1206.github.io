@@ -271,6 +271,7 @@ document.addEventListener('error',e=>{
  }
 },true);
 function icon(c){
+ if(!IMG[c.id])return fbIcon(c);
  return `<img src="${WT.src(IMG[c.id])}" data-k="${IMG[c.id]}" alt="${c.n}" width="256" height="256" draggable="false">`;
 }
 

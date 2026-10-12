@@ -99,6 +99,7 @@ main{max-width:560px;margin:0 auto;padding:6px 16px 40px}
 /* ---------- 검색: 이름 일부만 입력해도 목록 → 누르면 홈(index.html)에서 바로 실행 ---------- */
 const $=s=>document.querySelector(s);
 function icon(c){
+ if(!IMG[c.id])return fbIcon(c);
  return `<img src="${WT.src(IMG[c.id])}" data-k="${IMG[c.id]}" alt="${c.n}" width="256" height="256" draggable="false">`;
 }
 const sNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9\u3131-\u318e\uac00-\ud7a3]/g,'');

@@ -9,7 +9,7 @@ const q=s=>document.querySelector(s);
 const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 /* ---------- 분류 ---------- */
-const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sms','md','gg'],atari:['atari2600','lynx'],etc:['psx','pce','ngp']};
+const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sg1000','sms','md','gg','scd','s32x','sat'],atari:['atari2600','lynx'],etc:['psx','psp','pce','ngp','mame']};
 const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',a:it.a||'#38b6ff',b:it.b||'#0a1230',kw:(window.S_KW&&S_KW[it.id])||''});
 const CATS=[

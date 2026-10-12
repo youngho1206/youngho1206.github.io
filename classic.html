@@ -307,6 +307,7 @@ const ICONS_READY=WT.ready.then(()=>Promise.race([
  Promise.all(Object.values(IMG).map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=WT.src(n);if(i.decode)i.decode().then(r,r)}))),
  new Promise(r=>setTimeout(r,5000))]));
 function icon(c){
+ if(!IMG[c.id])return fbIcon(c);
  return `<img src="${WT.src(IMG[c.id])}" data-k="${IMG[c.id]}" alt="${c.n}" width="256" height="256" draggable="false">`;
 }
 
