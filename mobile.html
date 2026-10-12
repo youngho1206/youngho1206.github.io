@@ -76,23 +76,14 @@ footer{text-align:center;color:var(--mut);font-size:11px;font-weight:300;padding
 #emu{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #emu.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
 @keyframes zoom{from{opacity:0;transform:scale(.94)}}
-/* iOS 스타일: 위쪽 내비게이션 바 + 아래쪽 탭 바 */
-#emu{overflow:hidden}
-#bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:46px;padding:4px 8px;background:rgba(28,28,30,.72);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);border-bottom:.5px solid rgba(255,255,255,.16);transition:margin .35s,opacity .25s}
-#bar.hide{margin-top:-64px;opacity:0;pointer-events:none}
-#bar .t{grid-column:2;max-width:46vw;text-align:center;font:600 17px/1.2 var(--sans);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#bar button{display:flex;align-items:center;gap:2px;border:0;background:none;color:#0a84ff;font:400 17px var(--sans);padding:8px 6px;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-#bar #bHome{justify-self:start}
-#bar #bHide{justify-self:end}
-#bar button:active{opacity:.35}
-#bar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-#tbar{display:flex;justify-content:space-around;padding:6px 4px 4px;background:rgba(28,28,30,.72);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);border-top:.5px solid rgba(255,255,255,.16);transition:margin .35s,opacity .25s}
-#tbar.hide{margin-bottom:-96px;opacity:0;pointer-events:none}
-#tbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:rgba(235,235,245,.6);font:500 10px/1.2 var(--sans);padding:4px 0;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-#tbar button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-#tbar button:active{color:#0a84ff}
-#tbar button.act{color:#0a84ff}
-#tbar button:disabled{opacity:.3;pointer-events:none}
+#bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(14,13,12,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);overflow-x:auto;scrollbar-width:none;transition:margin .35s}
+#bar::-webkit-scrollbar{display:none}
+#bar.hide{margin-top:-70px}
+#bar .t{flex:1;min-width:90px;font:600 18px var(--serif);letter-spacing:.04em;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:8px 13px;border-radius:99px;font:500 12px var(--sans);letter-spacing:.04em;cursor:pointer;white-space:nowrap;transition:.25s}
+#bar button:hover{border-color:var(--acc);color:var(--acc2);background:rgba(212,175,106,.08)}
+#bar button:active{transform:scale(.94)}
+#bar button:disabled{opacity:.3;pointer-events:none}
 #stage{flex:1;position:relative;min-height:0}
 #fr{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
 #drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 38%,#1d1a12,#060608 70%);z-index:2}
@@ -114,6 +105,7 @@ footer{text-align:center;color:var(--mut);font-size:11px;font-weight:300;padding
 @keyframes rt{50%{transform:rotate(-90deg)}}
 body.mob.fs.port #rot{display:flex}
 #emu.pfs{z-index:1000}
+@media (max-width:520px){#bar button{padding:8px 11px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.app,.eyebrow,.orn,header p{opacity:1}}
 #pc{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #pc.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
@@ -236,9 +228,14 @@ body.mob.fs.port #rot{display:flex}
 
 <section id="emu">
   <div id="bar">
-    <button id="bHome" aria-label="홈"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>홈</button>
+    <button id="bHome">← 홈</button>
     <span class="t" id="eTitle"></span>
-    <button id="bHide" aria-label="메뉴 숨김"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>숨김</button>
+    <button id="bLoad">📂 게임</button>
+    <button id="bSave" disabled>💾 저장</button>
+    <button id="bRest" disabled>📥 불러오기</button>
+    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bFs">⛶ 전체화면</button>
+    <button id="bHide">▲ 메뉴숨김</button>
   </div>
   <div id="stage">
     <div id="drop">
@@ -250,13 +247,6 @@ body.mob.fs.port #rot{display:flex}
     </div>
     <iframe id="fr" allow="autoplay; gamepad; fullscreen"></iframe>
     <div id="rot"><span>📱</span>가로로 돌려주세요</div>
-  </div>
-  <div id="tbar">
-    <button id="bLoad"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>게임</span></button>
-    <button id="bSave" disabled><svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg><span>저장</span></button>
-    <button id="bRest" disabled><svg viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 19h14"/></svg><span>불러오기</span></button>
-    <button id="bCtl" class="act" disabled><svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10" rx="5"/><path d="M7 10v4M5 12h4"/><circle cx="16" cy="11" r=".7"/><circle cx="18" cy="13" r=".7"/></svg><span id="bCtlT">조작 ON</span></button>
-    <button id="bFs"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>전체화면</span></button>
   </div>
   <button id="fab">☰</button>
 </section>
@@ -363,7 +353,7 @@ function openEmu(c){
  $('#drop').classList.remove('hidden');
  ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
  fr.src='about:blank';
- emu.classList.add('show');emu.classList.remove('nobar');$('#bar').classList.remove('hide');$('#tbar').classList.remove('hide');
+ emu.classList.add('show');emu.classList.remove('nobar');$('#bar').classList.remove('hide');
  history.pushState({emu:1},'');
 }
 function closeEmu(){
@@ -404,7 +394,7 @@ function loadProgress(pct,line){
 }
 function startGame(file){
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtlT').textContent='조작 ON';$('#bCtl').classList.add('act');
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
  const est=Math.max(5,Math.min(60,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  fr.src='about:blank';
@@ -456,10 +446,10 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtlT').textContent=ctlOn?'조작 ON':'조작 OFF';$('#bCtl').classList.toggle('act',ctlOn);
+ $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
 };
-$('#bHide').onclick=()=>{$('#bar').classList.add('hide');$('#tbar').classList.add('hide');emu.classList.add('nobar')};
-$('#fab').onclick=()=>{$('#bar').classList.remove('hide');$('#tbar').classList.remove('hide');emu.classList.remove('nobar')};
+$('#bHide').onclick=()=>{$('#bar').classList.add('hide');emu.classList.add('nobar')};
+$('#fab').onclick=()=>{$('#bar').classList.remove('hide');emu.classList.remove('nobar')};
 
 /* 전체화면 + 모바일 가로 고정 */
 const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
