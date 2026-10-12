@@ -79,7 +79,87 @@ body{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 
 .keep input:checked{background:var(--ios-green)}
 .keep input:checked:before{transform:translateX(20px)}
 .foot{margin:18px 16px 0;font:400 13px/1.5 var(--ios-font);color:var(--ios-label2);text-align:center;word-break:keep-all}
-@media (min-width:700px){body{padding-top:calc(env(safe-area-inset-top) + 56px)}.wrap{width:min(100%,620px)}.hero img{width:112px;height:112px}.hero h1{font-size:40px}.hero p{font-size:17px}.row{min-height:70px}.row .tile{width:42px;height:42px}.row+.row:before{left:72px}}
+/* ===== PC · 태블릿 화면 (가로 700px 이상, 세로 520px 이상) : 상단 메뉴 + 카드형 선택 + 2단 배치 =====
+   모바일(위 스타일)은 그대로 두고, 넓은 화면에서만 아래 규칙이 덮어씁니다. */
+.pcbar,.brand{display:none}
+@media (min-width:700px) and (min-height:520px){
+ body{padding:100px 32px 56px}
+ body .pcbar{display:block;position:absolute;z-index:1;top:0;left:0;right:0;height:68px;background:rgba(10,8,18,.72);border-bottom:1px solid rgba(183,92,255,.35);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+ body{position:relative}
+ body .wrap{width:100%;max-width:760px;min-height:calc(100vh - 156px);min-height:calc(100dvh - 156px);display:grid;grid-template-columns:minmax(0,1fr);align-content:center;row-gap:0;
+  grid-template-areas:"hero" "ghs" "sel" "keep" "foot"}
+
+ /* 상단 메뉴 : 로고(왼쪽) + 통합 화면 · 공지사항 · 앱 설치 · 블로그(오른쪽) */
+ body .brand{display:flex;position:absolute;top:-100px;left:0;height:68px;align-items:center;gap:12px}
+ .brand img{width:36px;height:36px;border-radius:22.4%;box-shadow:0 0 0 1.5px rgba(183,92,255,.7),0 0 14px rgba(255,61,240,.4)}
+ .brand span{display:none;font:700 17px/1 var(--ios-font);color:#fff;letter-spacing:.01em;white-space:nowrap;text-shadow:0 0 10px rgba(255,61,240,.6)}
+ body .gh-more{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ body .more-list{position:absolute;top:-100px;right:0;height:68px;display:flex;align-items:center;gap:2px;background:none;border:0;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;overflow:visible}
+ body .more-list .row{width:auto;min-height:44px;padding:6px 10px;gap:8px;border-radius:12px;white-space:nowrap}
+ body .more-list .row:before,body .more-list .row:after{display:none}
+ body .more-list .row .tile{width:28px;height:28px;border-radius:8px;box-shadow:inset 0 .5px 0 rgba(255,255,255,.45)}
+ body .more-list .row .tile svg{width:17px;height:17px}
+ body .more-list .row .t{flex:none}
+ body .more-list .row .t b{font:500 14px/1.2 var(--ios-font)}
+ body .more-list .row .t span{display:none}
+ body .more-list .row .dot{width:8px;height:8px;margin-left:-2px}
+
+ /* 첫 화면 : 안내 문구 + 접속 화면 카드 */
+ body .hero{grid-area:hero;padding:8px 0 4px}
+ body .hero img{width:112px;height:112px}
+ body .hero h1{font-size:clamp(36px,5.4vw,46px)}
+ body .hero small{font-size:12px}
+ body .hero p{font-size:18px;margin-top:16px}
+ body .gh-sel{grid-area:ghs;margin:34px 0 12px 4px;font-size:14px}
+ body .keep-g{grid-area:keep}
+ body .foot{grid-area:foot;margin:16px 4px 0}
+
+ body .sel{grid-area:sel;display:grid;grid-template-columns:1fr 1fr;gap:18px;background:none;border:0;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;overflow:visible}
+ body .sel .row{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:18px;min-height:206px;padding:26px 24px 24px;border-radius:24px;border:2px solid rgba(183,92,255,.7);background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(80,20,160,.25));box-shadow:0 0 0 1px rgba(61,123,255,.5) inset,0 10px 40px rgba(120,40,255,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .25s,border-color .25s,box-shadow .25s,background .25s}
+ body .sel .row:before,body .sel .row:after{display:none}
+ body .sel .row .tile{width:60px;height:60px;border-radius:16px}
+ body .sel .row .tile svg{width:32px;height:32px}
+ body .sel .row .t{flex:none;width:100%;gap:6px}
+ body .sel .row .t b{font-size:22px}
+ body .sel .row .t span{font-size:15px;line-height:1.5}
+ body .sel .row em{position:absolute;top:20px;right:20px;font-size:12.5px;padding:4px 12px}
+ body .sel .opt.rec{border-color:#ff3df0;box-shadow:0 0 0 1px rgba(61,123,255,.5) inset,0 0 38px rgba(255,61,240,.38),0 10px 40px rgba(120,40,255,.3)}
+ @media (hover:hover){body .sel .row:hover{transform:translateY(-5px);border-color:#ff3df0;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(110,30,200,.34));box-shadow:0 0 0 1px rgba(61,123,255,.6) inset,0 0 44px rgba(255,61,240,.42),0 18px 50px rgba(120,40,255,.4)}}
+ body .sel .row:active{transform:scale(.985)}
+
+ body .keep-g{margin-top:22px!important}
+ body .keep-g .row{min-height:64px}
+}
+/* 가로 1000px 이상 : 상단 메뉴에 로고 이름까지 표시 */
+@media (min-width:1000px) and (min-height:520px){
+ body .brand span{display:block}
+ body .more-list{gap:6px}
+ body .more-list .row{padding:6px 14px;gap:10px}
+ body .more-list .row .tile{width:30px;height:30px}
+ body .more-list .row .t b{font-size:15px}
+}
+/* 가로 1100px 이상 (PC) : 왼쪽 소개 · 오른쪽 접속 화면의 2단 배치 */
+@media (min-width:1100px) and (min-height:520px){
+ body{padding:100px 48px 56px}
+ body .brand,body .more-list{top:-100px}
+ body .wrap{max-width:1240px;column-gap:80px;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);grid-template-rows:1fr auto auto auto auto 1fr;
+  grid-template-areas:"hero ." "hero ghs" "hero sel" "hero keep" "hero foot" "hero .";align-content:stretch}
+ body .hero{align-items:flex-start;text-align:left;justify-content:center;padding:0}
+ body .hero img{width:148px;height:148px}
+ body .hero h1{font-size:clamp(46px,4.6vw,64px);margin-top:28px}
+ body .hero small{font-size:14px;margin-top:18px}
+ body .hero p{font-size:20px;line-height:1.7;margin-top:22px}
+ body .gh-sel{margin-top:0}
+ body .sel{grid-template-columns:1fr;gap:16px}
+ body .sel .row{flex-direction:row;align-items:center;gap:20px;min-height:116px;padding:20px 26px}
+ body .sel .row .t{flex:1;width:auto}
+ body .sel .row .tile{width:64px;height:64px}
+ body .sel .row em{top:16px;right:20px}
+ body .sel .row .t{padding-right:56px}
+ body .foot{text-align:left}
+}
+@media (min-width:1100px) and (min-height:520px){@media (hover:hover){body .sel .row:hover{transform:translateX(6px)}}}
+
 
 /* ===== 시트 (공지사항 · 앱 설치) : 기존 테마 그대로 ===== */
 #sh{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.42);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .4s;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -107,13 +187,16 @@ body{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 
  #sh.on .sheet{transform:none;opacity:1}
  .grab{display:none}
 }
+@media (min-width:1000px){#sh .sheet{width:min(100%,660px);max-height:80vh;max-height:80dvh}.sh-h button:hover{opacity:.7}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <link rel="stylesheet" href="retro.css?v=1">
 </head>
 <body>
 <div class="bg"><i></i><i></i></div>
+<div class="pcbar" aria-hidden="true"></div>
 <main class="wrap">
+ <div class="brand" aria-hidden="true"><img src="icons/app-180.png" alt="" width="36" height="36"><span>영호의 게임에뮬레이터</span></div>
  <header class="hero">
   <img src="icons/app-180.png" alt="" width="92" height="92">
   <h1>영호의 게임에뮬레이터</h1>
@@ -121,7 +204,7 @@ body{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 
   <p>추억의 게임 속으로 떠나는 시간 여행<br>기기를 골라 게임을 시작하세요</p>
  </header>
 
- <h2 class="gh">접속 화면</h2>
+ <h2 class="gh gh-sel">접속 화면</h2>
  <nav class="group sel">
   <a class="row opt" id="cm" href="mobile.html" data-k="m">
    <span class="tile" style="background:linear-gradient(160deg,#3d7bff,#2548b8)"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.6"/><path d="M10.5 18.5h3"/></svg></span>
@@ -133,7 +216,7 @@ body{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 
   </a>
  </nav>
 
- <h2 class="gh">더보기</h2>
+ <h2 class="gh gh-more">더보기</h2>
  <div class="group more-list">
   <a class="row more" href="classic.html" id="bClassic">
    <span class="tile" style="background:linear-gradient(160deg,#30d0c0,#0f8f86)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
@@ -153,7 +236,7 @@ body{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 
   </a>
  </div>
 
- <div class="group" style="margin-top:22px">
+ <div class="group keep-g" style="margin-top:22px">
   <label class="row keep"><span>다음부터 바로 접속</span><input type="checkbox" id="keep" role="switch"></label>
  </div>
  <p class="foot">고른 화면은 이 기기에 기억됩니다. 다시 고르려면 주소 끝에 <b>?select=1</b>을 붙이거나, 태블릿 화면 위쪽의 ⇄ 버튼을 누르세요.</p>
