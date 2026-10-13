@@ -410,6 +410,9 @@ function loadProgress(pct,line){
 const CORES={mame:['mame2003','mame2003_plus','arcade','fbalpha2012_cps1','fbalpha2012_cps2'],neogeo:['arcade','mame2003_plus','mame2003']};
 const CORE_NAME={mame2003:'MAME 2003',mame2003_plus:'MAME 2003 Plus',arcade:'FinalBurn Neo',fbalpha2012_cps1:'FBAlpha CPS1',fbalpha2012_cps2:'FBAlpha CPS2'};
 let lastFile=null,coreIdx=0,gsSeq=0;
+/* 마메/네오지오는 저장소에 올린 emulatorjs/data/ 엔진을 우선 사용, 없으면 공식 CDN으로 자동 대체 */
+const EJS_LOCAL='emulatorjs/data/',EJS_CDN='https://cdn.emulatorjs.org/stable/data/';let localEjs=false;
+try{fetch(EJS_LOCAL+'loader.js',{method:'HEAD'}).then(r=>{localEjs=r.ok}).catch(()=>{})}catch(e){}
 function startGame(file,ci){
  ci=ci||0;const list=CORES[cur.id]||[cur.core];ci=ci%list.length;
  const core=list[ci],seq=++gsSeq;lastFile=file;coreIdx=ci;
@@ -428,7 +431,7 @@ function startGame(file,ci){
     w.EJS_player='#game'; w.EJS_core=core; w.EJS_gameName=gameName;
     w.EJS_gameUrl=new w.File([file],file.name);
     if(cur.bios)w.EJS_biosUrl=new URL('bios/'+cur.bios,location.href).href; /* BIOS가 필요한 기종: 서버 bios 폴더에서 불러옴 */
-    w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+    w.EJS_pathtodata=(CORES[cur.id]&&localEjs)?new URL(EJS_LOCAL,location.href).href:EJS_CDN;
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
       started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
