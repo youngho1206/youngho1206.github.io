@@ -76,24 +76,14 @@ footer{text-align:center;color:var(--mut);font-size:11px;font-weight:300;padding
 #emu{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #emu.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
 @keyframes zoom{from{opacity:0;transform:scale(.94)}}
-/* iOS 스타일: 위쪽 내비게이션 바 + 아래쪽 탭 바 */
-#emu{overflow:hidden}
-#bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:46px;padding:4px 8px;background:rgba(28,28,30,.72);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);border-bottom:.5px solid rgba(255,255,255,.16);transition:margin .35s,opacity .25s}
-#bar.hide{margin-top:-64px;opacity:0;pointer-events:none}
-#bar .t{grid-column:2;max-width:46vw;text-align:center;font:600 17px/1.2 var(--sans);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#bar button{display:flex;align-items:center;gap:2px;border:0;background:none;color:#0a84ff;font:400 17px var(--sans);padding:8px 6px;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-#bar #bHome{justify-self:start}
-#bar #bHide{justify-self:end}
-#bar button:active{opacity:.35}
-#bar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-#tbar{display:flex;justify-content:space-around;padding:6px 4px 4px;background:rgba(28,28,30,.72);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);border-top:.5px solid rgba(255,255,255,.16);transition:margin .35s,opacity .25s}
-#tbar.hide{margin-bottom:-96px;opacity:0;pointer-events:none}
-#tbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:rgba(235,235,245,.6);font:500 10px/1.2 var(--sans);padding:4px 0;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-#tbar button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-#tbar button:active{color:#0a84ff}
-#tbar button.act{color:#0a84ff}
-#tbar button:disabled{opacity:.3;pointer-events:none}
-#tbar button[hidden]{display:none}
+#bar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(14,13,12,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);overflow-x:auto;scrollbar-width:none;transition:margin .35s}
+#bar::-webkit-scrollbar{display:none}
+#bar.hide{margin-top:-70px}
+#bar .t{flex:1;min-width:90px;font:600 18px var(--serif);letter-spacing:.04em;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--fg);padding:8px 13px;border-radius:99px;font:500 12px var(--sans);letter-spacing:.04em;cursor:pointer;white-space:nowrap;transition:.25s}
+#bar button:hover{border-color:var(--acc);color:var(--acc2);background:rgba(212,175,106,.08)}
+#bar button:active{transform:scale(.94)}
+#bar button:disabled{opacity:.3;pointer-events:none}
 #stage{flex:1;position:relative;min-height:0}
 #fr{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
 #drop{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 38%,#1d1a12,#060608 70%);z-index:2}
@@ -115,6 +105,7 @@ footer{text-align:center;color:var(--mut);font-size:11px;font-weight:300;padding
 @keyframes rt{50%{transform:rotate(-90deg)}}
 body.mob.fs.port #rot{display:flex}
 #emu.pfs{z-index:1000}
+@media (max-width:520px){#bar button{padding:8px 11px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.app,.eyebrow,.orn,header p{opacity:1}}
 #pc{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:10;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #pc.show{display:flex;animation:zoom .5s cubic-bezier(.2,.9,.3,1)}
@@ -208,7 +199,7 @@ body.mob.fs.port #rot{display:flex}
 #ioa.on .ioa-box{transform:scale(1);opacity:1}
 #ioa .ioa-body{padding:20px 16px 18px}
 #ioa b{display:block;font-size:17px;font-weight:600;margin-bottom:5px}
-#ioa p{white-space:pre-line;margin:0;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.88)}
+#ioa p{margin:0;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.88)}
 #ioa button{display:block;width:100%;border:0;border-top:.5px solid rgba(255,255,255,.25);background:none;color:#0a84ff;font-weight:600;font-size:17px;font-family:inherit;padding:12px 0;cursor:pointer}
 #ioa button:active{background:rgba(255,255,255,.12)}
 </style>
@@ -237,9 +228,14 @@ body.mob.fs.port #rot{display:flex}
 
 <section id="emu">
   <div id="bar">
-    <button id="bHome" aria-label="홈"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>홈</button>
+    <button id="bHome">← 홈</button>
     <span class="t" id="eTitle"></span>
-    <button id="bHide" aria-label="메뉴 숨김"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>숨김</button>
+    <button id="bLoad">📂 게임</button>
+    <button id="bSave" disabled>💾 저장</button>
+    <button id="bRest" disabled>📥 불러오기</button>
+    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bFs">⛶ 전체화면</button>
+    <button id="bHide">▲ 메뉴숨김</button>
   </div>
   <div id="stage">
     <div id="drop">
@@ -251,14 +247,6 @@ body.mob.fs.port #rot{display:flex}
     </div>
     <iframe id="fr" allow="autoplay; gamepad; fullscreen"></iframe>
     <div id="rot"><span>📱</span>가로로 돌려주세요</div>
-  </div>
-  <div id="tbar">
-    <button id="bLoad"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>게임</span></button>
-    <button id="bSave" disabled><svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg><span>저장</span></button>
-    <button id="bRest" disabled><svg viewBox="0 0 24 24"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 19h14"/></svg><span>불러오기</span></button>
-    <button id="bCtl" class="act" disabled><svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10" rx="5"/><path d="M7 10v4M5 12h4"/><circle cx="16" cy="11" r=".7"/><circle cx="18" cy="13" r=".7"/></svg><span id="bCtlT">조작 ON</span></button>
-    <button id="bCore" hidden disabled><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span id="bCoreT">코어</span></button>
-    <button id="bFs"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>전체화면</span></button>
   </div>
   <button id="fab">☰</button>
 </section>
@@ -286,7 +274,6 @@ body.mob.fs.port #rot{display:flex}
 <input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
 
 <script src="emudata.js"></script>
-<script src="mame.js"></script>
 <script>
 /* ---------- 콘솔 목록 ---------- */
 
@@ -296,7 +283,6 @@ const ICONS_READY=WT.ready.then(()=>Promise.race([
  Promise.all(Object.values(IMG).map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=WT.src(n);if(i.decode)i.decode().then(r,r)}))),
  new Promise(r=>setTimeout(r,5000))]));
 function icon(c){
- if(!IMG[c.id])return fbIcon(c);
  return `<img src="${WT.src(IMG[c.id])}" data-k="${IMG[c.id]}" alt="${c.n}" width="256" height="256" draggable="false">`;
 }
 
@@ -362,15 +348,12 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function openEmu(c){
  cur=c;gameName='';started=false;
  $('#eTitle').textContent=c.n;$('#dName').textContent=c.n;$('#dIcon').innerHTML=icon(c,'d');
- $('#dExt').textContent='지원 형식: '+c.x+(c.id==='mame'?'  ·  MAME 2003 코어 / BIOS가 필요한 롬(세가 ST-V 등)은 게임 zip + BIOS zip(stvbios.zip)을 함께 선택하세요':'');
- $('#romIn').multiple=(c.id==='mame');
+ $('#dExt').textContent='지원 형식: '+c.x;
  $('#drop').classList.remove('hidden');
  ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
- lastFile=null;$('#bCore').hidden=!CORES[c.id];$('#bCore').disabled=true;$('#bCoreT').textContent='코어';
  fr.src='about:blank';
- emu.classList.add('show');emu.classList.remove('nobar');$('#bar').classList.remove('hide');$('#tbar').classList.remove('hide');
+ emu.classList.add('show');emu.classList.remove('nobar');$('#bar').classList.remove('hide');
  history.pushState({emu:1},'');
- try{if(!localStorage.getItem('emuNotice1')){localStorage.setItem('emuNotice1','1');setTimeout(()=>iosAlert('에뮬레이터 디자인이 바뀌었습니다.\n아래 [게임]을 눌러 ROM 파일을 불러오면 됩니다.','안내'),350)}}catch(e){setTimeout(()=>iosAlert('에뮬레이터 디자인이 바뀌었습니다.\n아래 [게임]을 눌러 ROM 파일을 불러오면 됩니다.','안내'),350)}
 }
 function closeEmu(){
  bootSeq++;loadHide();
@@ -382,20 +365,11 @@ addEventListener('popstate',()=>{if(emu.classList.contains('show'))closeEmu()});
 
 function pick(){$('#romIn').value='';$('#romIn').click()}
 $('#bLoad').onclick=pick;$('#dBtn').onclick=pick;
-/* MAME 는 게임 zip + BIOS zip 을 한 번에 받을 수 있음 */
-async function startFiles(files){
- files=[].slice.call(files||[]);if(!files.length)return;
- if(!(cur&&cur.id==='mame')||!window.MAME2003){startGame(files[0]);return}
- const p=await MAME2003.prepare(files);
- if(!p){toast('MAME 는 .zip 롬 파일만 사용할 수 있습니다');return}
- if(p.missing){iosAlert('이 게임은 BIOS 가 필요합니다.\n\n게임 zip 과 함께 '+p.missing+'.zip 도 같이 선택(또는 끌어놓기) 하세요.\n(BIOS 파일은 이 사이트에 들어 있지 않습니다. 서버의 bios/'+p.missing+'.zip 에 올려두면 자동으로 사용됩니다)','BIOS 필요');return}
- startGame(p.game,0,p.extras);
-}
-$('#romIn').onchange=e=>startFiles(e.target.files);
+$('#romIn').onchange=e=>e.target.files[0]&&startGame(e.target.files[0]);
 const dr=$('#drop');
 ['dragover','dragenter'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.add('over')}));
 ['dragleave','drop'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.remove('over')}));
-dr.addEventListener('drop',e=>{startFiles(e.dataTransfer.files)});
+dr.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];f&&startGame(f)});
 
 
 let loadTimer=null,loadStarted=0,loadEstimate=15;
@@ -417,19 +391,9 @@ function loadProgress(pct,line){
   $('#loadpct').style.width=Math.max(0,Math.min(100,pct))+'%';
   $('#loadline').textContent=line;
 }
-/* 코어 자동/수동 전환: 아케이드(MAME·네오지오)는 롬 버전에 따라 맞는 코어가 달라서 여러 코어를 번갈아 시도합니다 */
-const CORES={mame:['mame2003','mame2003_plus'],neogeo:['arcade','mame2003_plus','mame2003']};
-const CORE_NAME={mame2003:'MAME 2003',mame2003_plus:'MAME 2003 Plus',arcade:'FinalBurn Neo',fbalpha2012_cps1:'FBAlpha CPS1',fbalpha2012_cps2:'FBAlpha CPS2'};
-let lastFile=null,lastExtras=null,coreIdx=0,gsSeq=0;
-/* 마메/네오지오는 저장소에 올린 emulatorjs/data/ 엔진을 우선 사용, 없으면 공식 CDN으로 자동 대체 */
-const EJS_LOCAL='emulatorjs/data/',EJS_CDN='https://cdn.emulatorjs.org/stable/data/';let localEjs=false;
-try{fetch(EJS_LOCAL+'loader.js',{method:'HEAD'}).then(r=>{localEjs=r.ok}).catch(()=>{})}catch(e){}
-function startGame(file,ci,extras){
- ci=ci||0;if(extras!==undefined)lastExtras=extras;extras=lastExtras;const list=CORES[cur.id]||[cur.core];ci=ci%list.length;
- const core=list[ci],seq=++gsSeq;lastFile=file;coreIdx=ci;
- if(CORES[cur.id]){$('#bCore').disabled=false;$('#bCoreT').textContent='코어 '+(ci+1)+'/'+list.length}
+function startGame(file){
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtlT').textContent='조작 ON';$('#bCtl').classList.add('act');
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
  const est=Math.max(5,Math.min(60,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  fr.src='about:blank';
@@ -439,17 +403,15 @@ function startGame(file,ci,extras){
     d.open();
     d.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>`);
     d.close();
-    w.EJS_player='#game'; w.EJS_core=core; w.EJS_gameName=gameName;
+    w.EJS_player='#game'; w.EJS_core=cur.core; w.EJS_gameName=gameName;
     w.EJS_gameUrl=new w.File([file],file.name);
-    if(cur.bios)w.EJS_biosUrl=new URL('bios/'+cur.bios,location.href).href; /* BIOS가 필요한 기종: 서버 bios 폴더에서 불러옴 */
-    if(cur.id==='mame'&&window.MAME2003)MAME2003.apply(w,extras); /* BIOS(zip) 연결 */
-    w.EJS_pathtodata=(CORES[cur.id]&&localEjs)?new URL(EJS_LOCAL,location.href).href:EJS_CDN;
+    w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
       started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
       loadProgress(100,'게임 시작 완료');
       setTimeout(loadHide,500);
-      toast('게임 시작! 🎮'+(CORES[cur.id]?' · '+CORE_NAME[core]:''));
+      toast('게임 시작! 🎮');
     };
     w.addEventListener('error',()=>{loadHide();toast('에뮬레이터 로딩 오류가 발생했습니다')});
     const s=d.createElement('script');s.src=w.EJS_pathtodata+'loader.js';
@@ -457,23 +419,9 @@ function startGame(file,ci,extras){
     s.onerror=()=>{loadHide();toast('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요')};
     d.body.appendChild(s);
     $('#drop').classList.add('hidden');
-    if(list.length>1){ /* 시작 실패 감시 → 다음 코어로 자동 전환 */
-     let t0=Date.now();
-     const wd=setInterval(()=>{
-      if(seq!==gsSeq||started){clearInterval(wd);return}
-      let msg='';try{const e=d.querySelector('.ejs_loading_text');msg=e?e.textContent:''}catch(x){}
-      const bad=/error|fail|오류|실패|not found/i.test(msg),late=Date.now()-t0>(cur.id==='mame'?120000:40000);
-      if(bad||late){
-       clearInterval(wd);
-       if(ci+1<list.length){toast('시작되지 않아 코어를 바꿉니다: '+CORE_NAME[list[ci+1]]);startGame(file,ci+1,extras)}
-       else{loadHide();toast('모든 코어로 시도했지만 실행되지 않았습니다. ROM 파일(버전/BIOS)을 확인하세요')}
-      }
-     },1000);
-    }
    }catch(err){loadHide();toast('에뮬레이터 준비 실패: '+err.message)}
  },60);
 }
-$('#bCore').onclick=()=>{if(lastFile){const l=CORES[cur.id];toast('코어 변경: '+CORE_NAME[l[(coreIdx+1)%l.length]]);startGame(lastFile,coreIdx+1,lastExtras)}};
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
 $('#bSave').onclick=()=>{
@@ -496,10 +444,10 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtlT').textContent=ctlOn?'조작 ON':'조작 OFF';$('#bCtl').classList.toggle('act',ctlOn);
+ $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
 };
-$('#bHide').onclick=()=>{$('#bar').classList.add('hide');$('#tbar').classList.add('hide');emu.classList.add('nobar')};
-$('#fab').onclick=()=>{$('#bar').classList.remove('hide');$('#tbar').classList.remove('hide');emu.classList.remove('nobar')};
+$('#bHide').onclick=()=>{$('#bar').classList.add('hide');emu.classList.add('nobar')};
+$('#fab').onclick=()=>{$('#bar').classList.remove('hide');emu.classList.remove('nobar')};
 
 /* 전체화면 + 모바일 가로 고정 */
 const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
@@ -856,29 +804,6 @@ $('#vscreen').addEventListener('mousedown',e=>{if(wantMouse()&&!pc.mcap){mouseCa
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&pc&&pc.mcap)mouseCapture(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pc&&pc.mcap){mouseCapture(false)}},true);
 addEventListener('blur',()=>{if(pc&&pc.mcap)mouseCapture(false)});
-/* ---- 화면 캡처용: 그래픽 화면은 그대로, 도스 글자 화면은 색까지 그림으로 만들어 줌 ---- */
-function shotCanvas(){
- const cv=document.querySelector('#vscreen canvas');
- if(cv&&cv.style.display!=='none'&&cv.width>1&&cv.height>1)return cv;
- const tx=document.querySelector('#vscreen>div'),rows=[];
- if(tx)tx.childNodes.forEach(r=>{
-  if(r.nodeType!==1||!r.childNodes.length)return;
-  const cells=[];
-  r.childNodes.forEach(s=>{const t=s.textContent||'';if(!t)return;const st=s.nodeType===1?s.style:null;cells.push({t:t.replace(/\u00a0/g,' '),fg:(st&&st.color)||'#aaaaaa',bg:(st&&st.backgroundColor)||'#000000'})});
-  rows.push(cells);
- });
- if(!rows.length){try{((pc.emu.screen_adapter.get_text_screen())||[]).forEach(l=>rows.push([{t:String(l),fg:'#aaaaaa',bg:'#000000'}]))}catch(_){}}
- if(!rows.length)return null;
- const cols=Math.max(80,...rows.map(r=>r.reduce((a,c)=>a+c.t.length,0))),R=Math.max(25,rows.length),cw=18,ch=32;
- const c=document.createElement('canvas');c.width=cols*cw;c.height=R*ch;
- const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);
- x.font='bold '+(ch-6)+'px "Courier New",Consolas,monospace';x.textAlign='center';x.textBaseline='middle';
- rows.forEach((cells,ri)=>{let col=0;cells.forEach(cl=>{for(const chr of cl.t){const px=col*cw;
-  if(cl.bg&&cl.bg!=='rgb(0, 0, 0)'&&cl.bg!=='#000000'){x.fillStyle=cl.bg;x.fillRect(px,ri*ch,cw,ch)}
-  if(chr!==' '){x.fillStyle=cl.fg;x.fillText(chr,px+cw/2,ri*ch+ch/2+1)}
-  col++}})});
- return c;
-}
 const A={
  start(){if(pc.running){pc.emu.restart();toast('재시작');return}pc.local=null;pc.vhd=null;boot()},
  async local(){const f=await pickFile('.img,.ima,.iso,.vhd,.zip');pc.local=f;pc.vhd=null;boot()},
@@ -891,11 +816,9 @@ const A={
  },
  cap(){
   if(!pc.running)return toast('실행 중일 때만 캡처할 수 있습니다');
-  const src=shotCanvas();
-  if(!src)return toast('캡처할 화면이 아직 없습니다');
-  const o=document.createElement('canvas');o.width=src.width;o.height=src.height;
-  const x=o.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,o.width,o.height);x.drawImage(src,0,0);
-  o.toBlob(b=>{if(!b)return toast('캡처 실패');dlFile(b,`${pc.os.id.toUpperCase()}_${stamp()}.PNG`);toast('📷 캡처 저장됨 ('+o.width+'×'+o.height+')')},'image/png');
+  const cv=$('#vscreen canvas');
+  if(!cv||cv.style.display==='none')return toast('그래픽(Windows) 화면에서 캡처할 수 있습니다');
+  cv.toBlob(b=>{dlFile(b,`${pc.os.id.toUpperCase()}_${stamp()}.PNG`);toast('📷 캡처 저장됨')});
  },
  async vsave(){
   if(!pc.running)return toast('실행 중일 때만 저장할 수 있습니다');
