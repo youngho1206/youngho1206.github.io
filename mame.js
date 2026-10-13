@@ -61,12 +61,30 @@ async function prepare(files){
  return {game:s.game,extras:extras.slice(0,2),missing};
 }
 
-/* EmulatorJS 설정(iframe window)에 BIOS 연결 */
+/* EmulatorJS(iframe window)에 BIOS 연결
+   EmulatorJS 의 BIOS 다운로드 단계는 File 객체를 받으면 멈추므로(Download Game BIOS 에서 정지),
+   엔진이 만들어지는 순간 그 단계를 가로채서 BIOS/부모롬 zip 을 가상 파일시스템(/)에 그대로 써 넣습니다. */
 function apply(w,extras){
- extras=extras||[];
- w.EJS_dontExtractBIOS=true;      /* BIOS / 부모롬 zip 을 풀지 않고 그대로 저장 */
- if(extras[0])w.EJS_biosUrl=new w.File([extras[0]],extras[0].name);
- if(extras[1])w.EJS_gameParentUrl=new w.File([extras[1]],extras[1].name);
+ extras=(extras||[]).filter(Boolean);
+ if(!extras.length)return;
+ const patch=emu=>{
+  emu.downloadBios=()=>new Promise(async resolve=>{
+   try{
+    for(const f of extras){
+     const data=new Uint8Array(await f.arrayBuffer());
+     emu.gameManager.FS.writeFile('/'+f.name,data); /* 게임 zip 과 같은 폴더(/) */
+    }
+   }catch(e){console.error('MAME BIOS 쓰기 실패',e)}
+   resolve();
+  });
+  emu.downloadGameParent=()=>Promise.resolve(); /* 부모롬도 위에서 함께 처리 */
+ };
+ try{
+  delete w.EJS_emulator;
+  Object.defineProperty(w,'EJS_emulator',{configurable:true,enumerable:true,
+   get(){return undefined},
+   set(v){Object.defineProperty(w,'EJS_emulator',{value:v,writable:true,configurable:true,enumerable:true});patch(v)}});
+ }catch(e){console.error(e)}
 }
 
 window.MAME2003={prepare,apply,split,needed,isBios,STV};
