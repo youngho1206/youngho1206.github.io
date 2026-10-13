@@ -286,6 +286,7 @@ body.mob.fs.port #rot{display:flex}
 <input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
 
 <script src="emudata.js"></script>
+<script src="mame.js"></script>
 <script>
 /* ---------- 콘솔 목록 ---------- */
 
@@ -361,7 +362,8 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function openEmu(c){
  cur=c;gameName='';started=false;
  $('#eTitle').textContent=c.n;$('#dName').textContent=c.n;$('#dIcon').innerHTML=icon(c,'d');
- $('#dExt').textContent='지원 형식: '+c.x;
+ $('#dExt').textContent='지원 형식: '+c.x+(c.id==='mame'?'  ·  MAME 2003 코어 / BIOS가 필요한 롬(세가 ST-V 등)은 게임 zip + BIOS zip(stvbios.zip)을 함께 선택하세요':'');
+ $('#romIn').multiple=(c.id==='mame');
  $('#drop').classList.remove('hidden');
  ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
  lastFile=null;$('#bCore').hidden=!CORES[c.id];$('#bCore').disabled=true;$('#bCoreT').textContent='코어';
@@ -380,11 +382,20 @@ addEventListener('popstate',()=>{if(emu.classList.contains('show'))closeEmu()});
 
 function pick(){$('#romIn').value='';$('#romIn').click()}
 $('#bLoad').onclick=pick;$('#dBtn').onclick=pick;
-$('#romIn').onchange=e=>e.target.files[0]&&startGame(e.target.files[0]);
+/* MAME 는 게임 zip + BIOS zip 을 한 번에 받을 수 있음 */
+async function startFiles(files){
+ files=[].slice.call(files||[]);if(!files.length)return;
+ if(!(cur&&cur.id==='mame')||!window.MAME2003){startGame(files[0]);return}
+ const p=await MAME2003.prepare(files);
+ if(!p){toast('MAME 는 .zip 롬 파일만 사용할 수 있습니다');return}
+ if(p.missing){iosAlert('이 게임은 BIOS 가 필요합니다.\n\n게임 zip 과 함께 '+p.missing+'.zip 도 같이 선택(또는 끌어놓기) 하세요.\n(BIOS 파일은 이 사이트에 들어 있지 않습니다. 서버의 bios/'+p.missing+'.zip 에 올려두면 자동으로 사용됩니다)','BIOS 필요');return}
+ startGame(p.game,0,p.extras);
+}
+$('#romIn').onchange=e=>startFiles(e.target.files);
 const dr=$('#drop');
 ['dragover','dragenter'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.add('over')}));
 ['dragleave','drop'].forEach(v=>dr.addEventListener(v,e=>{e.preventDefault();dr.classList.remove('over')}));
-dr.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];f&&startGame(f)});
+dr.addEventListener('drop',e=>{startFiles(e.dataTransfer.files)});
 
 
 let loadTimer=null,loadStarted=0,loadEstimate=15;
@@ -407,14 +418,14 @@ function loadProgress(pct,line){
   $('#loadline').textContent=line;
 }
 /* 코어 자동/수동 전환: 아케이드(MAME·네오지오)는 롬 버전에 따라 맞는 코어가 달라서 여러 코어를 번갈아 시도합니다 */
-const CORES={mame:['mame2003','mame2003_plus','arcade','fbalpha2012_cps1','fbalpha2012_cps2'],neogeo:['arcade','mame2003_plus','mame2003']};
+const CORES={mame:['mame2003','mame2003_plus'],neogeo:['arcade','mame2003_plus','mame2003']};
 const CORE_NAME={mame2003:'MAME 2003',mame2003_plus:'MAME 2003 Plus',arcade:'FinalBurn Neo',fbalpha2012_cps1:'FBAlpha CPS1',fbalpha2012_cps2:'FBAlpha CPS2'};
-let lastFile=null,coreIdx=0,gsSeq=0;
+let lastFile=null,lastExtras=null,coreIdx=0,gsSeq=0;
 /* 마메/네오지오는 저장소에 올린 emulatorjs/data/ 엔진을 우선 사용, 없으면 공식 CDN으로 자동 대체 */
 const EJS_LOCAL='emulatorjs/data/',EJS_CDN='https://cdn.emulatorjs.org/stable/data/';let localEjs=false;
 try{fetch(EJS_LOCAL+'loader.js',{method:'HEAD'}).then(r=>{localEjs=r.ok}).catch(()=>{})}catch(e){}
-function startGame(file,ci){
- ci=ci||0;const list=CORES[cur.id]||[cur.core];ci=ci%list.length;
+function startGame(file,ci,extras){
+ ci=ci||0;if(extras!==undefined)lastExtras=extras;extras=lastExtras;const list=CORES[cur.id]||[cur.core];ci=ci%list.length;
  const core=list[ci],seq=++gsSeq;lastFile=file;coreIdx=ci;
  if(CORES[cur.id]){$('#bCore').disabled=false;$('#bCoreT').textContent='코어 '+(ci+1)+'/'+list.length}
  gameName=file.name.replace(/\.[^.]+$/,'');
@@ -431,6 +442,7 @@ function startGame(file,ci){
     w.EJS_player='#game'; w.EJS_core=core; w.EJS_gameName=gameName;
     w.EJS_gameUrl=new w.File([file],file.name);
     if(cur.bios)w.EJS_biosUrl=new URL('bios/'+cur.bios,location.href).href; /* BIOS가 필요한 기종: 서버 bios 폴더에서 불러옴 */
+    if(cur.id==='mame'&&window.MAME2003)MAME2003.apply(w,extras); /* BIOS(zip) 연결 */
     w.EJS_pathtodata=(CORES[cur.id]&&localEjs)?new URL(EJS_LOCAL,location.href).href:EJS_CDN;
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
@@ -450,10 +462,10 @@ function startGame(file,ci){
      const wd=setInterval(()=>{
       if(seq!==gsSeq||started){clearInterval(wd);return}
       let msg='';try{const e=d.querySelector('.ejs_loading_text');msg=e?e.textContent:''}catch(x){}
-      const bad=/error|fail|오류|실패|not found/i.test(msg),late=Date.now()-t0>40000;
+      const bad=/error|fail|오류|실패|not found/i.test(msg),late=Date.now()-t0>(cur.id==='mame'?120000:40000);
       if(bad||late){
        clearInterval(wd);
-       if(ci+1<list.length){toast('시작되지 않아 코어를 바꿉니다: '+CORE_NAME[list[ci+1]]);startGame(file,ci+1)}
+       if(ci+1<list.length){toast('시작되지 않아 코어를 바꿉니다: '+CORE_NAME[list[ci+1]]);startGame(file,ci+1,extras)}
        else{loadHide();toast('모든 코어로 시도했지만 실행되지 않았습니다. ROM 파일(버전/BIOS)을 확인하세요')}
       }
      },1000);
@@ -461,7 +473,7 @@ function startGame(file,ci){
    }catch(err){loadHide();toast('에뮬레이터 준비 실패: '+err.message)}
  },60);
 }
-$('#bCore').onclick=()=>{if(lastFile){const l=CORES[cur.id];toast('코어 변경: '+CORE_NAME[l[(coreIdx+1)%l.length]]);startGame(lastFile,coreIdx+1)}};
+$('#bCore').onclick=()=>{if(lastFile){const l=CORES[cur.id];toast('코어 변경: '+CORE_NAME[l[(coreIdx+1)%l.length]]);startGame(lastFile,coreIdx+1,lastExtras)}};
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
 $('#bSave').onclick=()=>{

@@ -20,3 +20,12 @@
 - 도스 기반 윈도우(1.0~3.1)에서 CD를 드라이브 문자(D: 등)로 쓰려면, 하드디스크 이미지 안에 CD-ROM 드라이버가 설정돼 있어야 합니다.
   (CONFIG.SYS 에 DEVICE=...CDROM.SYS /D:MSCD001, AUTOEXEC.BAT 에 MSCDEX /D:MSCD001 — Windows 3.1은 AUTOEXEC.BAT 의 MSCDEX 줄이 자동 정리 때도 유지됩니다)
 - '📷 화면캡처' : 지금 에뮬레이터에 보이는 화면(윈도우 화면·도스 글자 화면 모두)을 PNG 사진으로 저장합니다.
+
+
+[MAME 2003 (아케이드)]
+- 코어: MAME 2003 (0.78) — emulatorjs/data/cores/mame2003-*.data 를 우선 사용, 없으면 공식 CDN 으로 대체
+- 게임 ROM / BIOS 는 사이트에 포함되어 있지 않습니다. (사용자가 직접 선택)
+- ROM 선택 창에서 여러 파일을 동시에 고를 수 있습니다: 게임 zip + BIOS zip (예: twcup98.zip + stvbios.zip)
+- 세가 ST-V 게임(twcup98 등)은 stvbios.zip 이 필요합니다. bios/stvbios.zip 에 올려두면 자동 사용됩니다.
+- 파일 이름(zip)을 바꾸지 마세요. MAME 은 zip 이름(twcup98.zip)으로 게임을 찾습니다.
+- 관련 파일: mame.js (BIOS 처리), desktop.html / mobile.html (실행 부분), emudata.js (목록)

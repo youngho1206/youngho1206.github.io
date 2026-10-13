@@ -22,7 +22,7 @@ const C=[
  {id:'a7800',n:'Atari 7800',fn:'ATARI7800',core:'atari7800',y:1986,a:'#c2884a',b:'#3a2208',g:'pad',l:'7800',x:'.a78 .bin .zip'},
  {id:'jag',n:'Atari Jaguar',fn:'JAGUAR',core:'jaguar',y:1993,a:'#d9382c',b:'#3d0a06',g:'pad',l:'JAG',x:'.j64 .jag .rom .abs .zip'},
  {id:'neogeo',n:'Neo Geo / AES (MVS)',fn:'NEOGEO',core:'arcade',y:1990,a:'#fbbf24',b:'#4a2d02',g:'pad',l:'NEO',x:'.zip'},
- {id:'mame',n:'아케이드 (MAME)',fn:'MAME',core:'mame2003',y:'',a:'#f59e0b',b:'#4a2a02',g:'pad',l:'MAME',x:'.zip'}
+ {id:'mame',n:'아케이드 (MAME 2003)',fn:'MAME',core:'mame2003',y:'',a:'#f59e0b',b:'#4a2a02',g:'pad',l:'MAME',x:'.zip (게임 + BIOS zip 동시 선택 가능)'}
 ];
 const era=y=>y<1990?'1980년대':y<2000?'1990년대':'2000년대';
 
@@ -38,7 +38,7 @@ const P=[
  {id:'win98',n:'Windows 98',y:1998,a:'#60a5fa',b:'#172554',g:'win',l:'98',ram:32}
 ];
 
-const S_KW={atari2600:'아타리 아타리2600 2600',nes:'패미컴 패미콤 닌텐도 엔이에스 famicom',sms:'마스터시스템 마스터 시스템 세가 sega',pce:'피씨엔진 pc엔진 엔진 pcengine nec turbografx turbografx-16 turbografx16 cd 터보그래픽스 pc엔진cd',md:'메가드라이브 메가 드라이브 제네시스 세가 sega megadrive genesis',gb:'게임보이 보이 닌텐도 gameboy',lynx:'링스 링크스 아타리',snes:'슈퍼패미컴 슈패 슈퍼 패미컴 닌텐도 에스엔이에스 superfamicom',gg:'게임기어 기어 세가 sega gamegear',psx:'플레이스테이션 플스 플레이 스테이션 소니 sony ps1 psx playstation',vb:'버추얼보이 버추얼 가상 닌텐도 virtualboy',n64:'닌텐도64 닌텐도 64 엔64 nintendo64',ngp:'네오지오 네오지오포켓 포켓 snk neogeo',gbc:'게임보이컬러 컬러 닌텐도 gameboycolor',gba:'게임보이어드밴스 어드밴스 닌텐도 gameboyadvance',sg1000:'세가 sega sg1000 sg-1000 에스지1000',s32x:'세가32x 32x 세가 sega 메가드라이브 sega32x',a7800:'아타리7800 아타리 7800 atari7800',jag:'재규어 자가 아타리 atari jaguar',neogeo:'네오지오 neogeo neo geo aes mvs snk 네오지오cd',mame:'마메 아케이드 오락실 arcade mame 네오지오 neogeo 캡콤 capcom',nds:'닌텐도ds 닌텐도 디에스 듀얼스크린 nintendods',dos:'도스 엠에스도스 msdos 마이크로소프트',win10:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우1',win20:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우2',win30:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3',win31:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3.1',win95:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우95',win98:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우98'};
+const S_KW={atari2600:'아타리 아타리2600 2600',nes:'패미컴 패미콤 닌텐도 엔이에스 famicom',sms:'마스터시스템 마스터 시스템 세가 sega',pce:'피씨엔진 pc엔진 엔진 pcengine nec turbografx turbografx-16 turbografx16 cd 터보그래픽스 pc엔진cd',md:'메가드라이브 메가 드라이브 제네시스 세가 sega megadrive genesis',gb:'게임보이 보이 닌텐도 gameboy',lynx:'링스 링크스 아타리',snes:'슈퍼패미컴 슈패 슈퍼 패미컴 닌텐도 에스엔이에스 superfamicom',gg:'게임기어 기어 세가 sega gamegear',psx:'플레이스테이션 플스 플레이 스테이션 소니 sony ps1 psx playstation',vb:'버추얼보이 버추얼 가상 닌텐도 virtualboy',n64:'닌텐도64 닌텐도 64 엔64 nintendo64',ngp:'네오지오 네오지오포켓 포켓 snk neogeo',gbc:'게임보이컬러 컬러 닌텐도 gameboycolor',gba:'게임보이어드밴스 어드밴스 닌텐도 gameboyadvance',sg1000:'세가 sega sg1000 sg-1000 에스지1000',s32x:'세가32x 32x 세가 sega 메가드라이브 sega32x',a7800:'아타리7800 아타리 7800 atari7800',jag:'재규어 자가 아타리 atari jaguar',neogeo:'네오지오 neogeo neo geo aes mvs snk 네오지오cd',mame:'마메 아케이드 오락실 arcade mame mame2003 네오지오 neogeo 캡콤 capcom 세가 sega st-v stv 테크모 월드컵 twcup98',nds:'닌텐도ds 닌텐도 디에스 듀얼스크린 nintendods',dos:'도스 엠에스도스 msdos 마이크로소프트',win10:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우1',win20:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우2',win30:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3',win31:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3.1',win95:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우95',win98:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우98'};
 
 /* 아이콘 이미지가 따로 없는 기종은 색상 + 약어 글자로 직접 그린 아이콘을 사용합니다 */
 const fbIcon=c=>{const t=String(c.l||c.n),fs=t.length>4?20:t.length>3?25:32;
