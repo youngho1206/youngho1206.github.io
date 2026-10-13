@@ -191,7 +191,7 @@ body.mob.fs.port #rot{display:flex}
  <div class="frame" id="frame">
   <header class="hd">
    <div class="hd-l"><button type="button" class="hbtn round" id="bInfo" title="안내">ⓘ</button><button type="button" class="hbtn" id="bVer" title="모바일 / PC 버전 선택">⇄ 버전선택</button><span class="deco"></span></div>
-   <div class="ttl"><h1>최영호의 웹에뮬레이터 <small style="font-size:.5em;opacity:.7">PC 전용</small></h1></div>
+   <div class="ttl"><h1>최영호의 웹에뮬레이터 <small style="font-size:.5em;opacity:.7">PC 전용 · 신기종</small></h1></div>
    <div class="hd-r"><span class="deco"></span><button type="button" class="hbtn" id="bSet" title="테마 · 배경 설정">⚙ 설정</button></div>
   </header>
   <div class="bar">
@@ -260,16 +260,28 @@ body.mob.fs.port #rot{display:flex}
 
 <script src="emudata.js"></script>
 <script>
-/* ===== PC 전용 : 고사양 · 신기종 (기존 사이트에 없던 기종) — 모바일과 같은 에뮬레이터 환경으로 ROM을 바로 불러와 실행 ===== */
+/* ===== PC 전용 페이지 : 기존 사이트(모바일·PC·태블릿)에 있는 기종은 모두 빼고, 사이트에 없는 새 기종만 제공 =====
+   ROM 은 모바일 버전과 같은 에뮬레이터 화면(위·아래 메뉴)에서 바로 불러와 실행합니다. */
+C.length=0;P.length=0;
 C.push(
- {id:'psp',n:'PlayStation Portable',fn:'PSP',core:'psp',y:2004,a:'#3b82f6',b:'#0b1a3d',g:'land',l:'PSP',x:'.iso .cso .pbp .zip',hi:1,threads:1},
- {id:'sat',n:'Sega Saturn',fn:'SEGASATURN',core:'segaSaturn',y:1994,a:'#6366f1',b:'#14153f',g:'pad',l:'SAT',x:'.cue .bin .iso .chd .zip',hi:1},
- {id:'scd',n:'Sega CD / Mega CD',fn:'SEGACD',core:'segaCD',y:1991,a:'#0ea5e9',b:'#062a40',g:'pad',l:'SCD',x:'.cue .bin .iso .chd .zip',hi:1},
- {id:'3do',n:'3DO',fn:'3DO',core:'opera',y:1993,a:'#d4a017',b:'#3d2d02',g:'pad',l:'3DO',x:'.iso .cue .bin .chd',hi:1},
- {id:'amiga',n:'Commodore Amiga',fn:'AMIGA',core:'puae',y:1985,a:'#ef6c00',b:'#3d1a00',g:'pc',l:'AMIGA',x:'.adf .ipf .hdf .zip',hi:1},
- {id:'c64',n:'Commodore 64',fn:'C64',core:'vice_x64',y:1982,a:'#8b7355',b:'#2a2012',g:'pc',l:'C64',x:'.d64 .t64 .prg .tap .crt .zip',hi:1}
+ /* 콘솔 */
+ {id:'sat',n:'세가 새턴',fn:'SEGASATURN',core:'segaSaturn',y:1994,a:'#6366f1',b:'#14153f',g:'pad',l:'SAT',x:'.cue .bin .iso .chd .zip',cat:'con'},
+ {id:'scd',n:'세가 CD / 메가 CD',fn:'SEGACD',core:'segaCD',y:1991,a:'#0ea5e9',b:'#062a40',g:'pad',l:'SCD',x:'.cue .bin .iso .chd .zip · BIOS 필요',cat:'con'},
+ {id:'3do',n:'3DO',fn:'3DO',core:'opera',y:1993,a:'#d4a017',b:'#3d2d02',g:'pad',l:'3DO',x:'.iso .cue .bin .chd · BIOS 필요',cat:'con'},
+ {id:'pcfx',n:'PC-FX',fn:'PCFX',core:'mednafen_pcfx',y:1994,a:'#e11d48',b:'#3f0716',g:'pad',l:'PC-FX',x:'.cue .bin .iso .chd · BIOS 필요',cat:'con'},
+ {id:'a5200',n:'아타리 5200',fn:'ATARI5200',core:'a5200',y:1982,a:'#9a6b3a',b:'#2e1d0a',g:'pad',l:'5200',x:'.a52 .bin .zip · BIOS 필요',cat:'con'},
+ {id:'coleco',n:'콜레코비전',fn:'COLECOVISION',core:'gearcoleco',y:1982,a:'#ef4444',b:'#450a0a',g:'pad',l:'COLECO',x:'.col .rom .zip · BIOS 필요',cat:'con'},
+ /* 휴대용 */
+ {id:'psp',n:'PSP (플레이스테이션 포터블)',fn:'PSP',core:'psp',y:2004,a:'#3b82f6',b:'#0b1a3d',g:'land',l:'PSP',x:'.iso .cso .pbp .zip · 고사양',cat:'han',threads:1},
+ {id:'ws',n:'원더스완',fn:'WONDERSWAN',core:'mednafen_wswan',y:1999,a:'#14b8a6',b:'#042f2b',g:'land',l:'WS',x:'.ws .wsc .zip',cat:'han'},
+ /* PC · 컴퓨터 게임 */
+ {id:'amiga',n:'코모도어 아미가',fn:'AMIGA',core:'puae',y:1985,a:'#ef6c00',b:'#3d1a00',g:'pc',l:'AMIGA',x:'.adf .ipf .hdf .zip',cat:'pcg'},
+ {id:'c64',n:'코모도어 64',fn:'C64',core:'vice_x64',y:1982,a:'#8b7355',b:'#2a2012',g:'pc',l:'C64',x:'.d64 .t64 .prg .tap .crt .zip',cat:'pcg'},
+ {id:'c128',n:'코모도어 128',fn:'C128',core:'vice_x128',y:1985,a:'#a78bfa',b:'#2a1a5e',g:'pc',l:'C128',x:'.d64 .t64 .prg .tap .crt .zip',cat:'pcg'},
+ {id:'vic20',n:'코모도어 VIC-20',fn:'VIC20',core:'vice_xvic',y:1980,a:'#38bdf8',b:'#06324a',g:'pc',l:'VIC20',x:'.prg .d64 .tap .crt .zip',cat:'pcg'},
+ {id:'doom',n:'DOOM (PC 게임)',fn:'DOOM',core:'prboom',y:1993,a:'#dc2626',b:'#2b0505',g:'pc',l:'DOOM',x:'.wad .zip',cat:'pcg'}
 );
-Object.assign(S_KW,{psp:'피에스피 플스포터블 소니 sony playstationportable',sat:'세가새턴 새턴 세가 sega saturn',scd:'메가시디 세가시디 세가 sega megacd segacd',"3do":'3do 쓰리디오 파나소닉',amiga:'아미가 코모도어 commodore',c64:'코모도어64 c64 커모도어'});
+Object.assign(S_KW,{sat:'세가새턴 새턴 세가 sega saturn',scd:'메가시디 세가시디 세가 sega megacd segacd',"3do":'3do 쓰리디오 파나소닉',pcfx:'피씨에프엑스 pcfx pc-fx nec',a5200:'아타리5200 아타리 atari5200',coleco:'콜레코비전 콜레코 colecovision',psp:'피에스피 플스포터블 소니 sony playstationportable',ws:'원더스완 반다이 wonderswan bandai',amiga:'아미가 코모도어 commodore',c64:'코모도어64 c64 커모도어',c128:'코모도어128 c128',vic20:'빅20 vic-20 vic20 코모도어',doom:'둠 doom id 소프트웨어 pc게임 pc 게임'});
 </script>
 <script src="mame.js"></script>
 <script>

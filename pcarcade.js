@@ -9,24 +9,23 @@ const q=s=>document.querySelector(s);
 const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 /* ---------- 분류 ---------- */
-const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sg1000','sms','md','gg','scd','s32x','sat'],atari:['atari2600','a7800','lynx','jag'],etc:['psx','psp','pce','pcfx','ngp','neogeo','3do','amiga','mame']};
-const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
+const BRAND_UNUSED={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sg1000','sms','md','gg','scd','s32x','sat'],atari:['atari2600','a7800','lynx','jag'],etc:['psx','psp','pce','pcfx','ngp','neogeo','3do','amiga','mame']};
+
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',a:it.a||'#38b6ff',b:it.b||'#0a1230',kw:(window.S_KW&&S_KW[it.id])||''});
 
 /* ---------- 외부 웹 에뮬레이터 (PS2 · PS Vita · Xbox) : EmulatorJS 코어가 없는 고사양 기종 ---------- */
 const WEB=[
- {id:'ps2',n:'PlayStation 2',y:2000,a:'#4f6bff',b:'#0a1030',l:'PS2',href:'https://playjs.purei.org/',note:'새 탭에서 Play!.js(PS2 웹 에뮬레이터)가 열렸어요.\n그 화면에서 PS2 게임 파일(ISO·CSO·CHD·ELF 등)을 직접 선택하세요.\n실험 버전이라 실행되지 않는 게임도 많습니다.'},
- {id:'vita',n:'PlayStation Vita',y:2011,a:'#22d3ee',b:'#06303a',l:'VITA',href:'https://sadsarches.codeberg.page/vita3kweb/',note:'새 탭에서 Vita3K 웹 포팅(비공식·실험)이 열렸어요.\n그 화면에서 게임/앱 파일을 직접 선택하세요.\nPC의 최신 크롬·엣지를 권장하며 대부분의 게임은 실행되지 않을 수 있습니다.'},
- {id:'xbox',n:'Xbox',y:2001,a:'#22c55e',b:'#052e12',l:'XBOX',soon:1,note:'브라우저에서 실행되는 Xbox 에뮬레이터는 아직 없어서 지원할 수 없습니다.'}
+ {id:'ps2',cat:'con',n:'PlayStation 2',y:2000,a:'#4f6bff',b:'#0a1030',l:'PS2',href:'https://playjs.purei.org/',note:'새 탭에서 Play!.js(PS2 웹 에뮬레이터)가 열렸어요.\n그 화면에서 PS2 게임 파일(ISO·CSO·CHD·ELF 등)을 직접 선택하세요.\n실험 버전이라 실행되지 않는 게임도 많습니다.'},
+ {id:'vita',cat:'han',n:'PlayStation Vita',y:2011,a:'#22d3ee',b:'#06303a',l:'VITA',href:'https://sadsarches.codeberg.page/vita3kweb/',note:'새 탭에서 Vita3K 웹 포팅(비공식·실험)이 열렸어요.\n그 화면에서 게임/앱 파일을 직접 선택하세요.\nPC의 최신 크롬·엣지를 권장하며 대부분의 게임은 실행되지 않을 수 있습니다.'},
+ {id:'xbox',cat:'con',n:'Xbox',y:2001,a:'#22c55e',b:'#052e12',l:'XBOX',soon:1,note:'브라우저에서 실행되는 Xbox 에뮬레이터는 아직 없어서 지원할 수 없습니다.'}
 ];
 Object.assign(window.S_KW||(window.S_KW={}),{ps2:'플레이스테이션2 플스2 피에스투 소니 sony playstation2 ps2',vita:'비타 플스비타 피에스비타 소니 sony psvita vita',xbox:'엑스박스 엑박 마이크로소프트 microsoft'});
+const BYCAT=k=>C.filter(c=>c.cat===k).map(c=>mk(c,'c')).concat(WEB.filter(w=>w.cat===k).map(w=>mk(w,'w')));
 const CATS=[
  {k:'all',n:'전체',items:()=>C.map(c=>mk(c,'c')).concat(WEB.map(w=>mk(w,'w')))},
- {k:'hi',n:'고사양 · 신기종',items:()=>C.filter(c=>c.hi).map(c=>mk(c,'c')).concat(WEB.map(w=>mk(w,'w')))},
- {k:'nintendo',n:'닌텐도',items:()=>pick(BRAND.nintendo).map(c=>mk(c,'c'))},
- {k:'sega',n:'세가',items:()=>pick(BRAND.sega).map(c=>mk(c,'c'))},
- {k:'atari',n:'아타리',items:()=>pick(BRAND.atari).map(c=>mk(c,'c'))},
- {k:'etc',n:'소니 · 기타',items:()=>pick(BRAND.etc).map(c=>mk(c,'c'))}
+ {k:'con',n:'비디오게임기 · 콘솔',items:()=>BYCAT('con')},
+ {k:'han',n:'휴대용 게임기',items:()=>BYCAT('han')},
+ {k:'pcg',n:'PC · 컴퓨터 게임',items:()=>BYCAT('pcg')}
 ];
 let cat='all',view='grid',query='';
 
