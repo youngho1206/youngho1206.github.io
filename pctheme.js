@@ -100,7 +100,16 @@ function apply(id,draft){
  /* 테마 전용 CSS / JS (예: pctheme/retro.css, retro.js) */
  let EL=document.getElementById('pct-extra');
  if(t.css){if(!EL){EL=document.createElement('link');EL.id='pct-extra';EL.rel='stylesheet';document.head.appendChild(EL)}if(EL.getAttribute('href')!==t.css)EL.setAttribute('href',t.css)}else if(EL)EL.remove();
- if(t.js){if(window.PCRetro)window.PCRetro.on();else if(!document.getElementById('pct-extra-js')){const sc=document.createElement('script');sc.id='pct-extra-js';sc.src=t.js;document.body.appendChild(sc)}}else if(window.PCRetro)window.PCRetro.off();
+ /* 테마 전용 JS : <head> 에서 실행될 땐 body 가 아직 없으므로 문서가 준비된 뒤 붙입니다 (예전에는 여기서 오류가 나 PCT 가 정의되지 않았습니다) */
+ try{
+  if(t.js){
+   if(window.PCRetro)window.PCRetro.on();
+   else if(!document.getElementById('pct-extra-js')){
+    const inject=()=>{if(document.getElementById('pct-extra-js'))return;const sc=document.createElement('script');sc.id='pct-extra-js';sc.src=t.js;(document.body||document.documentElement).appendChild(sc)};
+    if(document.body)inject();else document.addEventListener('DOMContentLoaded',inject,{once:true});
+   }
+  }else if(window.PCRetro)window.PCRetro.off();
+ }catch(_){}
  Object.keys(CVAR).forEach(k=>{const v=t.colors&&t.colors[k];if(v)root.style.setProperty(CVAR[k],v);else root.style.removeProperty(CVAR[k])});
  setBg($('#pagebg'),bgCss('',t.pageImg,t.pageShade));
  setBg($('#frame'),bgCss(pick('frameColor'),pick('frameImg'),pick('frameShade')));

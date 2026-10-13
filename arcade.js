@@ -63,7 +63,7 @@ function refreshAll(){renderCats();render()}
 q('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.k;query='';q('#q').value='';refreshAll();q('#list').scrollTop=0};
 q('#q').oninput=e=>{query=e.target.value;render()};
 q('#bView').onclick=()=>{view=view==='grid'?'list':'grid';q('#bView').textContent=view==='grid'?'☰':'▦';q('#bView').title=view==='grid'?'목록으로 보기':'카드로 보기';render()};
-q('#bSet').onclick=()=>PCT.openSettings();
+q('#bSet').onclick=()=>{if(window.PCT)PCT.openSettings();else iosAlert('테마 설정을 불러오지 못했습니다. 새로고침 해 주세요.')};
 q('#bVer').onclick=()=>{location.href='index.html?select=1'};
 q('#bInfo').onclick=()=>iosAlert('ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요.\n이 사이트는 게임 파일을 제공하지 않습니다. (EmulatorJS · v86)','안내');
 q('#cards').onclick=e=>{
@@ -92,7 +92,7 @@ function tick(){
 tick();setInterval(tick,1000);
 
 /* ---------- 시작 ---------- */
-PCT.init();
+try{window.PCT&&PCT.init()}catch(e){console.error(e)}  /* 테마 오류가 있어도 목록은 항상 그려집니다 */
 ICONS_READY.then(refreshAll);
 refreshAll();
 })();
