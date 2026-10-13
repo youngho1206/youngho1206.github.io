@@ -259,6 +259,18 @@ body.mob.fs.port #rot{display:flex}
 
 
 <script src="emudata.js"></script>
+<script>
+/* ===== PC 전용 : 고사양 · 신기종 (기존 사이트에 없던 기종) — 모바일과 같은 에뮬레이터 환경으로 ROM을 바로 불러와 실행 ===== */
+C.push(
+ {id:'psp',n:'PlayStation Portable',fn:'PSP',core:'psp',y:2004,a:'#3b82f6',b:'#0b1a3d',g:'land',l:'PSP',x:'.iso .cso .pbp .zip',hi:1,threads:1},
+ {id:'sat',n:'Sega Saturn',fn:'SEGASATURN',core:'segaSaturn',y:1994,a:'#6366f1',b:'#14153f',g:'pad',l:'SAT',x:'.cue .bin .iso .chd .zip',hi:1},
+ {id:'scd',n:'Sega CD / Mega CD',fn:'SEGACD',core:'segaCD',y:1991,a:'#0ea5e9',b:'#062a40',g:'pad',l:'SCD',x:'.cue .bin .iso .chd .zip',hi:1},
+ {id:'3do',n:'3DO',fn:'3DO',core:'opera',y:1993,a:'#d4a017',b:'#3d2d02',g:'pad',l:'3DO',x:'.iso .cue .bin .chd',hi:1},
+ {id:'amiga',n:'Commodore Amiga',fn:'AMIGA',core:'puae',y:1985,a:'#ef6c00',b:'#3d1a00',g:'pc',l:'AMIGA',x:'.adf .ipf .hdf .zip',hi:1},
+ {id:'c64',n:'Commodore 64',fn:'C64',core:'vice_x64',y:1982,a:'#8b7355',b:'#2a2012',g:'pc',l:'C64',x:'.d64 .t64 .prg .tap .crt .zip',hi:1}
+);
+Object.assign(S_KW,{psp:'피에스피 플스포터블 소니 sony playstationportable',sat:'세가새턴 새턴 세가 sega saturn',scd:'메가시디 세가시디 세가 sega megacd segacd',"3do":'3do 쓰리디오 파나소닉',amiga:'아미가 코모도어 commodore',c64:'코모도어64 c64 커모도어'});
+</script>
 <script src="mame.js"></script>
 <script>
 
@@ -412,6 +424,7 @@ function startGame(file,ci,extras){
     if(cur.bios)w.EJS_biosUrl=new URL('bios/'+cur.bios,location.href).href; /* BIOS가 필요한 기종: 서버 bios 폴더에서 불러옴 */
     if(cur.id==='mame'&&window.MAME2003)MAME2003.apply(w,extras); /* BIOS(zip) 연결 */
     w.EJS_pathtodata=(CORES[cur.id]&&localEjs)?new URL(EJS_LOCAL,location.href).href:EJS_CDN;
+    if(cur.threads)w.EJS_threads=true;
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
       started=true;['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);

@@ -5,3 +5,9 @@
 - pcarcade.js   : pc.html 의 기종 선택 화면 (콘솔만 표시)
 기존 파일(emudata.js, arcade.css, pctheme.js, mame.js 등)은 그대로 사용합니다.
 스마트폰·태블릿 같은 터치 기기에서 pc.html 을 열면 "PC 전용" 안내가 나옵니다.
+
+[고사양 · 신기종 추가]
+- pc.html 에서 바로 ROM 실행(모바일과 같은 에뮬레이터 화면): PSP, 세가 새턴, 세가 CD, 3DO, 아미가, C64
+  (PSP·새턴·세가CD 는 고사양이며 PSP 는 HTTPS + 최신 크롬/엣지 필요, 새턴·세가CD 는 BIOS 가 필요할 수 있음)
+- 외부 웹 에뮬레이터(새 탭, 파일은 그 화면에서 선택): PS2(Play!.js), PS Vita(Vita3K 웹 포팅, 비공식)
+- Xbox: 브라우저용 에뮬레이터가 없어 '미지원' 카드로만 표시
