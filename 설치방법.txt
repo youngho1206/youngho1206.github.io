@@ -1,0 +1,7 @@
+[PC 버전 전용 페이지 추가]
+세 파일을 사이트 루트(youngho1206.github.io 폴더)에 덮어쓰기/추가하세요.
+- index.html    : 버전 선택 화면에 "PC 버전 전용" 항목 추가 (PC · 태블릿 버전 바로 아래)
+- pc.html       : PC 전용 콘솔 에뮬레이터 선택 + 에뮬레이터 화면(모바일 버전과 같은 위·아래 메뉴)
+- pcarcade.js   : pc.html 의 기종 선택 화면 (콘솔만 표시)
+기존 파일(emudata.js, arcade.css, pctheme.js, mame.js 등)은 그대로 사용합니다.
+스마트폰·태블릿 같은 터치 기기에서 pc.html 을 열면 "PC 전용" 안내가 나옵니다.
