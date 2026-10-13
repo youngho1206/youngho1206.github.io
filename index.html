@@ -13,15 +13,6 @@
 <meta name="apple-mobile-web-app-title" content="게임에뮬레이터">
 <title>RETRO GAME UNIVERSE · 영호의 게임에뮬레이터</title>
 <script>
-/* 방문자 집계 : 페이지에 접속할 때마다 1씩 올라갑니다(새로고침 포함). 저장해 둔 화면으로 바로 넘어가는 경우에도 집계되도록 이동보다 먼저 보냅니다. */
-(function(){
- var B='https://api.counterapi.dev/v1/youngho1206-emu/',d=new Date();
- var k='d'+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
- function hit(key){return fetch(B+key+'/up',{keepalive:true,cache:'no-store'}).then(function(r){return r.json()}).then(function(j){return typeof j.count==='number'?j.count:null}).catch(function(){return null})}
- window.__vc=Promise.all([hit(k),hit('total')]);
-})();
-</script>
-<script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
 var T={m:'mobile.html',i:'iosemulator.html',d:'desktop.html',p:'pc.html'};
 function go(k,keep){
