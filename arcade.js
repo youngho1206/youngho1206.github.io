@@ -10,15 +10,17 @@ const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 
 /* ---------- 분류 ---------- */
 const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sg1000','sms','md','gg','scd','s32x','sat'],atari:['atari2600','a7800','lynx','jag'],etc:['psx','psp','pce','pcfx','ngp','neogeo','3do','amiga','mame']};
-const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
+const RSL=()=>(window.RS&&RS.list)||[];   /* retrostream.js : 레트로아크 스트리밍 기종 */
+ const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',a:it.a||'#38b6ff',b:it.b||'#0a1230',kw:(window.S_KW&&S_KW[it.id])||''});
 const CATS=[
- {k:'all',n:'전체',items:()=>C.map(c=>mk(c,'c')).concat(P.map(p=>mk(p,'p')))},
+ {k:'all',n:'전체',items:()=>C.map(c=>mk(c,'c')).concat(P.map(p=>mk(p,'p'))).concat(RSL().map(r=>mk(r,'r')))},
  {k:'nintendo',n:'닌텐도',items:()=>pick(BRAND.nintendo).map(c=>mk(c,'c'))},
  {k:'sega',n:'세가',items:()=>pick(BRAND.sega).map(c=>mk(c,'c'))},
  {k:'atari',n:'아타리',items:()=>pick(BRAND.atari).map(c=>mk(c,'c'))},
  {k:'etc',n:'소니 · 기타',items:()=>pick(BRAND.etc).map(c=>mk(c,'c'))},
- {k:'pc',n:'윈도우 · DOS',items:()=>P.map(p=>mk(p,'p'))},
+ {k:'ra',n:'레트로아크',items:()=>RSL().map(r=>mk(r,'r'))},
+  {k:'pc',n:'윈도우 · DOS',items:()=>P.map(p=>mk(p,'p'))},
  {k:'tool',n:'기타기능',items:()=>ETC.map(e=>mk(Object.assign({y:'',b:'#0a1230'},e),'e'))}
 ];
 let cat='all',view='grid',query='';
@@ -26,12 +28,13 @@ let cat='all',view='grid',query='';
 const PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 function art(x){
  if(x.t==='e')return etcIcon(x.it);
+  if(x.t==='r')return RS.icon(x.it);
  return icon(x.it);
 }
 function cardHtml(x,i){
  const soon=x.t==='e'&&x.it.soon;
- const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':'');
- const sub=x.t==='e'?(x.it.l||''):(x.y?x.y+'년':'');
+ const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':x.t==='r'?'<span class="rb" data-t="RA"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':'');
+ const sub=x.t==='e'?(x.it.l||''):x.t==='r'?'RetroArch'+(x.y?' · '+x.y+'년':''):(x.y?x.y+'년':'');
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
  return `<div class="cell" style="animation-delay:${Math.min(i,30)*22}ms"><button type="button" class="card ${soon?'soon':''}" data-t="${x.t}" data-id="${x.id}" style="--ca:${x.a};--cb:${x.b}" title="${esc(x.n)}">
   <span class="no">${i+1}</span>${rb}<span class="art">${art(x)}</span>
@@ -71,6 +74,7 @@ q('#cards').onclick=e=>{
  const id=b.dataset.id,t=b.dataset.t;
  if(t==='c')openEmu(C.find(c=>c.id===id));
  else if(t==='p')openPc(P.find(c=>c.id===id));
+  else if(t==='r')RS.open(id);
  else{
   const it=ETC.find(x=>x.id===id);if(!it)return;
   if(it.href){winOpen(it);return}
