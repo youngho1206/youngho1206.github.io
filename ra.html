@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>레트로아크 · 웹 플레이</title>
+<link rel="preconnect" href="https://cdn.emulatorjs.org" crossorigin>
+<style>
+:root{--ac:#d4af6a;--ac2:#7a4a06}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b0b10;color:#f2f2f7;font:400 15px/1.55 'Noto Sans KR',-apple-system,system-ui,sans-serif;word-break:keep-all}
+body{background:radial-gradient(900px 500px at 50% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent 70%),#0b0b10}
+#top{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:rgba(11,11,16,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
+#top b{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{border:0;border-radius:12px;padding:9px 13px;font:600 14px 'Noto Sans KR',sans-serif;color:#fff;background:rgba(255,255,255,.12);cursor:pointer}
+.btn:disabled{opacity:.4}
+.btn.go{background:linear-gradient(160deg,#ff7a45,#e0381f)}
+#home{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:70px 16px 24px}
+.card{width:min(460px,100%);text-align:center}
+.card svg{width:112px;height:112px;display:block;margin:0 auto 14px;filter:drop-shadow(0 12px 28px rgba(0,0,0,.55))}
+.card h1{margin:0 0 4px;font-size:22px}
+.card .sub{opacity:.6;font-size:13px;margin:0 0 18px}
+#drop{border:2px dashed rgba(255,255,255,.22);border-radius:20px;padding:26px 16px;background:rgba(255,255,255,.04);cursor:pointer}
+#drop.over{border-color:var(--ac);background:rgba(255,255,255,.09)}
+#drop .big{font-size:17px;font-weight:700;margin:0 0 6px}
+#drop p{margin:4px 0;font-size:13px;opacity:.7}
+.note{margin:14px 0 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.07);font-size:13px;text-align:left}
+#emuwrap{position:absolute;inset:0;display:none;background:#000}
+#emuwrap.on{display:block}
+#fr{position:absolute;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));width:100%;height:calc(100% - 52px - env(safe-area-inset-top));border:0;background:#000}
+#emuwrap.nobar #fr{top:0;height:100%}
+#load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;width:min(420px,calc(100% - 32px));padding:18px;border-radius:18px;background:rgba(20,20,28,.94);border:1px solid rgba(255,255,255,.14);text-align:center;display:none}
+#load.on{display:block}
+#load b{display:block;margin-bottom:4px}
+#load span{display:block;font-size:12.5px;opacity:.75;min-height:20px}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.14);margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;width:3%;background:linear-gradient(90deg,#ff7a45,#ffd75e);transition:width .4s}
+#fail{position:absolute;inset:0;z-index:6;display:none;align-items:center;justify-content:center;padding:70px 16px 24px;background:rgba(0,0,0,.82)}
+#fail.on{display:flex}
+#fail .bx{width:min(480px,100%);max-height:100%;overflow:auto;padding:18px;border-radius:20px;background:#17171d;border:1px solid rgba(255,255,255,.16)}
+#fail h2{margin:0 0 8px;font-size:18px}
+#fail pre{margin:10px 0;padding:10px;border-radius:10px;background:#0d0d12;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;opacity:.85}
+#fail .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#fail .row .btn{flex:1;min-width:120px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9;padding:10px 16px;border-radius:14px;background:rgba(30,30,40,.95);border:1px solid rgba(255,255,255,.14);font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:90%}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="top">
+ <button class="btn" id="bBack" type="button">← 목록</button>
+ <b id="ttl">레트로아크</b>
+ <button class="btn" id="bLoad" type="button" hidden>🎮 다른 게임</button>
+ <button class="btn" id="bCtl" type="button" hidden>조작 ON</button>
+ <button class="btn" id="bSave" type="button" hidden>💾</button>
+ <button class="btn" id="bRest" type="button" hidden>📥</button>
+ <button class="btn" id="bFs" type="button" hidden>⛶</button>
+</div>
+
+<div id="home">
+ <div class="card">
+  <div id="ic"></div>
+  <h1 id="name">기종</h1>
+  <p class="sub" id="sub"></p>
+  <div id="drop" role="button" tabindex="0">
+   <p class="big">📂 ROM 파일 선택</p>
+   <p id="ext"></p>
+   <p>눌러서 고르거나, 파일을 여기로 끌어다 놓으세요</p>
+  </div>
+  <p class="note" id="note"></p>
+ </div>
+</div>
+
+<div id="emuwrap">
+ <iframe id="fr" title="에뮬레이터" allow="autoplay; fullscreen; gamepad"></iframe>
+ <div id="load"><b id="lt">준비 중…</b><span id="ll"></span><div class="bar"><i id="lp"></i></div></div>
+</div>
+
+<div id="fail"><div class="bx">
+ <h2>코어를 불러오지 못했어요</h2>
+ <p id="fm" style="margin:0;font-size:14px"></p>
+ <pre id="fd"></pre>
+ <div class="row">
+  <button class="btn go" id="fRetry" type="button">다시 시도</button>
+  <button class="btn" id="fCopy" type="button">진단 복사</button>
+  <button class="btn" id="fBack" type="button">다른 ROM</button>
+ </div>
+</div></div>
+
+<div id="toast"></div>
+<input type="file" id="romIn" hidden multiple>
+<input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
+
+<script>
+(function(){
+'use strict';
+/* ===== 기종 정보 (웹 레트로아크 = EmulatorJS 코어) =====
+   cores : 앞에서부터 차례로 시도 · 각 코어는 안정판 → 최신판 엔진 순으로 시도합니다 */
+const SYS={
+ neogeo:{n:'Neo Geo',y:1990,l:'NEO',a:'#fbbf24',b:'#7a4a06',fn:'NEOGEO',x:'.zip',cores:['arcade','mame2003_plus','mame2003'],bios:'neogeo',
+  note:'Neo Geo 게임은 BIOS(neogeo.zip)가 필요합니다. 게임 zip 과 neogeo.zip 을 함께 선택하거나, 저장소 bios 폴더에 neogeo.zip 을 올려 두세요. zip 이름은 바꾸지 마세요.'},
+ saturn:{n:'세가 새턴',y:1994,l:'SAT',a:'#4f7bd9',b:'#14264f',fn:'SATURN',x:'.cue .chd .iso .bin .ccd .mdf',cores:['segaSaturn'],
+  note:'BIOS 는 선택 사항입니다. 있다면 ROM 과 함께(예: sega_101.bin / mpr-17933.bin) 선택하세요. 새턴은 무거워서 폰에서는 느릴 수 있어요.'},
+ ngp:{n:'Neo Geo Pocket Color',y:1999,l:'NGPC',a:'#2dd4bf',b:'#0b4a45',fn:'NGPOCKET',x:'.ngc .ngp .zip',cores:['ngp'],
+  note:'BIOS 없이 실행됩니다.'},
+ mame:{n:'MAME (아케이드)',y:'',l:'MAME',a:'#f59e0b',b:'#4a2a02',fn:'MAME',x:'.zip',cores:['mame2003','mame2003_plus'],
+  note:'게임 zip 이름을 바꾸지 마세요. BIOS 가 필요한 게임은 게임 zip + BIOS zip 을 함께 선택하세요. (ST-V 는 bios/stvbios.zip 자동 사용)'}
+};
+const $=s=>document.querySelector(s);
+const q=new URLSearchParams(location.search);
+const sid=SYS[q.get('sys')]?q.get('sys'):'neogeo';
+const S=SYS[sid];
+const IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)};
+
+document.documentElement.style.setProperty('--ac',S.a);
+$('#ic').innerHTML=`<svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.a}"/><stop offset="1" stop-color="${S.b}"/></linearGradient></defs><rect width="100" height="100" rx="22.5" fill="url(#g)"/><rect width="100" height="50" rx="22.5" fill="#fff" opacity=".12"/><text x="50" y="${46+(S.l.length>3?20:30)*.2+4}" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="${S.l.length>4?18:S.l.length>3?22:S.l.length>2?27:34}" fill="#fff" stroke="rgba(0,0,0,.45)" stroke-width="1.6" style="paint-order:stroke">${esc(S.l)}</text><rect x="31" y="69" width="38" height="16" rx="8" fill="#fff"/><text x="50" y="80.6" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="10.5" fill="${S.b}">WEB</text></svg>`;
+$('#name').textContent=S.n;$('#ttl').textContent=S.n;document.title=S.n+' · 레트로아크';
+$('#sub').textContent='RetroArch (웹) · '+(S.y?S.y+'년':'ARCADE');
+$('#ext').textContent='지원 형식: '+S.x;
+$('#note').textContent=S.note;
+
+/* ===== 뒤로 가기 ===== */
+function leave(){
+ if(history.length>1&&document.referrer&&new URL(document.referrer).origin===location.origin)history.back();
+ else location.href='index.html';
+}
+$('#bBack').onclick=()=>{if($('#emuwrap').classList.contains('on'))stop(true);else leave()};
+
+/* ===== 파일 고르기 ===== */
+const drop=$('#drop'),romIn=$('#romIn');
+const pick=()=>{romIn.value='';romIn.click()};
+drop.onclick=pick;drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')pick()};
+$('#bLoad').onclick=()=>stop(true);
+romIn.onchange=e=>e.target.files.length&&begin([...e.target.files]);
+['dragover','dragenter'].forEach(v=>drop.addEventListener(v,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(v=>drop.addEventListener(v,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>{const f=[...e.dataTransfer.files];f.length&&begin(f)});
+
+const base=n=>String(n||'').replace(/\.[^.]+$/,'').toLowerCase();
+const isZip=f=>/\.zip$/i.test(f.name);
+const isBiosZip=f=>isZip(f)&&(/bios/i.test(f.name)||['neogeo','pgm','cpzn1','cpzn2','konamigx','taitofx1','skns','decocass','playch10','nss','hng64'].includes(base(f.name)));
+
+async function fromServer(name){
+ try{
+  const u=new URL('bios/'+name+'.zip',location.href).href;
+  const r=await fetch(u);if(!r.ok)return null;
+  const b=await r.arrayBuffer();const h=new Uint8Array(b,0,2);
+  if(!(h[0]===0x50&&h[1]===0x4b))return null;     /* zip 이 아니면(404 페이지 등) 무시 */
+  return new File([b],name+'.zip');
+ }catch(e){return null}
+}
+
+/* 고른 파일들 → 게임 / BIOS 로 나누기 */
+async function prepare(files){
+ let game,extras=[],biosBlob=null;
+ if(sid==='neogeo'||sid==='mame'){
+  const zips=files.filter(isZip);
+  if(!zips.length)throw new Error('zip 파일을 선택해 주세요. (ROM 파일 이름은 바꾸지 마세요)');
+  game=zips.find(f=>!isBiosZip(f))||zips[0];
+  extras=zips.filter(f=>f!==game).slice(0,3);
+  /* 서버 bios 폴더에 올려 둔 BIOS 자동 사용 */
+  const need=sid==='neogeo'?'neogeo':(window.MAME2003&&MAME2003.needed(game));
+  if(need&&!extras.some(f=>base(f.name)===need)){const sv=await fromServer(need);if(sv)extras.unshift(sv)}
+  if(sid==='neogeo'&&!extras.some(f=>base(f.name)==='neogeo'))toast('neogeo.zip(BIOS)를 찾지 못했습니다. 게임이 안 열리면 BIOS 를 같이 선택하세요');
+ }else if(sid==='saturn'){
+  const bios=files.find(f=>/\.bin$/i.test(f.name)&&/(bios|sega|mpr|saturn)/i.test(f.name)&&f.size<1048576*2);
+  game=files.find(f=>f!==bios&&/\.(cue|chd|iso|ccd|mdf|bin)$/i.test(f.name))||files[0];
+  if(bios)biosBlob=bios;
+ }else game=files[0];
+ return {game,extras,biosBlob};
+}
+
+/* ===== 실행 : 코어 × 엔진 순서대로 시도 ===== */
+let run=null,seq=0,lastFiles=null,lastDiag='';
+const lt=$('#lt'),ll=$('#ll'),lp=$('#lp'),load=$('#load'),fr=$('#fr');
+const prog=(p,t,l)=>{lp.style.width=Math.max(0,Math.min(100,p))+'%';if(t)lt.textContent=t;if(l!=null)ll.textContent=l};
+
+async function begin(files,from){
+ lastFiles=files;
+ let pr;try{pr=await prepare(files)}catch(e){toast(e.message);return}
+ const tries=[];
+ S.cores.forEach(c=>['stable','latest'].forEach(en=>tries.push({core:c,engine:en})));
+ run={pr,tries,i:from||0,seq:++seq,log:[],started:false};
+ $('#fail').classList.remove('on');
+ $('#home').style.display='none';$('#emuwrap').classList.add('on');
+ ['bLoad','bCtl','bFs'].forEach(i=>$('#'+i).hidden=false);['bSave','bRest'].forEach(i=>{$('#'+i).hidden=false;$('#'+i).disabled=true});
+ history.replaceState({emu:1},'');
+ attempt();
+}
+
+let wd=null;
+function attempt(){
+ const r=run;if(!r)return;
+ clearInterval(wd);
+ if(r.i>=r.tries.length){fail();return}
+ const t=r.tries[r.i],id=r.seq*100+r.i;r.cur=id;
+ r.lastText='';r.lastChange=Date.now();r.t0=Date.now();r.ready=false;
+ load.classList.add('on');
+ prog(4+r.i/r.tries.length*10,S.n+' · 시작 준비',`시도 ${r.i+1}/${r.tries.length} · 코어 ${t.core} · ${t.engine==='latest'?'최신 엔진':'안정 엔진'}`);
+ r.log.push(`시도 ${r.i+1}: ${t.core} / ${t.engine}`);
+ fr.onload=null;fr.src='about:blank';
+ setTimeout(()=>{
+  if(!run||run.cur!==id)return;
+  const send=()=>{try{fr.contentWindow.postMessage({t:'start',core:t.core,engine:t.engine,game:r.pr.game,extras:r.pr.extras,biosBlob:r.pr.biosBlob,name:r.pr.game.name.replace(/\.[^.]+$/,''),color:S.a,ios:IOS},location.origin)}catch(e){next('프레임 통신 실패: '+e.message)}};
+  r.send=send;
+  fr.src='ra-player.html?v='+id;
+ },80);
+ wd=setInterval(()=>{
+  if(!run||run.cur!==id||run.started){clearInterval(wd);return}
+  const idle=Date.now()-r.lastChange,total=Date.now()-r.t0;
+  /* 진행 문구가 90초 동안 그대로이거나 총 4분이 넘으면 실패로 판단 */
+  if(idle>90000||total>240000){next('시간 초과 (진행이 멈춤): '+(r.lastText||'응답 없음'))}
+ },2000);
+}
+function next(why){
+ const r=run;if(!r)return;
+ r.log.push('실패: '+why);
+ clearInterval(wd);
+ r.i++;
+ if(r.i<r.tries.length)toast('다른 방식으로 다시 시도합니다 ('+r.i+'/'+r.tries.length+')');
+ attempt();
+}
+function fail(){
+ const r=run;load.classList.remove('on');fr.src='about:blank';
+ const lg=r?r.log.join('\n'):'';
+ lastDiag=`[${S.n}] ${navigator.userAgent}\n쓰레드(SAB): ${typeof SharedArrayBuffer!=='undefined'} · 격리: ${self.crossOriginIsolated===true}\n파일: ${r&&r.pr.game.name} (${r&&Math.round(r.pr.game.size/1024)}KB)\n${lg}`;
+ $('#fm').textContent='모든 코어/엔진으로 시도했지만 시작되지 않았습니다. 인터넷 연결, ROM 파일(zip 이름·BIOS)을 확인한 뒤 다시 시도하세요.';
+ $('#fd').textContent=lastDiag;
+ $('#fail').classList.add('on');
+}
+$('#fRetry').onclick=()=>lastFiles&&begin(lastFiles);
+$('#fBack').onclick=()=>stop(true);
+$('#fCopy').onclick=async()=>{try{await navigator.clipboard.writeText(lastDiag);toast('진단 내용을 복사했습니다')}catch(e){toast('복사할 수 없습니다. 화면의 글자를 직접 선택하세요')}};
+
+addEventListener('message',e=>{
+ if(e.origin!==location.origin||!run)return;
+ const m=e.data||{},r=run;
+ if(!m.t)return;
+ if(e.source!==fr.contentWindow)return;
+ if(m.t==='frameReady'){r.send&&r.send();return}
+ if(m.t==='engine'){prog(30,null,'엔진 다운로드 완료 · 코어 불러오는 중…');r.lastChange=Date.now();return}
+ if(m.t==='fail'){next(m.msg);return}
+ if(m.t==='ready'){r.ready=true;prog(85,null,'게임 준비 완료');return}
+ if(m.t==='status'){
+  const tx=m.text||'';
+  if(tx!==r.lastText){r.lastText=tx;r.lastChange=Date.now();if(tx)ll.textContent=tx}
+  if(/error|fail|오류|실패|not found|unable|cannot/i.test(tx)){
+   const lg=(m.logs||[]).join(' | ');
+   next('엔진 메시지: '+tx+(lg?' / '+lg:''));
+  }
+  return;
+ }
+ if(m.t==='started'){
+  r.started=true;clearInterval(wd);
+  prog(100,null,'게임 시작!');setTimeout(()=>load.classList.remove('on'),400);
+  ['bSave','bRest'].forEach(i=>$('#'+i).disabled=false);
+  toast('게임 시작! 🎮 · '+r.tries[r.i].core);
+ }
+});
+
+function stop(toHome){
+ run=null;clearInterval(wd);load.classList.remove('on');$('#fail').classList.remove('on');
+ fr.src='about:blank';$('#emuwrap').classList.remove('on');
+ ['bLoad','bCtl','bSave','bRest','bFs'].forEach(i=>$('#'+i).hidden=true);
+ if(toHome)$('#home').style.display='';
+ if(document.fullscreenElement)document.exitFullscreen&&document.exitFullscreen();
+}
+
+/* ===== 조작 · 전체화면 · 저장/불러오기 ===== */
+let ctl=true;
+$('#bCtl').onclick=()=>{ctl=!ctl;try{fr.contentDocument.body.classList.toggle('hidectl',!ctl)}catch(e){}$('#bCtl').textContent=ctl?'조작 ON':'조작 OFF'};
+$('#bFs').onclick=()=>{const w=$('#emuwrap');const f=w.requestFullscreen||w.webkitRequestFullscreen;if(f){try{f.call(w)}catch(e){}}else{w.classList.toggle('nobar')}};
+const stamp=()=>{const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())};
+$('#bSave').onclick=()=>{
+ try{
+  const st=fr.contentWindow.EJS_emulator.gameManager.getState();
+  const g=(run&&run.pr.game.name||'GAME').replace(/\.[^.]+$/,'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+  const name=`${S.fn}${g}_${stamp()}.GSV`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
+ }catch(e){toast('지금은 저장할 수 없습니다')}
+};
+$('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
+$('#gsvIn').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{fr.contentWindow.EJS_emulator.gameManager.loadState(new Uint8Array(await f.arrayBuffer()));toast('📥 불러옴: '+f.name)}
+ catch(x){toast('불러오지 못했습니다')}
+};
+})();
+</script>
+</body>
+</html>
