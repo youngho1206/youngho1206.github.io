@@ -110,17 +110,11 @@ function play(){
 box.addEventListener('click',e=>{if(e.target===box)close()});
 addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 
-/* 웹(EmulatorJS)으로 바로 돌릴 수 있는 기종은 PC 도우미 창 없이, 일반 기종과 똑같은 에뮬레이터 화면(ROM 고르기)을 엽니다. */
+/* 웹 레트로아크 기종은 전용 실행 화면(ra.html)으로 이동합니다. (코어 자동 전환 · 실패 원인 표시) */
 function openWeb(s){
- if(!s.web||typeof openEmu!=='function')return false;
- try{
-  let base=null;try{base=C.find(x=>x.id===s.web.id)}catch(e){}
-  const c=Object.assign({id:s.web.id,n:s.n.replace(/\s*\(레트로아크\)/,''),y:s.y,x:s.x,a:s.a,b:s.b,l:s.l,g:'pad',fn:s.web.fn,s:s.l,ic:'arcade',k:s.k},base||{},{core:s.web.core});
-  try{if(typeof IMG!=='undefined'&&!IMG[c.id])IMG[c.id]='arcade'}catch(e){}   /* 아이콘 파일이 없는 기종(새턴)용 임시 지정 */
-  openEmu(c);
-  const di=document.getElementById('dIcon');if(di)di.innerHTML=icon(s);        /* 안내 화면 아이콘은 이 기종 아이콘으로 */
-  return true;
- }catch(e){return false}
+ if(!s.web)return false;
+ location.href='ra.html?sys='+encodeURIComponent(s.web.id);
+ return true;
 }
 window.RS={list:SYS,icon:icon,open:id=>{const s=SYS.find(x=>x.id===id);if(!s)return;if(openWeb(s))return;core='';panel(s)}};
 

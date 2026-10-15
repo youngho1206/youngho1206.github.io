@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>레트로아크 실행 화면</title>
+<style>
+/* 레트로아크(웹) 전용 실행 화면 : ra.html 안에서만 사용합니다. (직접 열지 마세요) */
+html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#game{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script src="mame.js"></script>
+<script>
+(function(){
+ var P=window.parent,logs=[],done=false;
+ function send(m){try{P.postMessage(m,location.origin)}catch(e){}}
+ function log(s){logs.push(String(s).slice(0,300));if(logs.length>30)logs.shift()}
+ addEventListener('error',function(e){
+  var f=String(e.filename||'').split('/').pop();
+  log('오류: '+(e.message||'')+' '+f+':'+(e.lineno||''));
+ });
+ addEventListener('unhandledrejection',function(e){log('약속 거부: '+(e.reason&&e.reason.message||e.reason))});
+ var ce=console.error;
+ console.error=function(){try{log('console.error: '+[].slice.call(arguments).join(' '))}catch(_){}try{ce.apply(console,arguments)}catch(_){}};
+
+ /* 1초마다 엔진의 로딩 문구를 호스트(ra.html)에 알려 줍니다 → 실패 감지 · 진행 표시 */
+ function watch(){
+  setInterval(function(){
+   if(done)return;
+   var e=document.querySelector('.ejs_loading_text'),t=e?e.textContent:'';
+   send({t:'status',text:t,logs:logs.slice(-6)});
+  },1000);
+ }
+
+ addEventListener('message',function(e){
+  if(e.source!==P||e.origin!==location.origin)return;
+  var m=e.data;if(m&&m.t==='start')run(m);
+ });
+
+ function run(m){
+  if(typeof WebAssembly!=='object'){send({t:'fail',msg:'이 브라우저에서 WebAssembly 를 쓸 수 없습니다.'});return}
+  var ua=navigator.userAgent;
+  if(m.ios&&!/iPhone|iPad|iPod/.test(ua)){
+   try{Object.defineProperty(navigator,'userAgent',{get:function(){return ua+' iPad Mobile'},configurable:true})}catch(_){}
+  }
+  window.EJS_player='#game';
+  window.EJS_core=m.core;
+  window.EJS_gameName=m.name;
+  window.EJS_gameUrl=new File([m.game],m.game.name);
+  /* 엔진 종류 : stable(안정판) / latest(최신판) — 한쪽에서 코어가 안 받아지면 다른 쪽으로 자동 전환 */
+  window.EJS_pathtodata='https://cdn.emulatorjs.org/'+(m.engine==='latest'?'latest':'stable')+'/data/';
+  window.EJS_color=m.color;
+  window.EJS_language='ko-KR';
+  if(m.ios)window.EJS_threads=false;
+  window.EJS_startOnLoaded=!m.ios;
+  if(m.biosBlob)window.EJS_biosUrl=URL.createObjectURL(m.biosBlob);   /* 새턴 BIOS (선택) */
+  if(m.extras&&m.extras.length&&window.MAME2003)MAME2003.apply(window,m.extras); /* 네오지오 / MAME BIOS zip */
+  window.EJS_ready=function(){send({t:'ready'})};
+  window.EJS_onGameStart=function(){done=true;send({t:'started'})};
+  log('코어 '+m.core+' · 엔진 '+m.engine);
+  var s=document.createElement('script');
+  s.src=window.EJS_pathtodata+'loader.js';
+  s.onload=function(){send({t:'engine'});watch()};
+  s.onerror=function(){send({t:'fail',msg:'에뮬레이터 엔진(loader.js)을 받지 못했습니다.'})};
+  document.body.appendChild(s);
+ }
+ window.__logs=function(){return logs};
+ send({t:'frameReady'});
+})();
+</script>
+</body>
+</html>
