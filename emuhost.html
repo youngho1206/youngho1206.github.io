@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>emulator host</title>
+<style>
+/* 콘솔 게임 전용 호스트 페이지 (mobile.html 의 iframe 안에서 열립니다)
+   - about:blank + document.write 방식은 아이폰/아이패드 사파리에서 화면이 지워지는 문제가 있어
+     실제 페이지(emuhost.html)로 바꿨습니다. */
+html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none;
+ touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+ -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+#game{position:fixed;left:0;top:0;width:100%;height:100%}
+.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+(function(){
+ /* 아이패드 사파리(데스크톱 모드)는 '맥'으로 보여서 터치 조작버튼이 안 뜹니다 → 아이패드 UA 로 알려줌 */
+ var IPAD_UA='Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+
+ /* 확대/핀치 방지 (아이폰 사파리는 user-scalable=no 를 무시하므로 직접 막음) */
+ ['gesturestart','gesturechange','gestureend'].forEach(function(t){
+  document.addEventListener(t,function(e){e.preventDefault()},{passive:false});
+ });
+ document.addEventListener('contextmenu',function(e){e.preventDefault()});
+
+ window.startEmu=function(c){
+  var W=window;
+  /* 아이폰 무음 스위치가 켜져 있어도 소리가 나게 (iOS 17+) */
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+
+  if(c.spoofMobile){
+   try{Object.defineProperty(navigator,'userAgent',{configurable:true,get:function(){return IPAD_UA}})}catch(e){}
+  }
+
+  /* iOS 는 터치 전에는 소리를 막음 → 만들어지는 AudioContext 를 모아 두었다가 터치할 때마다 깨움 */
+  var AC=W.AudioContext||W.webkitAudioContext;
+  if(AC){
+   var list=[];
+   var P=function(){
+    var a=arguments,x;
+    try{x=new AC(a[0],a[1])}catch(e){x=new AC()}
+    list.push(x);return x;
+   };
+   P.prototype=AC.prototype;
+   try{W.AudioContext=P;W.webkitAudioContext=P}catch(e){}
+   var unlock=function(){
+    for(var i=0;i<list.length;i++){
+     var x=list[i];
+     if(x.state!=='running'&&x.resume){try{var p=x.resume();if(p&&p.catch)p.catch(function(){})}catch(e){}}
+    }
+   };
+   ['touchstart','touchend','pointerdown','mousedown','click','keydown'].forEach(function(t){
+    document.addEventListener(t,unlock,{passive:true,capture:true});
+   });
+   document.addEventListener('visibilitychange',function(){if(!document.hidden)unlock()});
+   W.addEventListener('pageshow',unlock);
+  }
+
+  /* 에러를 부모 페이지로 전달 (메모리 부족 등 원인 안내용) */
+  function fail(m){try{c.onFail&&c.onFail(String(m||''))}catch(e){}}
+  W.addEventListener('error',function(e){fail((e&&e.message)||'error')});
+  W.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;fail((r&&(r.message||r))||'rejection')});
+
+  if(typeof WebAssembly!=='object'){fail('WebAssembly 미지원');return}
+
+  W.EJS_player='#game';
+  W.EJS_core=c.core;
+  W.EJS_gameName=c.name;
+  W.EJS_gameUrl=new File([c.file],c.file.name);
+  W.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+  W.EJS_startOnLoaded=true;
+  W.EJS_color=c.color;
+  W.EJS_language='ko-KR';
+  W.EJS_onGameStart=function(){try{c.onStart&&c.onStart()}catch(e){}};
+
+  var s=document.createElement('script');
+  s.src=W.EJS_pathtodata+'loader.js';
+  s.onload=function(){try{c.onScript&&c.onScript()}catch(e){}};
+  s.onerror=function(){try{c.onScriptError&&c.onScriptError()}catch(e){}};
+  document.body.appendChild(s);
+ };
+})();
+</script>
+</body>
+</html>
