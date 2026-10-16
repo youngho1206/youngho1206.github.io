@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MS-DOS</title>
+<link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:#eee;font-family:system-ui,"Malgun Gothic",sans-serif}
+#app{display:flex;flex-direction:column;height:100%}
+#bar{flex:none;display:flex;align-items:center;gap:8px;background:#161617;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}
+#ttl{flex:1;min-width:0;font-weight:800;font-size:16px;border-left:3px solid #E8A020;padding-left:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar select,#bar button{background:#232325;color:#f2f2f2;border:1px solid #3a3a3d;border-radius:8px;padding:8px 12px;font-size:14px;max-width:200px}
+#stage{position:relative;flex:1;min-height:0;background:#000}
+#dos{position:absolute;inset:0}
+#msg{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:#000;font-size:15px;line-height:1.6}
+#msg.err{color:#ff8a80}
+#msg small{color:#bbb;word-break:break-all;white-space:pre-wrap;text-align:left;max-width:100%}
+#list{position:absolute;inset:0;z-index:60;overflow:auto;background:#0b0b0c;padding:16px}
+#list h2{margin:4px 0 14px;font-size:18px}
+.g{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 8px;padding:14px;border:1px solid #2c2c2f;border-radius:10px;background:#18181a;color:#eee;font-size:16px;text-align:left}
+.g b{flex:1}.g small{color:#999}
+.pri{background:#E8A020;color:#000;border:0;border-radius:10px;padding:14px 44px;font-size:18px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar">
+    <div id="ttl">MS-DOS</div>
+    <select id="exe" style="display:none"></select>
+    <button id="b-eng">엔진</button>
+    <button id="b-log">로그</button>
+    <button id="b-re">다시시작</button>
+    <button id="b-exit">나가기</button>
+  </div>
+  <div id="stage"><div id="dos"></div><div id="msg">불러오는 중…</div></div>
+</div>
+<input type="file" id="pick" accept=".zip" style="display:none">
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const msg = $('msg'), logs = [];
+  ['log', 'info', 'warn', 'error'].forEach(k => { const o = console[k].bind(console); console[k] = function () { try { logs.push(Array.from(arguments).map(x => (x && x.message) || (typeof x === 'object' ? JSON.stringify(x) : String(x))).join(' ')); if (logs.length > 200) logs.shift(); } catch (e) {} o.apply(null, arguments); }; });
+  window.addEventListener('error', e => logs.push('error: ' + e.message));
+  window.addEventListener('unhandledrejection', e => logs.push('rejection: ' + (e.reason && e.reason.message || e.reason)));
+  const status = (h, err) => { msg.style.display = 'flex'; msg.className = err ? 'err' : ''; msg.innerHTML = h; };
+  const fail = (where, e) => { const t = (e && (e.stack || e.message)) || String(e); status('<b>' + esc(where) + '</b><small>' + esc(t) + (logs.length ? '\n\n' + esc(logs.slice(-6).join('\n')) : '') + '</small>', true); };
+
+  /* ---- 엔진: 기본 js-dos v8 (v8.js-dos.com), 문제 있을 때만 v6(내 서버 assets/jsdos → CDN)로 전환 ---- */
+  const qs = new URLSearchParams(location.search);
+  let ENG = qs.get('engine') || ''; if (!ENG) { try { ENG = localStorage.getItem('dosEngine') || ''; } catch (e) {} }
+  if (ENG !== 'v6') ENG = 'v8';
+  const V8 = 'https://v8.js-dos.com/latest/js-dos.js';
+  const LOCAL = 'assets/jsdos/', CDN = 'https://unpkg.com/js-dos@6.22.60/dist/';
+  const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { s.remove(); no(new Error('불러오기 실패: ' + src + '\n(인터넷/차단 확인)')); }; document.body.appendChild(s); });
+  let BASE = LOCAL;
+  async function loadEngine() {
+    if (ENG === 'v8') {
+      await load(V8);
+      if (typeof Dos !== 'function') throw new Error('js-dos v8 을 불러왔지만 Dos 함수가 없어요');
+      return;
+    }
+    try { await load(LOCAL + 'js-dos.js'); BASE = LOCAL; }
+    catch (e) { await load(CDN + 'js-dos.js'); BASE = CDN; }
+    if (typeof Dos !== 'function') throw new Error('js-dos v6 를 불러왔지만 Dos 함수가 없어요');
+  }
+  $('b-eng').textContent = '엔진 ' + ENG;
+  $('b-eng').onclick = () => { const n = ENG === 'v6' ? 'v8' : 'v6'; try { localStorage.setItem('dosEngine', n); } catch (e) {} const u = new URLSearchParams(location.search); u.set('engine', n); location.search = u.toString(); };
+  const loadZip = () => typeof JSZip === 'function' ? Promise.resolve() : load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+
+  $('b-re').onclick = () => location.reload();
+  $('b-exit').onclick = () => { if (history.length > 1 && document.referrer) history.back(); else location.href = 'index.html'; };
+  $('b-log').onclick = () => {
+    let d = $('logbox'); if (d) { d.remove(); return; }
+    d = document.createElement('pre'); d.id = 'logbox';
+    d.style.cssText = 'position:absolute;inset:0;z-index:99;margin:0;padding:12px;overflow:auto;background:#000e;color:#9f9;font-size:12px;white-space:pre-wrap;word-break:break-all';
+    d.textContent = logs.join('\n') || '(로그 없음)'; d.onclick = () => d.remove(); $('stage').appendChild(d);
+  };
+
+  const BAD = /(setup|install|uninst|unins|config|setsound|sound|readme|help|convert|patch|dos4gw|pmode|cwsdpmi|bootdisk)/i;
+  const rank = (names, base) => {
+    const sc = n => {
+      const p = n.split('/'), file = p[p.length - 1], stem = file.replace(/\.[^.]+$/, '').toLowerCase();
+      let v = p.length * 10;
+      if (BAD.test(file)) v += 100;
+      if (stem === base.toLowerCase()) v -= 50;
+      if (/^(run|start|go|play)$/.test(stem)) v -= 30;
+      if (/\.bat$/i.test(file)) v -= 5;
+      if (/\.com$/i.test(file)) v += 2;
+      return v;
+    };
+    return names.filter(n => /\.(exe|com|bat)$/i.test(n)).sort((a, b) => sc(a) - sc(b));
+  };
+
+  /* DOS/_conf/<zip이름>.conf 의 [autoexec] 줄만 사용 */
+  async function confAutoexec(base) {
+    for (const n of [base, base.toLowerCase()]) {
+      try {
+        const r = await fetch('DOS/_conf/' + encodeURIComponent(n) + '.conf', { cache: 'no-store' });
+        if (!r.ok) continue;
+        const t = await r.text(); if (/<html/i.test(t.slice(0, 200))) continue;
+        let on = false; const out = [];
+        for (const l of t.split(/\r?\n/)) { const s = l.trim(); if (/^\[autoexec\]/i.test(s)) { on = true; continue; } if (/^\[/.test(s)) on = false; else if (on && s && s[0] !== '#' && s[0] !== ';') out.push(s); }
+        if (out.length) return out;
+      } catch (e) {}
+    }
+    return null;
+  }
+  /* v8: 최소 설정(잘못된 옵션으로 죽는 것 방지) / v6 또는 ?conf=full: 전체 설정 */
+  const makeConf = auto => {
+    const full = qs.get('conf') === 'full' || ENG === 'v6';
+    const head = full
+      ? ['[cpu]', 'core=auto', 'cycles=max', '[sblaster]', 'sbtype=sb16', 'sbbase=220', 'irq=7', 'dma=1', 'hdma=5']
+      : ['[cpu]', 'cycles=auto'];
+    return head.concat(['[autoexec]'], auto).join('\n') + '\n';
+  };
+
+  /* ---- 게임 실행 (기본 v8 / 선택 v6) ---- */
+  async function play(buf, fname, title, blank) {
+    try {
+      if (!/\.zip$/i.test(fname)) throw new Error('도스는 zip 파일만 지원해요');
+      const base = fname.replace(/\.[^.]+$/, '');
+      document.title = title; $('ttl').textContent = title;
+      $('list') && $('list').remove();
+
+      status('에뮬레이터(' + ENG + ') 불러오는 중…');
+      await Promise.all([loadEngine(), loadZip()]);
+
+      status('게임 준비 중…');
+      const zip = await JSZip.loadAsync(buf);
+      const names = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+      const exes = rank(names, base), want = qs.get('exe');
+      const exe = exes.includes(want) ? want : exes[0];
+
+      let auto = await confAutoexec(base);
+      if (!auto) {
+        if (!exe && !blank) throw new Error('zip 안에서 실행 파일(exe/com/bat)을 찾지 못했어요');
+        auto = ['mount c .', 'c:'];
+        if (exe) { const p = exe.split('/'), file = p.pop(); if (p.length) auto.push('cd ' + p.join('\\')); auto.push(file); }
+      }
+      if (exes.length > 1) {
+        const sel = $('exe');
+        sel.innerHTML = exes.map(n => '<option' + (n === exe ? ' selected' : '') + ' value="' + esc(n) + '">▶ ' + esc(n) + '</option>').join('');
+        sel.style.display = '';
+        sel.onchange = () => { const u = new URLSearchParams(location.search); u.set('exe', sel.value); location.search = u.toString(); };
+      }
+
+      /* 폴더 항목(doom/GUS/ 등)이 zip 에 있으면 v8 이 'No such file or directory' 로 죽음 → 파일만 다시 담고 .jsdos/dosbox.conf 추가 */
+      let url = null;
+      if (ENG === 'v8') {
+        const clean = new JSZip();
+        for (const n of names) clean.file(n, zip.files[n].async('uint8array'), { createFolders: false, binary: true });
+        clean.file('.jsdos/dosbox.conf', makeConf(auto), { createFolders: false });
+        url = URL.createObjectURL(await clean.generateAsync({ type: 'blob', compression: 'STORE' }));
+      } else {
+        url = URL.createObjectURL(new Blob([buf], { type: 'application/zip' }));
+      }
+      status('<div style="font-size:20px;font-weight:800">' + esc(title) + '</div><div style="color:#aaa">' + esc(exe || '(conf 지정)') + '</div><button class="pri" id="go">▶ 시작</button>');
+      await new Promise(ok => { $('go').onclick = ok; });   /* 사용자 클릭 → 오디오/전체화면 허용 */
+      msg.style.display = 'none';
+
+      if (ENG === 'v8') {
+        window.DOS_CI = Dos($('dos'), { url: url, autoStart: true, noCloud: true, kiosk: false });
+        return;
+      }
+      /* v6: 고전 DOSBox 웹 빌드 (대체용) */
+      const canvas = document.createElement('canvas'); canvas.tabIndex = 0;
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;background:#000;outline:none;object-fit:contain';
+      $('dos').appendChild(canvas);
+      const dos = Dos(canvas, { wdosboxUrl: BASE + 'wdosbox.js' });
+      dos.ready((fs, run) => {
+        fs.extract(url).then(() => {
+          fs.createFile('web.conf', makeConf(auto));
+          canvas.focus();
+          run(['-conf', 'web.conf']).then(ci => { window.DOS_CI = ci; });
+        }).catch(e => fail('압축 해제 실패', e));
+      });
+      canvas.addEventListener('click', () => canvas.focus());
+    } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
+  }
+
+  /* 게임 없이 DOS 프롬프트만 */
+  async function blankDos() {
+    try {
+      document.title = 'MS-DOS'; $('ttl').textContent = 'MS-DOS';
+      status('에뮬레이터(' + ENG + ') 불러오는 중…');
+      await Promise.all([loadEngine(), loadZip()]);
+      const z = new JSZip();
+      z.file('README.TXT', 'MS-DOS\r\n');
+      const auto = ['mount c .', 'c:'];
+      if (ENG === 'v8') z.file('.jsdos/dosbox.conf', makeConf(auto), { createFolders: false });
+      const buf = await z.generateAsync({ type: 'arraybuffer', compression: 'STORE' });
+      play(buf, 'MS-DOS.zip', 'MS-DOS', true);
+    } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
+  }
+
+  async function playUrl(f, t) {
+    let fname = ''; try { fname = decodeURIComponent(f); } catch (e) { fname = f; }
+    if (/[\/\\]/.test(fname) || fname.indexOf('..') >= 0) return showList();
+    status('게임 파일 받는 중…');
+    try {
+      const r = await fetch('DOS/' + encodeURIComponent(fname)); if (!r.ok) throw new Error('게임 파일을 찾을 수 없어요 (' + r.status + ')');
+      play(await r.arrayBuffer(), fname, t || fname.replace(/\.[^.]+$/, ''));
+    } catch (e) { fail('게임 파일을 받지 못했어요', e); }
+  }
+
+  /* ---- 게임 목록 (DOS/list.json) + 내 컴퓨터 zip ---- */
+  async function showList() {
+    msg.style.display = 'none';
+    let items = []; try { const r = await fetch('DOS/list.json', { cache: 'no-store' }); if (r.ok) items = await r.json(); } catch (e) {}
+    const d = document.createElement('div'); d.id = 'list';
+    d.innerHTML = '<h2>MS-DOS (js-dos ' + ENG + ' 엔진)</h2>' +
+      '<button class="g" id="blank"><b>⌨ DOS 프롬프트 (빈 C:)</b><small>게임 없이 시작</small></button>' +
+      items.map((g, i) => '<button class="g" data-i="' + i + '"><b>' + esc(g.t || g.f) + '</b><small>' + esc(g.f) + '</small></button>').join('') +
+      (items.length ? '' : '<p style="color:#999">DOS/list.json 에 등록된 게임이 없어요.</p>') +
+      '<button class="g" id="loc"><b>📂 내 컴퓨터에서 zip 열기</b></button>';
+    $('stage').appendChild(d);
+    d.querySelectorAll('[data-i]').forEach(b => b.onclick = () => { const g = items[b.dataset.i]; const u = new URLSearchParams(); u.set('f', g.f); if (g.t) u.set('t', g.t); location.search = u.toString(); });
+    $('loc').onclick = () => $('pick').click();
+    $('blank').onclick = () => { const u = new URLSearchParams(); u.set('blank', '1'); location.search = u.toString(); };
+  }
+  $('pick').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    status('파일 읽는 중…'); play(await file.arrayBuffer(), file.name, file.name.replace(/\.[^.]+$/, ''));
+  };
+
+  const f = qs.get('f');
+  if (qs.get('blank')) { blankDos(); }
+  else if (f) playUrl(f, qs.get('t')); else showList();
+})();
+</script>
+</body>
+</html>

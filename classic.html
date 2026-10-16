@@ -745,6 +745,7 @@ const extra={'WINLOGS.BAT':'@ECHO OFF\nC:\\WINDOWS\\WIN.COM /S /B\n','WINLOGE.BA
 const showMsg=t=>{$('#pTxt').innerHTML=t;$('#pmsg').classList.remove('hidden')};
 function openPc(p){
  if(p&&p.g==='win'){location.href='winemu.html?os='+encodeURIComponent(p.id);return} /* 윈도우 1.0~98은 winemu.html 에뮬레이터로 실행 */
+ if(p&&p.g==='dos'){location.href='dos.html';return} /* MS-DOS는 js-dos v8 엔진(dos.html)으로 실행 */
  wnHide();loadHide(); pc={os:p};TG=false;{const b=document.querySelector('#pbar [data-a="tgrab"]');b&&b.classList.remove('on')}$('#pTitle').textContent=p.n;$('#pName').textContent=p.n;$('#pIcon').innerHTML=icon(p,'pp');
  $('#pc').classList.add('show');history.pushState({pc:1},'');
  const s=store[p.id]||{};
