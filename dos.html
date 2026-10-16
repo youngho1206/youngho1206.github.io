@@ -14,10 +14,7 @@ html,body{margin:0;height:100%;background:#000;color:#eee;overflow:hidden;oversc
 #app{position:fixed;inset:0;background:#000;overflow:hidden}
 #dos{position:absolute;inset:0;background:#000}
 /* 세로 화면(폰/태블릿): 메뉴 아래·조작버튼 위 영역에 게임 화면을 맞춤 / 가로 화면: 화면 위에 겹쳐 표시 */
-@media (orientation:portrait){
-  body:not(.menu-off) #dos{top:var(--mh)}
-  body.ctl-on #dos{bottom:var(--zh)}
-}
+#dos{transform-origin:0 0}
 /* ---- 메뉴 (에뮬레이터 화면 위) ---- */
 #menu{position:absolute;z-index:70;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));background:linear-gradient(#000d,#0000);pointer-events:none}
 #menu>*{pointer-events:auto}
@@ -110,15 +107,20 @@ body.pfs #menu{display:none}
   const status = (h, err) => { msg.style.display = 'flex'; msg.className = err ? 'err' : ''; msg.innerHTML = h; };
   const fail = (where, e) => { const t = (e && (e.stack || e.message)) || String(e); status('<b>' + esc(where) + '</b><small>' + esc(t) + (logs.length ? '\n\n' + esc(logs.slice(-6).join('\n')) : '') + '</small>', true); };
   let tt; const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); };
-  /* 세로 화면 + 버튼 표시: 게임 화면을 버튼창 바로 위에 붙임 / 버튼 숨김·가로 화면: 원래대로(가운데) */
+  /* 세로 화면 + 버튼 표시: 게임 화면을 (필요하면 축소해서) 메뉴와 버튼창 사이, 버튼창 바로 위에 맞춤 / 그 외에는 원래 위치 */
   function anchor() {
     const d = $('dos'); if (!d) return; d.style.transform = '';
     if (!body.classList.contains('ctl-on') || !window.matchMedia('(orientation:portrait)').matches) return;
     let c = null, a = 0;
-    d.querySelectorAll('canvas').forEach(x => { const r = x.getBoundingClientRect(), s = r.width * r.height; if (s > a) { a = s; c = x; } });
+    d.querySelectorAll('canvas').forEach(x => { const r = x.getBoundingClientRect(), v = r.width * r.height; if (v > a) { a = v; c = x; } });
     if (!c) return;
-    const off = d.getBoundingClientRect().bottom - c.getBoundingClientRect().bottom;
-    if (off > 1) d.style.transform = 'translateY(' + Math.round(off) + 'px)';
+    const r = c.getBoundingClientRect(), W = window.innerWidth;
+    const top = body.classList.contains('menu-off') ? 0 : $('menu').getBoundingClientRect().bottom;
+    const bot = $('ctl').getBoundingClientRect().top;
+    if (bot - top < 50) return;
+    const sc = Math.min(1, W / r.width, (bot - top) / r.height);
+    const tx = (W - r.width * sc) / 2 - r.left * sc, ty = bot - r.height * sc - r.top * sc;
+    d.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
   }
   const FSE = () => document.fullscreenElement || document.webkitFullscreenElement;
   /* 게임별 전체화면 버튼 (기본: Ctrl/Alt/Space/Enter/Esc, DOS/list.json 의 "k" 배열 또는 ⚙ 설정으로 변경) */
@@ -133,7 +135,7 @@ body.pfs #menu{display:none}
     document.querySelectorAll('#btns>*').forEach(e => { e.style.display = (!fs || sel.indexOf(e.dataset.k || e.id) >= 0) ? '' : 'none'; });
   }
   const relayout = () => { applyBtns(); setTimeout(() => window.dispatchEvent(new Event('resize')), 60); [150, 450, 1000].forEach(t => setTimeout(anchor, t)); };
-  setInterval(anchor, 1000); window.addEventListener('resize', () => setTimeout(anchor, 120));
+  setInterval(anchor, 500); window.addEventListener('resize', () => setTimeout(anchor, 120));
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   window.addEventListener('orientationchange', relayout);
 
