@@ -110,7 +110,30 @@ body.pfs #menu{display:none}
   const status = (h, err) => { msg.style.display = 'flex'; msg.className = err ? 'err' : ''; msg.innerHTML = h; };
   const fail = (where, e) => { const t = (e && (e.stack || e.message)) || String(e); status('<b>' + esc(where) + '</b><small>' + esc(t) + (logs.length ? '\n\n' + esc(logs.slice(-6).join('\n')) : '') + '</small>', true); };
   let tt; const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); };
-  const relayout = () => { setTimeout(() => window.dispatchEvent(new Event('resize')), 60); };
+  /* 세로 화면 + 버튼 표시: 게임 화면을 버튼창 바로 위에 붙임 / 버튼 숨김·가로 화면: 원래대로(가운데) */
+  function anchor() {
+    const d = $('dos'); if (!d) return; d.style.transform = '';
+    if (!body.classList.contains('ctl-on') || !window.matchMedia('(orientation:portrait)').matches) return;
+    let c = null, a = 0;
+    d.querySelectorAll('canvas').forEach(x => { const r = x.getBoundingClientRect(), s = r.width * r.height; if (s > a) { a = s; c = x; } });
+    if (!c) return;
+    const off = d.getBoundingClientRect().bottom - c.getBoundingClientRect().bottom;
+    if (off > 1) d.style.transform = 'translateY(' + Math.round(off) + 'px)';
+  }
+  const FSE = () => document.fullscreenElement || document.webkitFullscreenElement;
+  /* 게임별 전체화면 버튼 (기본: Ctrl/Alt/Space/Enter/Esc, DOS/list.json 의 "k" 배열 또는 ⚙ 설정으로 변경) */
+  const BTN = [['ctrl', 'Ctrl'], ['alt', 'Alt'], ['space', 'Space'], ['enter', 'Enter'], ['esc', 'Esc'], ['shift', 'Shift'], ['kbd', '⌨ 키보드'], ['more', '⋯ 기타키']];
+  const BK = () => 'dosBtn:' + String(G && G.base || 'x').toLowerCase();
+  function selBtns() {
+    try { const v = JSON.parse(localStorage.getItem(BK())); if (Array.isArray(v)) return v; } catch (e) {}
+    return G && Array.isArray(G.k) ? G.k : ['ctrl', 'alt', 'space', 'enter', 'esc'];
+  }
+  function applyBtns() {
+    const fs = !!FSE() || body.classList.contains('pfs'), sel = selBtns();
+    document.querySelectorAll('#btns>*').forEach(e => { e.style.display = (!fs || sel.indexOf(e.dataset.k || e.id) >= 0) ? '' : 'none'; });
+  }
+  const relayout = () => { applyBtns(); setTimeout(() => window.dispatchEvent(new Event('resize')), 60); [150, 450, 1000].forEach(t => setTimeout(anchor, t)); };
+  setInterval(anchor, 1000); window.addEventListener('resize', () => setTimeout(anchor, 120));
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   window.addEventListener('orientationchange', relayout);
 
@@ -238,20 +261,21 @@ body.pfs #menu{display:none}
   setCtl(ctl0 === null ? touch : ctl0 === '1', true);
   $('b-ctl').onclick = () => setCtl(!body.classList.contains('ctl-on'));
 
-  /* 전체화면 */
-  const FSE = () => document.fullscreenElement || document.webkitFullscreenElement;
+  /* 전체화면: 시작할 때 가로로 돌리고 고정 / 전체화면에서는 방향키 + 이 게임에서 쓰는 버튼만 */
+  const lockLand = () => { try { const o = screen.orientation; if (o && o.lock) { const p = o.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {} };
+  const unlock = () => { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} };
   $('b-fs').onclick = () => {
     const el = $('app');
     if (FSE()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
-    if (body.classList.contains('pfs')) { body.classList.remove('pfs'); relayout(); return; }
-    const soft = () => { body.classList.add('pfs'); toast('전체화면 (☰ 가 사라져요 · 화면을 두 번 길게 눌러 해제)'); relayout(); };
+    if (body.classList.contains('pfs')) { body.classList.remove('pfs'); unlock(); relayout(); return; }
+    const soft = () => { body.classList.add('pfs'); lockLand(); toast('전체화면 (왼쪽 위 모서리를 길게 누르면 해제)'); relayout(); };
     const r = el.requestFullscreen || el.webkitRequestFullscreen;
     if (!r) return soft();
-    try { const p = r.call(el); if (p && p.catch) p.catch(soft); } catch (e) { soft(); }
+    try { const p = r.call(el); if (p && p.then) p.then(lockLand, soft); else lockLand(); } catch (e) { soft(); }
   };
-  ['fullscreenchange', 'webkitfullscreenchange'].forEach(t => document.addEventListener(t, relayout));
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(t => document.addEventListener(t, () => { if (!FSE()) unlock(); relayout(); }));
   /* 소프트 전체화면 해제: 화면 왼쪽 위 모서리 길게 터치 */
-  let pt; document.addEventListener('pointerdown', e => { if (body.classList.contains('pfs') && e.clientX < 60 && e.clientY < 60) pt = setTimeout(() => { body.classList.remove('pfs'); relayout(); }, 700); });
+  let pt; document.addEventListener('pointerdown', e => { if (body.classList.contains('pfs') && e.clientX < 60 && e.clientY < 60) pt = setTimeout(() => { body.classList.remove('pfs'); unlock(); relayout(); }, 700); });
   ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, () => clearTimeout(pt)));
 
   /* 화면캡처 */
@@ -305,16 +329,28 @@ body.pfs #menu{display:none}
     try { closeDlg(); toast('📥 세이브 불러오는 중…'); await boot(new Uint8Array(await f.arrayBuffer())); } catch (er) { toast('세이브를 열지 못했어요: ' + (er.message || er)); }
   };
 
+  /* 게임별 전체화면 버튼 고르기 */
+  function btnDlg() {
+    const on = id => selBtns().indexOf(id) >= 0, st = id => on(id) ? 'background:#E8A020;color:#000' : '';
+    const b = dlg('<h2>🎮 이 게임 버튼 설정</h2><p style="margin:0 0 10px;color:#aaa;font-size:13px">전체화면에서 보일 버튼을 고르세요. 방향키는 항상 보여요. (게임별로 기억해요)</p><div class="kg">' + BTN.map(x => '<button data-b="' + x[0] + '" style="' + st(x[0]) + '">' + x[1] + '</button>').join('') + '</div>');
+    b.querySelectorAll('[data-b]').forEach(x => x.onclick = () => {
+      const id = x.dataset.b, cur = selBtns(), n = cur.indexOf(id) >= 0 ? cur.filter(v => v !== id) : cur.concat(id);
+      try { localStorage.setItem(BK(), JSON.stringify(n)); } catch (e) {}
+      x.style.cssText = st(id); applyBtns();
+    });
+  }
   /* 도스엔진선택 (+ 실행파일 선택 / 로그 / 나가기) */
   $('b-eng').onclick = () => {
     const b = dlg('<h2>⚙ 도스 엔진 선택</h2>' +
       '<button class="g' + (ENG === 'v8' ? ' cur' : '') + '" data-e="v8"><b>js-dos v8' + (ENG === 'v8' ? ' ✓' : '') + '</b><small>기본 · 권장 (세이브 지원)</small></button>' +
       '<button class="g' + (ENG === 'v6' ? ' cur' : '') + '" data-e="v6"><b>js-dos v6' + (ENG === 'v6' ? ' ✓' : '') + '</b><small>v8에서 안 될 때</small></button>' +
       (G && G.exes.length > 1 ? '<div style="margin:12px 0 6px;color:#aaa;font-size:13px">실행 파일 선택</div><select id="exe">' + G.exes.map(n => '<option' + (n === G.exe ? ' selected' : '') + ' value="' + esc(n) + '">▶ ' + esc(n) + '</option>').join('') + '</select>' : '') +
+      (G ? '<button class="g" id="d-btn" style="margin-top:8px"><b>🎮 이 게임 버튼 설정</b><small>전체화면에서 보일 버튼</small></button>' : '') +
       '<button class="g" id="d-log" style="margin-top:8px"><b>📋 로그 보기</b></button>' +
       '<button class="g" id="d-exit"><b>↩ 사이트로 나가기</b></button>');
     b.querySelectorAll('[data-e]').forEach(x => x.onclick = () => { const n = x.dataset.e; if (n === ENG) return closeDlg(); try { localStorage.setItem('dosEngine', n); } catch (e) {} nav({ engine: n }); });
     const s = $('exe'); if (s) s.onchange = () => nav({ exe: s.value });
+    const bb = $('d-btn'); if (bb) bb.onclick = btnDlg;
     $('d-log').onclick = () => { dlg('<h2>📋 로그</h2><pre>' + esc(logs.join('\n') || '(로그 없음)') + '</pre>'); };
     $('d-exit').onclick = () => { if (history.length > 1 && document.referrer) history.back(); else location.href = 'index.html'; };
   };
@@ -430,7 +466,8 @@ body.pfs #menu{display:none}
         auto = ['mount c .', 'c:'];
         if (exe) { const p = exe.split('/'), file = p.pop(); if (p.length) auto.push('cd ' + p.join('\\')); auto.push(file); }
       }
-      G = { buf, base, title, names, zip, auto, exe, exes, local: !!local };
+      G = { buf, base, title, names, zip, auto, exe, exes, local: !!local, k: null };
+      if (!local && !blank) { try { const r = await fetch('DOS/list.json', { cache: 'no-store' }); if (r.ok) { const it = (await r.json()).find(g => g.f === fname); if (it && Array.isArray(it.k)) G.k = it.k; } } catch (e) {} }
 
       if (local) {   /* 엔진 전환 때 다시 불러올 수 있게 내 컴퓨터 zip 을 브라우저에 보관 */
         DB.set('local', { name: fname, buf }).catch(() => {});
