@@ -125,8 +125,6 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavi
   }
   /* PS1 속도 개선: 다이나믹 리컴파일러(DRC) 켬 · 자동 프레임스킵 · 부팅로고/보간 끔 */
   if(c.core==='psx'){W.EJS_defaultOptions=c.psxOpts||{'pcsx_rearmed_drc':'enabled','pcsx_rearmed_frameskip_type':'auto','pcsx_rearmed_frameskip_threshold':'33','pcsx_rearmed_neon_enhancement_enable':'disabled','pcsx_rearmed_neon_interlace_enable':'disabled','pcsx_rearmed_show_bios_bootlogo':'disabled','pcsx_rearmed_spu_interpolation':'off','pcsx_rearmed_spu_reverb':'enabled'}}
-  /* 저사양 전용(갤럭시 A32급): 셰이더 끄고 스레드 사용 안 함 */
-  if(c.lite){W.EJS_defaultOptions=Object.assign({'shader':'disabled'},W.EJS_defaultOptions||{});W.EJS_threads=false}
   W.EJS_onGameStart=function(){try{c.onStart&&c.onStart()}catch(e){}};
 
   var s=document.createElement('script');

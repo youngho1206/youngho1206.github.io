@@ -12,7 +12,7 @@
 <title>영호의 게임에뮬레이터</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
-var T={l:'lowend.html',m:'mobile.html',d:'emulator.html'};
+var T={m:'mobile.html',d:'desktop.html'};
 function go(k,keep){
  try{sessionStorage.setItem('ver',k);if(keep===true)localStorage.setItem('ver',k);else if(keep===false)localStorage.removeItem('ver')}catch(e){}
  var p=new URLSearchParams(location.search);p.delete('select');var s=p.toString();
@@ -108,7 +108,7 @@ body>header h1{font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",
 .topinst{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:60;display:flex;align-items:center;gap:6px;height:36px;padding:0 15px 0 12px;border:2px solid rgba(183,92,255,.75);border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(80,20,160,.55));color:#fff;font:700 13px "Noto Sans KR",sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(120,40,255,.45);-webkit-tap-highlight-color:transparent}
 .topinst svg{width:16px;height:16px;fill:none;stroke:#ffe45e;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .topinst:active{transform:scale(.95)}
-@media (max-width:700px){body>header{padding-top:44px!important}}
+@media (max-width:700px){body>header{padding-top:88px!important}}
 /* 자동 설치 안내 배너 */
 #instBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:90;max-width:520px;margin:0 auto;align-items:center;gap:12px;padding:12px 12px 12px 14px;border:2px solid rgba(183,92,255,.8);border-radius:22px;background:rgba(22,8,56,.97);box-shadow:0 0 0 1px rgba(61,123,255,.5) inset,0 12px 40px rgba(0,0,0,.65),0 0 28px rgba(120,40,255,.4);color:#fff;animation:instup .4s cubic-bezier(.2,.9,.3,1)}
 #instBn.on{display:flex}
@@ -123,12 +123,10 @@ body>header h1{font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",
 @media (prefers-reduced-motion:reduce){#instBn{animation:none}}
 
 /* 상단 왼쪽 버튼 (사이트정보 · 어플설치방법) */
-.topleft{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;z-index:60;display:flex;gap:6px}
+.topleft{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;z-index:60;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 120px)}
 .topleft button{height:36px;padding:0 13px;border:2px solid rgba(183,92,255,.75);border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(80,20,160,.55));color:#fff;font:700 13px "Noto Sans KR",sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(120,40,255,.45);white-space:nowrap}
 .topleft button:active{transform:scale(.95)}
 @media (max-width:380px){.topleft{left:8px;gap:4px}.topleft button{padding:0 9px;font-size:12px}}
-/* 버튼이 3개라 좁은 폰에서는 두 줄로 나눠 오른쪽 '앱 설치' 버튼과 겹치지 않게 합니다 */
-@media (max-width:440px){.topleft{flex-wrap:wrap;max-width:calc(100% - 108px)}.topleft button{height:32px;padding:0 10px;font-size:12px}body>header{padding-top:84px!important}}
 /* iOS 스타일 알림창 */
 #iosAl{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 #iosAl.on{opacity:1;visibility:visible;transition-delay:0s}
@@ -140,13 +138,13 @@ body>header h1{font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",
 #iosAl .al-ok{display:block;width:100%;height:44px;border:0;border-top:.5px solid rgba(255,255,255,.2);background:none;color:#0a84ff;font:600 17px var(--ios);cursor:pointer}
 #iosAl .al-ok:active{background:rgba(255,255,255,.12)}
 /* 어플설치방법 웹뷰어 오버레이 */
-#guideOv,#saveOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(0,0,0,.6);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-#guideOv.on,#saveOv.on{opacity:1;visibility:visible;transition-delay:0s}
-#guideOv .gv,#saveOv .gv{flex:1;min-height:0;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 20px 70px rgba(0,0,0,.6)}
-#guideOv iframe,#saveOv iframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
-#guideOv .gv-f,#saveOv .gv-f{flex:none;display:flex;gap:8px;padding:10px;background:#1c1c1e}
-#guideOv .gv-f button,#guideOv .gv-f a,#saveOv .gv-f button,#saveOv .gv-f a{flex:1;height:44px;border:0;border-radius:12px;font:600 16px var(--ios);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
-#guideOv .gv-close,#saveOv .gv-close{background:#0a84ff;color:#fff}
+#guideOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(0,0,0,.6);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#guideOv.on{opacity:1;visibility:visible;transition-delay:0s}
+#guideOv .gv{flex:1;min-height:0;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 20px 70px rgba(0,0,0,.6)}
+#guideOv iframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
+#guideOv .gv-f{flex:none;display:flex;gap:8px;padding:10px;background:#1c1c1e}
+#guideOv .gv-f button,#guideOv .gv-f a{flex:1;height:44px;border:0;border-radius:12px;font:600 16px var(--ios);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+#guideOv .gv-close{background:#0a84ff;color:#fff}
 #guideOv .gv-ext{flex:none!important;padding:0 16px;background:rgba(255,255,255,.12);color:#fff;font-size:14px!important}
 </style>
 </head>
@@ -164,15 +162,11 @@ body>header h1{font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",
     <svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M28 12h8M29 52h6"/></svg>
     <div class="t"><b>모바일버전으로 접속하기</b><span>스마트폰에 맞춘 화면</span></div><em>추천</em>
   </a>
-  <a class="card" id="cd" href="emulator.html" data-k="d">
+  <a class="card" id="cd" href="desktop.html" data-k="d">
     <svg viewBox="0 0 64 64"><rect x="6" y="9" width="36" height="25" rx="3"/><path d="M18 42h12M24 34v8"/><rect x="40" y="26" width="18" height="28" rx="3.5"/><path d="M47 49h4"/></svg>
     <div class="t"><b>PC 및 태블릿버전으로 접속하기</b><span>넓은 화면에 맞춘 화면</span></div><em>추천</em>
   </a>
-  <a class="card" id="cl" href="lowend.html" data-k="l" style="grid-column:1/-1">
-    <svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M28 12h8M29 52h6"/><path d="M26 40h12M26 34h6M26 46h9" stroke-width="2.2"/></svg>
-    <div class="t"><b>저사양 휴대폰전용으로 접속하기</b><span>효과·애니메이션을 줄인 가벼운 화면 (갤럭시 A32급 기준)</span></div>
-  </a>
-  <a class="card" id="cold" href="emulator.html" style="grid-column:1/-1;display:none" hidden aria-hidden="true" tabindex="-1">
+  <a class="card" id="cold" href="emulator.html" style="grid-column:1/-1">
     <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="4"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
     <div class="t"><b>이전 PC버전으로 접속하기</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
   </a>
@@ -282,7 +276,7 @@ document.querySelectorAll('.card[data-k]').forEach(function(a){
 (function(){
  var btn=document.getElementById('bCache');if(!btn)return;
  var lab=document.getElementById('bCacheT'),busy=false;
- var FILES=['./','index.html','index-select.html','mobile.html','lowend.html','desktop.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','mamegame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
@@ -364,29 +358,23 @@ document.querySelectorAll('.card[data-k]').forEach(function(a){
  });
 })();
 </script>
-<div class="topleft"><button type="button" id="bInfo">사이트정보</button><button type="button" id="bGuide">어플설치방법</button><button type="button" id="bSave">게임 세이브방법</button></div>
+<div class="topleft"><button type="button" id="bInfo">사이트정보</button><button type="button" id="bGuide">어플설치방법</button><button type="button" id="bSave">세이브파일 저장방법</button></div>
 <div id="iosAl" role="alertdialog" aria-modal="true" aria-labelledby="alT" aria-describedby="alM"><div class="al"><div class="al-b"><b id="alT">사이트 정보</b><p id="alM">사용자가 보유한 게임 파일(롬 파일)을 인터넷에서 직접 불러와, 별도의 에뮬레이터 설치 없이 웹 브라우저에서 간편하게 게임을 즐길 수 있도록 운영하는 사이트입니다.</p></div><button type="button" class="al-ok" id="alOk">확인</button></div></div>
 <div id="guideOv" aria-hidden="true"><div class="gv"><iframe id="guideFr" title="어플 설치 방법" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="guideX">닫기</button></div></div></div>
-<div id="saveOv" class="gOv" aria-hidden="true"><div class="gv"><iframe id="saveFr" title="게임 세이브 방법" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="saveX">닫기</button></div></div></div>
 <script>
 (function(){
  var al=document.getElementById('iosAl'),ov=document.getElementById('guideOv'),fr=document.getElementById('guideFr');
- var URL_='https://youngho1206.tistory.com/m/1';
- var sv=document.getElementById('saveOv'),sf=document.getElementById('saveFr');
- var SAVE_URL='https://youngho1206.tistory.com/2';
+ var URL_='https://youngho1206.tistory.com/m/1',SAVE_URL='https://youngho1206.tistory.com/2';
  function alOpen(){al.classList.add('on');document.getElementById('alOk').focus()}
  function alClose(){al.classList.remove('on')}
- function gOpen(){if(!fr.getAttribute('src'))fr.src=URL_;ov.classList.add('on');ov.setAttribute('aria-hidden','false');document.getElementById('guideX').focus()}
+ function gOpen(u,t){if(fr.getAttribute('src')!==u){fr.src=u}fr.title=t;ov.classList.add('on');ov.setAttribute('aria-hidden','false');document.getElementById('guideX').focus()}
  function gClose(){ov.classList.remove('on');ov.setAttribute('aria-hidden','true')}
- function sOpen(){if(!sf.getAttribute('src'))sf.src=SAVE_URL;sv.classList.add('on');sv.setAttribute('aria-hidden','false');document.getElementById('saveX').focus()}
- function sClose(){sv.classList.remove('on');sv.setAttribute('aria-hidden','true')}
  document.getElementById('bInfo').onclick=alOpen;
  document.getElementById('alOk').onclick=alClose;
- document.getElementById('bGuide').onclick=gOpen;
+ document.getElementById('bGuide').onclick=function(){gOpen(URL_,'어플 설치 방법')};
+ document.getElementById('bSave').onclick=function(){gOpen(SAVE_URL,'세이브파일 저장 방법')};
  document.getElementById('guideX').onclick=gClose;
- document.getElementById('bSave').onclick=sOpen;
- document.getElementById('saveX').onclick=sClose;
- addEventListener('keydown',function(e){if(e.key==='Escape'){alClose();gClose();sClose()}});
+ addEventListener('keydown',function(e){if(e.key==='Escape'){alClose();gClose()}});
 })();
 </script>
 <script>
