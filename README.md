@@ -1,0 +1,19 @@
+# 영호의 게임에뮬레이터
+정적 사이트(PHP 없음) — GitHub Pages에 그대로 업로드하세요.
+- index.html : 사이트 전체 (콘솔 + 마메게임 EmulatorJS + DOS/Windows v86)
+- mamegame.js: 마메게임 공통 코드 (게임 목록 · 네오지오 바이오스 자동 합치기 · 코어 자동 전환)
+- MAME/      : 마메게임 롬(zip) 폴더 (바이오스는 MAME/_bios/neogeo.zip)
+- os/        : DOS·Windows 이미지 폴더 (예: os/win31/win31.zip)
+- v86/       : (선택) v86 로컬 파일
+
+[윈도우 에뮬레이터]
+- 윈도우/DOS 에뮬레이터는 index.html 안의 PC 에뮬레이터 화면(test1206 버전)을 사용합니다. (pcemu 폴더는 제거됨)
+- index 접속 시에는 os/ 폴더의 이미지를 불러오지 않습니다.
+- 윈도우 항목을 눌러 에뮬레이터에 들어가는 순간, 해당 버전의 이미지(os/<id>/<id>.zip)만 서버에서 받으며 진행률·남은 시간이 표시된 뒤 자동으로 시작합니다.
+- Windows 95 이미지: os/win95/win95.zip
+
+[마메게임]
+- MAME/ 폴더에 롬(zip)을 올리면 '마메게임' 화면 목록에 자동으로 나타납니다. (자세한 방법: MAME/README.txt)
+- 네오지오 게임은 MAME/_bios/neogeo.zip 이 자동으로 합쳐져 실행됩니다.
+- 내 기기의 롬(zip)을 직접 불러와 실행할 수도 있습니다.
+- 엔진: FinalBurn Neo → MAME 2003-Plus (시작이 안 되면 자동 전환, 화면 위 '코어' 버튼으로 수동 변경)

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>계산기 · CALC</title>
+<style>
+:root{
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --sans:"Helvetica Neue",Helvetica,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:var(--sans);-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body{background:#111 radial-gradient(ellipse at 50% 30%,#2a2d33 0,#0b0c0e 70%);display:flex;align-items:center;justify-content:center}
+button{font-family:inherit;border:0;padding:0;margin:0}
+
+/* 본체 */
+.phone{position:relative;display:flex;flex-direction:column;width:100%;height:100%;max-width:440px;background:#000;overflow:hidden}
+@media (min-width:600px) and (min-height:620px){
+  .phone{height:min(94vh,820px);border-radius:34px;box-shadow:0 0 0 2px #2b2b2e,0 0 0 7px #0b0b0c,0 30px 80px rgba(0,0,0,.7)}
+}
+
+/* 상단 바 (iOS 6 내비게이션 바) */
+.nav{flex:none;position:relative;display:flex;align-items:center;justify-content:center;height:calc(44px + var(--sat));padding-top:var(--sat);
+  background:linear-gradient(180deg,#7d8da6 0,#5d7090 48%,#4d6285 50%,#42557a 100%);border-bottom:1px solid #1d2635;box-shadow:0 1px 0 rgba(255,255,255,.12) inset}
+.nav h1{margin:0;font:700 20px var(--sans);color:#fff;text-shadow:0 -1px 0 rgba(0,0,0,.5);letter-spacing:.01em}
+.exit{position:absolute;left:max(8px,env(safe-area-inset-left));bottom:7px;display:inline-flex;align-items:center;height:30px;padding:0 12px 0 16px;color:#fff;text-decoration:none;font:700 13px var(--sans);text-shadow:0 -1px 0 rgba(0,0,0,.5);
+  background:linear-gradient(180deg,#8d9fba 0,#6a7fa1 50%,#5a7094 51%,#6a82a7 100%);border:1px solid #2f3e58;border-radius:5px 15px 15px 5px;box-shadow:0 1px 0 rgba(255,255,255,.35),inset 0 1px 0 rgba(255,255,255,.4);cursor:pointer;
+  clip-path:none}
+.exit:before{content:"";position:absolute;left:-7px;top:50%;width:14px;height:14px;transform:translateY(-50%) rotate(45deg) skew(8deg,8deg);border-left:1px solid #2f3e58;border-bottom:1px solid #2f3e58;background:linear-gradient(135deg,transparent 50%,#6f86aa 50%);border-radius:0 0 0 3px;z-index:-1}
+.exit{margin-left:7px}
+.exit:active{background:linear-gradient(180deg,#52688c 0,#3f5478 50%,#344a6f 51%,#3f567c 100%)}
+
+/* 표시창 */
+.disp{flex:1 1 0;min-height:70px;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 18px 8px;overflow:hidden;
+  background:linear-gradient(180deg,#0a0a0b 0,#1b1c1f 100%);border-bottom:1px solid #000;box-shadow:inset 0 8px 14px rgba(0,0,0,.65)}
+#out{font:300 clamp(48px,15vw,84px)/1 var(--sans);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);white-space:nowrap;letter-spacing:-.01em;font-variant-numeric:tabular-nums;transform-origin:100% 100%}
+
+/* 키패드 */
+.pad{flex:none;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:1px;height:58%;min-height:300px;
+  background:#000;padding-bottom:var(--sab)}
+.k{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font:700 clamp(26px,7.2vw,34px) var(--sans);outline:0;overflow:hidden;
+  text-shadow:0 -1px 0 rgba(0,0,0,.6);transition:filter .05s}
+/* 숫자: 짙은 유리 질감 */
+.k.n{background:linear-gradient(180deg,#5b5e65 0,#45484f 49%,#2f3138 50%,#3c3f46 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
+.k.n:active{background:linear-gradient(180deg,#8c9199 0,#6f737c 49%,#585c66 50%,#666b75 100%)}
+/* 기능키: 은색 */
+.k.f{color:#2d2f33;text-shadow:0 1px 0 rgba(255,255,255,.7);background:linear-gradient(180deg,#e6e8ec 0,#c8ccd3 49%,#aeb3bc 50%,#bcc1ca 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.k.f:active{background:linear-gradient(180deg,#9aa0ab 0,#838995 49%,#707683 50%,#7c8390 100%)}
+/* 연산자: 주황 */
+.k.o{background:linear-gradient(180deg,#ffb458 0,#f58f1e 49%,#e07a0a 50%,#ee8c1a 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55);font-size:clamp(30px,8.4vw,40px)}
+.k.o:active{background:linear-gradient(180deg,#c26c0d 0,#a85a05 49%,#8f4a00 50%,#a45a08 100%)}
+.k.o.sel{background:linear-gradient(180deg,#fff 0,#fbe8cc 49%,#f6d9ae 50%,#fadcb4 100%);color:#e07a0a;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.k.eq{grid-row:span 1}
+.k.z{grid-column:span 2;justify-content:flex-start;padding-left:9%}
+.k:focus-visible{filter:brightness(1.25)}
+/* 광택 */
+.k:after{content:"";position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02));pointer-events:none}
+.k.f:after{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.05))}
+
+@media (max-height:520px) and (orientation:landscape){
+  .pad{height:62%;min-height:0}
+  #out{font-size:42px}
+  .k{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="phone">
+  <header class="nav">
+    <a class="exit" href="index.html" aria-label="나가기">나가기</a>
+    <h1>계산기</h1>
+  </header>
+
+  <div class="disp" aria-live="polite" aria-atomic="true"><div id="out">0</div></div>
+
+  <div class="pad" id="pad" role="group" aria-label="계산기 키패드">
+    <button class="k f" data-a="c" id="kc" type="button" aria-label="지우기">C</button>
+    <button class="k f" data-a="sign" type="button" aria-label="부호 바꾸기">±</button>
+    <button class="k f" data-a="pct" type="button" aria-label="퍼센트">%</button>
+    <button class="k o" data-op="/" type="button" aria-label="나누기">÷</button>
+
+    <button class="k n" data-d="7" type="button">7</button>
+    <button class="k n" data-d="8" type="button">8</button>
+    <button class="k n" data-d="9" type="button">9</button>
+    <button class="k o" data-op="*" type="button" aria-label="곱하기">×</button>
+
+    <button class="k n" data-d="4" type="button">4</button>
+    <button class="k n" data-d="5" type="button">5</button>
+    <button class="k n" data-d="6" type="button">6</button>
+    <button class="k o" data-op="-" type="button" aria-label="빼기">−</button>
+
+    <button class="k n" data-d="1" type="button">1</button>
+    <button class="k n" data-d="2" type="button">2</button>
+    <button class="k n" data-d="3" type="button">3</button>
+    <button class="k o" data-op="+" type="button" aria-label="더하기">+</button>
+
+    <button class="k n z" data-d="0" type="button">0</button>
+    <button class="k n" data-a="dot" type="button" aria-label="소수점">.</button>
+    <button class="k o eq" data-a="eq" type="button" aria-label="계산">=</button>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+const out=document.getElementById('out'),kc=document.getElementById('kc');
+const OPS={'+':(a,b)=>a+b,'-':(a,b)=>a-b,'*':(a,b)=>a*b,'/':(a,b)=>a/b};
+const MAXD=12;
+
+/* 상태 */
+let cur='0';        /* 입력 중인 숫자(문자열) */
+let acc=null;       /* 앞 숫자 */
+let op=null;        /* 대기 중 연산자 */
+let fresh=true;     /* 다음 숫자를 새로 시작 */
+let lastOp=null,lastVal=null; /* = 반복용 */
+let err=false;
+
+const clean=n=>parseFloat(Number(n).toPrecision(12));
+function fmt(sv){
+  if(err)return '오류';
+  let neg=sv[0]==='-',s=neg?sv.slice(1):sv;
+  if(/e/i.test(s))return sv;
+  let [i,f]=s.split('.');
+  i=i.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return (neg?'-':'')+i+(f!==undefined?'.'+f:'');
+}
+function numToStr(n){
+  if(!isFinite(n)){err=true;return '0'}
+  n=clean(n);
+  let s=String(n);
+  if(/e/i.test(s)||Math.abs(n)>=1e12){
+    s=n.toExponential(6).replace(/\.?0+e/,'e').replace('e+','e');
+  }
+  return s;
+}
+function fit(){
+  out.style.transform='none';
+  const box=out.parentElement,avail=box.clientWidth-36,w=out.scrollWidth;
+  if(w>avail)out.style.transform='scale('+(avail/w)+')';
+}
+function show(){
+  out.textContent=fmt(cur);
+  kc.textContent=(cur==='0'&&acc===null&&!op)||err?'C':(fresh&&op?'C':'C');
+  document.querySelectorAll('.k.o[data-op]').forEach(b=>b.classList.toggle('sel',!!op&&fresh&&b.dataset.op===op));
+  fit();
+}
+
+function digit(d){
+  if(err)clearAll();
+  if(fresh){cur='0';fresh=false}
+  const plain=cur.replace('-','').replace('.','');
+  if(plain.length>=MAXD)return;
+  cur=(cur==='0')?d:cur+d;
+  show();
+}
+function dot(){
+  if(err)clearAll();
+  if(fresh){cur='0';fresh=false}
+  if(!cur.includes('.'))cur+='.';
+  show();
+}
+function clearAll(){cur='0';acc=null;op=null;fresh=true;lastOp=null;lastVal=null;err=false;show()}
+function sign(){
+  if(err)return;
+  if(cur==='0'&&!fresh){cur='-0';}
+  else if(cur!=='0'){cur=cur[0]==='-'?cur.slice(1):'-'+cur}
+  show();
+}
+function pct(){
+  if(err)return;
+  let v=parseFloat(cur);
+  if(acc!==null&&op&&(op==='+'||op==='-'))v=acc*v/100;
+  else v=v/100;
+  cur=numToStr(v);fresh=true;show();
+}
+function compute(a,o,b){
+  if(o==='/'&&b===0){err=true;return 0}
+  return OPS[o](a,b);
+}
+function operate(o){
+  if(err)return;
+  const v=parseFloat(cur);
+  if(acc!==null&&op&&!fresh){
+    const r=compute(acc,op,v);
+    cur=numToStr(r);acc=err?null:parseFloat(cur);
+  }else if(acc===null||!op){
+    acc=v;
+  }
+  op=o;fresh=true;lastOp=null;lastVal=null;show();
+}
+function equals(){
+  if(err)return;
+  const v=parseFloat(cur);
+  if(op&&acc!==null){
+    const b=fresh&&lastVal!==null?lastVal:v;
+    lastOp=op;lastVal=b;
+    const r=compute(acc,op,b);
+    cur=numToStr(r);acc=null;op=null;fresh=true;
+  }else if(lastOp&&lastVal!==null){
+    const r=compute(v,lastOp,lastVal);
+    cur=numToStr(r);fresh=true;
+  }
+  show();
+}
+function back(){
+  if(err||fresh)return;
+  cur=cur.length>1&&!(cur.length===2&&cur[0]==='-')?cur.slice(0,-1):'0';
+  show();
+}
+
+/* 터치/클릭 */
+document.getElementById('pad').addEventListener('click',e=>{
+  const b=e.target.closest('.k');if(!b)return;
+  if(b.dataset.d!=null)digit(b.dataset.d);
+  else if(b.dataset.op)operate(b.dataset.op);
+  else{
+    ({c:clearAll,sign:sign,pct:pct,dot:dot,eq:equals})[b.dataset.a]();
+  }
+});
+
+/* 키보드 */
+const KM={'/':'/','*':'*','x':'*','X':'*','-':'-','+':'+'};
+addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key;
+  if(/^[0-9]$/.test(k)){digit(k);e.preventDefault()}
+  else if(k==='.'||k===','){dot();e.preventDefault()}
+  else if(KM[k]){operate(KM[k]);e.preventDefault()}
+  else if(k==='Enter'||k==='='){equals();e.preventDefault()}
+  else if(k==='Backspace'){back();e.preventDefault()}
+  else if(k==='Escape'||k==='Delete'||k==='c'||k==='C'){clearAll();e.preventDefault()}
+  else if(k==='%'){pct();e.preventDefault()}
+});
+/* Enter 키가 포커스된 버튼을 한 번 더 누르지 않도록 */
+document.getElementById('pad').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')e.preventDefault()});
+addEventListener('resize',fit);
+show();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="게임에뮬레이터">
+<title>영호의 게임에뮬레이터</title>
+<script>
+/* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
+var T={l:'lowend.html',m:'mobile.html',d:'emulator.html'};
+function go(k,keep){
+ try{sessionStorage.setItem('ver',k);if(keep===true)localStorage.setItem('ver',k);else if(keep===false)localStorage.removeItem('ver')}catch(e){}
+ var p=new URLSearchParams(location.search);p.delete('select');var s=p.toString();
+ location.replace(T[k]+(s?'?'+s:''));
+}
+(function(){
+ if(new URLSearchParams(location.search).has('select'))return;
+ var v=null;try{v=sessionStorage.getItem('ver')||localStorage.getItem('ver')}catch(e){}
+ if(T[v])go(v);
+})();
+</script>
+<link rel="stylesheet" href="perf.css?v=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+:root{--bg:#07070a;--fg:#f3efe6;--mut:#8d8a80;--acc:#d4af6a;--acc2:#f1d9a0;--line:rgba(212,175,106,.2);--serif:"Cormorant Garamond","Noto Serif KR",Georgia,serif;--sans:Inter,-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans)}
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(26px,5vh,52px);padding:max(28px,env(safe-area-inset-top)) clamp(18px,4vw,56px) max(28px,env(safe-area-inset-bottom));overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% -10%,#1d1a12 0,#0b0a0c 45%,#050507 100%)}
+.bg i{position:absolute;border-radius:50%;filter:blur(110px);opacity:.14;animation:drift 22s ease-in-out infinite alternate}
+.bg i:nth-child(1){width:46vmax;height:46vmax;background:#d4af6a;left:-18vmax;top:-22vmax}
+.bg i:nth-child(2){width:38vmax;height:38vmax;background:#6a7bd4;right:-16vmax;bottom:-18vmax;opacity:.09;animation-delay:-9s}
+@keyframes drift{to{transform:translate(6vmax,5vmax) scale(1.15)}}
+header{text-align:center}
+h1{margin:0;font:600 clamp(28px,6vw,60px)/1.15 var(--serif);letter-spacing:.015em;word-break:keep-all}
+header p{margin:14px 0 0;color:var(--mut);font:300 clamp(13px,1.9vw,16px) var(--sans);letter-spacing:.03em}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.6vw,30px);width:min(100%,820px)}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:clamp(26px,5vw,52px) clamp(14px,3vw,30px);border:1px solid var(--line);border-radius:30px;color:inherit;text-decoration:none;background:radial-gradient(ellipse at 50% 20%,rgba(212,175,106,.12),transparent 65%),linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.012));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:border-color .5s,box-shadow .5s,transform .5s cubic-bezier(.2,.9,.3,1)}
+.card:hover{transform:translateY(-6px);border-color:var(--acc);box-shadow:0 26px 60px rgba(0,0,0,.6),0 0 50px rgba(212,175,106,.14)}
+.card:active{transform:scale(.98)}
+.card:focus-visible{outline:2px solid var(--acc);outline-offset:4px}
+.card svg{width:clamp(64px,11vw,112px);height:auto;fill:none;stroke:var(--acc2);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;margin-bottom:clamp(8px,2vw,20px)}
+.card .t{display:flex;flex-direction:column;align-items:center;gap:8px}
+.card b{word-break:keep-all;font:600 clamp(20px,3.4vw,30px) var(--serif);color:var(--acc2);letter-spacing:.04em}
+.card span{color:var(--mut);font:300 clamp(12px,1.7vw,14.5px)/1.6 var(--sans);word-break:keep-all}
+.card em{position:absolute;top:16px;right:18px;display:none;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:rgba(212,175,106,.12);color:var(--acc2);font:500 11.5px var(--sans);font-style:normal;letter-spacing:.06em}
+.card.rec em{display:block}
+.keep{display:flex;align-items:center;gap:10px;color:var(--mut);font:300 13.5px var(--sans);cursor:pointer;user-select:none}
+.keep input{width:18px;height:18px;accent-color:var(--acc)}
+@media (max-width:560px){
+ .choices{grid-template-columns:1fr}
+ .card{flex-direction:row;text-align:left;gap:16px;padding:20px 20px;border-radius:24px}
+ .card svg{width:56px;margin:0;flex:none}
+ .card .t{align-items:flex-start;gap:4px}
+ .card em{position:static;flex:none;margin-left:auto}
+ .card .t b{word-break:keep-all}
+}
+
+:root{--ios:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+.tools{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.tool{position:relative;display:flex;align-items:center;gap:10px;height:48px;padding:0 24px 0 18px;border:0;border-radius:24px;color:var(--fg);font:500 15px var(--ios);background:rgba(255,255,255,.08);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);box-shadow:inset 0 .5px 0 rgba(255,255,255,.28);cursor:pointer;transition:transform .25s cubic-bezier(.2,1.2,.4,1),background .3s}
+.tool:hover{background:rgba(255,255,255,.14)}
+.tool:active{transform:scale(.95)}
+.tool:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.tool svg{width:21px;height:21px;fill:none;stroke:var(--acc2);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tool .dot{position:absolute;top:10px;right:13px;width:9px;height:9px;border-radius:50%;background:#ff453a;display:none}
+.tool.new .dot{display:block}
+#sh{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.42);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .4s;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#sh.on{opacity:1;visibility:visible;transition-delay:0s}
+#sh .sheet{width:min(100%,580px);max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;border-radius:28px 28px 0 0;background:rgba(34,34,38,.88);-webkit-backdrop-filter:blur(40px) saturate(1.8);backdrop-filter:blur(40px) saturate(1.8);color:#fff;font-family:var(--ios);transform:translateY(100%);transition:transform .5s cubic-bezier(.2,.9,.25,1),opacity .3s;box-shadow:0 -10px 60px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom)}
+#sh.on .sheet{transform:none}
+.grab{flex:none;width:38px;height:5px;border-radius:3px;background:rgba(255,255,255,.3);margin:8px auto 0}
+.sh-h{flex:none;display:flex;align-items:center;justify-content:space-between;padding:12px 22px 4px}
+.sh-h b{font:700 24px var(--ios);letter-spacing:-.01em}
+.sh-h button{border:0;background:none;color:#0a84ff;font:600 17px var(--ios);cursor:pointer;padding:8px 0 8px 14px}
+.sh-h button:active{opacity:.5}
+.sh-s{flex:none;padding:0 22px 6px;color:rgba(255,255,255,.5);font:400 13px var(--ios)}
+.sh-b{overflow:auto;padding:10px 16px 24px;-webkit-overflow-scrolling:touch}
+.gc{border-radius:16px;background:rgba(255,255,255,.08);padding:16px 18px;margin-bottom:14px;font:400 16px/1.65 var(--ios);white-space:pre-wrap;word-break:keep-all;overflow-wrap:break-word}
+.gc h3{margin:0 0 6px;font:600 17px/1.45 var(--ios);white-space:normal}
+.gc.em{color:rgba(255,255,255,.55);text-align:center;white-space:normal}
+.gc ol{margin:0;padding:0;list-style:none;counter-reset:s;white-space:normal}
+.gc li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;padding:9px 0}
+.gc li+li{border-top:.5px solid rgba(255,255,255,.14)}
+.gc li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:#0a84ff;color:#fff;font:600 14px/26px var(--ios);text-align:center}
+.gc small{display:block;margin-top:10px;color:rgba(255,255,255,.5);font:400 13px/1.5 var(--ios);white-space:normal}
+@media (min-width:700px){
+ #sh{align-items:center}
+ #sh .sheet{border-radius:28px;transform:scale(.95);opacity:0;padding-bottom:0;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+ #sh.on .sheet{transform:none;opacity:1}
+ .grab{display:none}
+}
+.card.photo{width:min(100%,820px);flex-direction:row;text-align:left;gap:20px;padding:clamp(16px,3vw,26px) clamp(20px,4vw,40px);border-radius:26px}
+.card.photo svg{width:clamp(44px,7vw,64px);margin:0;flex:none}
+.card.photo .t{align-items:flex-start;gap:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="retro.css?v=1">
+<style>
+/* 제목: 한글이 또렷하게 보이도록 */
+body>header h1{font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif!important;font-weight:900!important;letter-spacing:.01em!important;font-size:clamp(26px,6.4vw,52px)!important}
+/* 상단 오른쪽 앱 설치 버튼 */
+.topinst{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:60;display:flex;align-items:center;gap:6px;height:36px;padding:0 15px 0 12px;border:2px solid rgba(183,92,255,.75);border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(80,20,160,.55));color:#fff;font:700 13px "Noto Sans KR",sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(120,40,255,.45);-webkit-tap-highlight-color:transparent}
+.topinst svg{width:16px;height:16px;fill:none;stroke:#ffe45e;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.topinst:active{transform:scale(.95)}
+@media (max-width:700px){body>header{padding-top:44px!important}}
+/* 자동 설치 안내 배너 */
+#instBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:90;max-width:520px;margin:0 auto;align-items:center;gap:12px;padding:12px 12px 12px 14px;border:2px solid rgba(183,92,255,.8);border-radius:22px;background:rgba(22,8,56,.97);box-shadow:0 0 0 1px rgba(61,123,255,.5) inset,0 12px 40px rgba(0,0,0,.65),0 0 28px rgba(120,40,255,.4);color:#fff;animation:instup .4s cubic-bezier(.2,.9,.3,1)}
+#instBn.on{display:flex}
+@keyframes instup{from{opacity:0;transform:translateY(24px)}}
+#instBn img{flex:none;border-radius:11px}
+#instBn .ib-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-family:"Noto Sans KR",sans-serif}
+#instBn .ib-t b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#instBn .ib-t span{font-size:12px;line-height:1.45;color:#c9c0e6;word-break:keep-all}
+#instGo{flex:none;border:0;border-radius:99px;padding:10px 18px;background:linear-gradient(#ffd84a,#f0a400);color:#2a1a00;font:800 14px "Noto Sans KR",sans-serif;cursor:pointer;box-shadow:0 3px 0 #8a5a00}
+#instGo:active{transform:translateY(2px);box-shadow:0 1px 0 #8a5a00}
+#instNo{flex:none;border:0;background:none;color:#a99fcf;font-size:17px;padding:6px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){#instBn{animation:none}}
+
+/* 상단 왼쪽 버튼 (사이트정보 · 어플설치방법) */
+.topleft{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;z-index:60;display:flex;gap:6px}
+.topleft button{height:36px;padding:0 13px;border:2px solid rgba(183,92,255,.75);border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(80,20,160,.55));color:#fff;font:700 13px "Noto Sans KR",sans-serif;cursor:pointer;box-shadow:0 0 14px rgba(120,40,255,.45);white-space:nowrap}
+.topleft button:active{transform:scale(.95)}
+@media (max-width:380px){.topleft{left:8px;gap:4px}.topleft button{padding:0 9px;font-size:12px}}
+/* 버튼이 3개라 좁은 폰에서는 두 줄로 나눠 오른쪽 '앱 설치' 버튼과 겹치지 않게 합니다 */
+@media (max-width:440px){.topleft{flex-wrap:wrap;max-width:calc(100% - 108px)}.topleft button{height:32px;padding:0 10px;font-size:12px}body>header{padding-top:84px!important}}
+/* iOS 스타일 알림창 */
+#iosAl{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
+#iosAl.on{opacity:1;visibility:visible;transition-delay:0s}
+#iosAl .al{width:270px;border-radius:14px;overflow:hidden;background:rgba(44,44,46,.92);-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);color:#fff;text-align:center;font-family:var(--ios);transform:scale(1.1);transition:transform .25s cubic-bezier(.2,.9,.3,1)}
+#iosAl.on .al{transform:scale(1)}
+#iosAl .al-b{padding:20px 16px 18px}
+#iosAl .al-b b{display:block;font:600 17px/1.3 var(--ios);margin-bottom:6px}
+#iosAl .al-b p{margin:0;font:400 13px/1.5 var(--ios);word-break:keep-all}
+#iosAl .al-ok{display:block;width:100%;height:44px;border:0;border-top:.5px solid rgba(255,255,255,.2);background:none;color:#0a84ff;font:600 17px var(--ios);cursor:pointer}
+#iosAl .al-ok:active{background:rgba(255,255,255,.12)}
+/* 어플설치방법 웹뷰어 오버레이 */
+#guideOv,#saveOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(0,0,0,.6);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#guideOv.on,#saveOv.on{opacity:1;visibility:visible;transition-delay:0s}
+#guideOv .gv,#saveOv .gv{flex:1;min-height:0;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 20px 70px rgba(0,0,0,.6)}
+#guideOv iframe,#saveOv iframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
+#guideOv .gv-f,#saveOv .gv-f{flex:none;display:flex;gap:8px;padding:10px;background:#1c1c1e}
+#guideOv .gv-f button,#guideOv .gv-f a,#saveOv .gv-f button,#saveOv .gv-f a{flex:1;height:44px;border:0;border-radius:12px;font:600 16px var(--ios);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+#guideOv .gv-close,#saveOv .gv-close{background:#0a84ff;color:#fff}
+#guideOv .gv-ext{flex:none!important;padding:0 16px;background:rgba(255,255,255,.12);color:#fff;font-size:14px!important}
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i></div>
+<button type="button" id="bInstall" class="topinst" aria-label="앱 설치"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>앱 설치</button>
+<div id="instBn" role="dialog" aria-label="앱 설치 안내"><img src="icons/app-192.png" alt="" width="44" height="44"><div class="ib-t"><b>영호의 게임에뮬레이터</b><span id="instSub">주소창 없이 앱처럼 크게 즐겨요</span></div><button type="button" id="instGo">앱 설치</button><button type="button" id="instNo" aria-label="닫기">✕</button></div>
+<header>
+  <h1>영호의 게임에뮬레이터</h1>
+  <p class="rg-sub">추억의 게임 속으로 떠나는 시간 여행 — 기기를 골라 게임을 시작하세요</p>
+  <div id="visit" style="display:flex;margin-top:12px;justify-content:center;gap:14px;font:500 13px 'Noto Sans KR',sans-serif;color:#c9c0e6"><span>오늘 방문 <b id="vToday" style="color:#ffe45e">…</b></span><span>전체 방문 <b id="vTotal" style="color:#ffe45e">…</b></span></div>
+</header>
+<main class="choices">
+  <a class="card" id="cm" href="mobile.html" data-k="m">
+    <svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M28 12h8M29 52h6"/></svg>
+    <div class="t"><b>모바일버전으로 접속하기</b><span>스마트폰에 맞춘 화면</span></div><em>추천</em>
+  </a>
+  <a class="card" id="cd" href="emulator.html" data-k="d">
+    <svg viewBox="0 0 64 64"><rect x="6" y="9" width="36" height="25" rx="3"/><path d="M18 42h12M24 34v8"/><rect x="40" y="26" width="18" height="28" rx="3.5"/><path d="M47 49h4"/></svg>
+    <div class="t"><b>PC 및 태블릿버전으로 접속하기</b><span>넓은 화면에 맞춘 화면</span></div><em>추천</em>
+  </a>
+  <a class="card" id="cl" href="lowend.html" data-k="l" style="grid-column:1/-1">
+    <svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M28 12h8M29 52h6"/><path d="M26 40h12M26 34h6M26 46h9" stroke-width="2.2"/></svg>
+    <div class="t"><b>저사양 휴대폰전용으로 접속하기</b><span>효과·애니메이션을 줄인 가벼운 화면 (갤럭시 A32급 기준)</span></div>
+  </a>
+  <a class="card" id="cold" href="emulator.html" style="grid-column:1/-1;display:none" hidden aria-hidden="true" tabindex="-1">
+    <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="4"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
+    <div class="t"><b>이전 PC버전으로 접속하기</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
+  </a>
+</main>
+<a class="card photo" id="cp" href="gallery.html">
+    <svg viewBox="0 0 64 64"><rect x="8" y="12" width="48" height="40" rx="6"/><circle cx="23" cy="26" r="4"/><path d="M10 48l15-15 10 10 8-8 13 13"/></svg>
+    <div class="t"><b>게임스크린샷</b><span>게임 화면 캡처를 올리고 · 모든 기기에서 보기</span></div>
+</a>
+<div class="tools">
+  <a class="tool" href="classic.html" id="bClassic" style="text-decoration:none"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>통합 화면 (윈도우·DOS 에뮬레이터)</a>
+  <button type="button" class="tool" id="bNotice"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>공지사항<i class="dot"></i></button>
+  <button type="button" class="tool" id="bCache"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg><span id="bCacheT">캐쉬지우기</span></button>
+  <button type="button" class="tool js-wipe" id="bWipe" title="이 사이트에 쌓인 기록을 모두 지우고 처음 접속한 상태로 되돌립니다"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14h12l1-14"/><path d="M9 10l6 6M15 10l-6 6"/></svg><span id="bWipeT">데이터삭제</span></button>
+</div>
+<label class="keep"><input type="checkbox" id="keep">다음부터 이 화면으로 바로 접속</label>
+<div id="sh" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="grab"></div><div class="sh-h"><b id="shT"></b><button type="button" id="shX">닫기</button></div><div class="sh-s" id="shS"></div><div class="sh-b" id="shB"></div></div></div>
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var sh=$('#sh');
+function mk(c,t,tag){var e=document.createElement(tag||'div');if(c)e.className=c;if(t!=null)e.textContent=t;return e}
+function open_(title,sub,nodes){$('#shT').textContent=title;$('#shS').textContent=sub||'';$('#shS').style.display=sub?'':'none';var b=$('#shB');b.innerHTML='';nodes.forEach(function(n){b.appendChild(n)});b.scrollTop=0;sh.classList.add('on');sh.setAttribute('aria-hidden','false');$('#shX').focus()}
+function close_(){sh.classList.remove('on');sh.setAttribute('aria-hidden','true')}
+$('#shX').onclick=close_;
+sh.addEventListener('click',function(e){if(e.target===sh)close_()});
+addEventListener('keydown',function(e){if(e.key==='Escape')close_()});
+
+/* ---------- 공지사항 : INFO-WEB.TXT ---------- */
+var notice=null,SEEN='noticeSeen';
+function sig(t){return t.length+':'+t.slice(0,60)}
+function seen(){try{return localStorage.getItem(SEEN)}catch(e){return null}}
+function loadNotice(){
+ return fetch('INFO-WEB.TXT?t='+Date.now(),{cache:'no-store'}).then(function(r){
+  if(!r.ok)throw 0;
+  var lm=r.headers.get('last-modified');
+  return r.arrayBuffer().then(function(buf){
+   var t;try{t=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){t=new TextDecoder('euc-kr').decode(buf)}
+   t=t.replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').trim();
+   return{text:t,date:lm?new Date(lm):null};
+  });
+ }).catch(function(){return{text:'',date:null}});
+}
+loadNotice().then(function(n){notice=n;if(n.text&&sig(n.text)!==seen())$('#bNotice').classList.add('new')});
+$('#bNotice').onclick=function(){
+ var go=function(n){
+  var nodes=[];
+  if(!n.text)nodes.push(mk('gc em','등록된 공지가 없습니다.'));
+  else n.text.split(/\n[ \t]*-{3,}[ \t]*\n/).forEach(function(ch){
+   ch=ch.trim();if(!ch)return;
+   var c=mk('gc'),i=ch.indexOf('\n');
+   if(i>0){c.appendChild(mk('',null,'h3')).textContent=ch.slice(0,i).trim();c.appendChild(document.createTextNode(ch.slice(i+1).trim()))}
+   else c.textContent=ch;
+   nodes.push(c);
+  });
+  var sub=n.date?'업데이트 '+n.date.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}):'';
+  open_('공지사항',sub,nodes);
+  if(n.text){try{localStorage.setItem(SEEN,sig(n.text))}catch(e){}}
+  $('#bNotice').classList.remove('new');
+ };
+ if(notice)go(notice);else loadNotice().then(function(n){notice=n;go(n)});
+};
+
+/* ---------- 앱 설치하기 ---------- */
+var dip=null,ua=navigator.userAgent;
+var ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+var macSafari=!ios&&/Macintosh/.test(ua)&&/Safari/.test(ua)&&!/Chrome|Chromium|Edg|OPR|Firefox/.test(ua);
+if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('#bInstall').style.display='none';
+var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+var samsung=/SamsungBrowser/.test(ua),DKEY='instDismissed',bn=$('#instBn');
+function dismissed(){try{var t=+localStorage.getItem(DKEY)||0;return Date.now()-t<3*864e5}catch(e){return false}}
+function hideBn(remember){bn.classList.remove('on');if(remember){try{localStorage.setItem(DKEY,String(Date.now()))}catch(e){}}}
+/* 설치 안내를 자동으로 띄웁니다. (브라우저 규칙상 설치 자체는 '앱 설치' 버튼을 한 번 눌러야 진행됩니다) */
+function showBn(){
+ if(standalone||dismissed()||bn.classList.contains('on'))return;
+ if(ios)$('#instSub').textContent='공유 버튼 → “홈 화면에 추가”로 앱처럼 설치할 수 있어요';
+ bn.classList.add('on');
+}
+addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;setTimeout(showBn,1200)});
+addEventListener('appinstalled',function(){$('#bInstall').style.display='none';dip=null;hideBn(false)});
+$('#instNo').onclick=function(){hideBn(true)};
+$('#instGo').onclick=function(){hideBn(false);$('#bInstall').click()};
+/* 설치 이벤트가 없는 브라우저: 아이폰 Safari·삼성 인터넷은 방법을 안내 */
+setTimeout(function(){if(!dip&&(ios||samsung))showBn()},2500);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+function steps(list,foot){
+ var c=mk('gc'),ol=document.createElement('ol');
+ list.forEach(function(t){ol.appendChild(mk('',t,'li'))});
+ c.appendChild(ol);if(foot)c.appendChild(mk('',foot,'small'));return c;
+}
+$('#bInstall').onclick=function(){
+ if(dip){var d=dip;dip=null;d.prompt();return}
+ if(ios)open_('앱 설치하기','아이폰 · 아이패드',[steps(['Safari로 이 페이지를 엽니다.','화면 아래(또는 위)의 공유 버튼을 누릅니다.','“홈 화면에 추가”를 선택합니다.','오른쪽 위의 “추가”를 누르면 홈 화면에 앱이 생깁니다.'],'다른 브라우저에서는 보이지 않을 수 있어요. Safari에서 열어 주세요.')]);
+ else if(macSafari)open_('앱 설치하기','Mac · Safari',[steps(['메뉴 막대에서 “파일”을 엽니다.','“Dock에 추가”를 선택합니다.','이름을 확인하고 “추가”를 누릅니다.'])]);
+ else open_('앱 설치하기','PC · 안드로이드',[steps(['주소창 오른쪽의 설치 아이콘을 누릅니다.','아이콘이 없으면 브라우저 메뉴(⋮)를 엽니다.','“앱 설치” 또는 “홈 화면에 추가”를 선택합니다.'],'Chrome, Edge, 삼성 인터넷에서 설치할 수 있어요. PC용 Firefox는 앱 설치를 지원하지 않습니다.')]);
+};
+})();
+</script>
+<script>
+document.getElementById(innerWidth>=700?'cd':'cm').classList.add('rec');
+document.querySelectorAll('.card[data-k]').forEach(function(a){
+ a.addEventListener('click',function(e){e.preventDefault();go(a.dataset.k,document.getElementById('keep').checked)});
+});
+</script>
+<script>
+/* 캐쉬지우기: 이 사이트의 임시 저장 파일(캐쉬)을 모두 지우고 최신 버전으로 다시 불러옵니다. (업데이트 반영용)
+   내 설정·메모·사진 토큰 같은 저장 데이터(localStorage)는 지우지 않습니다. */
+(function(){
+ var btn=document.getElementById('bCache');if(!btn)return;
+ var lab=document.getElementById('bCacheT'),busy=false;
+ var FILES=['./','index.html','index-select.html','mobile.html','lowend.html','desktop.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
+  'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
+  'retro.js','retro.css','perf.css','mamegame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
+  'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
+  'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
+ function urls(){
+  var u={};
+  FILES.forEach(function(f){u[f]=1});
+  document.querySelectorAll('link[href],script[src]').forEach(function(e){
+   var v=e.getAttribute('href')||e.getAttribute('src');
+   if(v&&!/^(https?:)?\/\//.test(v)&&v.indexOf('data:')!==0)u[v]=1;   // ?v=1 이 붙은 주소까지 포함
+  });
+  return Object.keys(u);
+ }
+ function say(t){lab.textContent=t}
+ btn.addEventListener('click',function(){
+  if(busy)return;
+  if(!confirm('이 사이트의 저장된 캐쉬(임시 파일)를 모두 지우고\n최신 버전으로 새로 불러옵니다.\n\n설정·메모 등 내 데이터는 지워지지 않습니다.\n계속할까요?'))return;
+  busy=true;btn.disabled=true;say('지우는 중…');
+  var jobs=[];
+  /* 1) 앱(서비스워커) 캐쉬 삭제 */
+  if(window.caches&&caches.keys)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));
+  /* 2) 서비스워커 등록 해제 (새로 접속하면 최신 버전으로 다시 등록됩니다) */
+  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
+  /* 3) 브라우저에 남아 있는 파일 캐쉬 갱신 (cache:'reload' = 서버에서 새로 받아 덮어쓰기) */
+  jobs.push(Promise.all(urls().map(function(u){return fetch(u,{cache:'reload',credentials:'same-origin'}).catch(function(){})})));
+  Promise.all(jobs.map(function(p){return p.catch(function(){})})).then(function(){
+   say('완료! 새로 불러옵니다');
+   setTimeout(function(){location.reload()},700);
+  });
+ });
+})();
+</script>
+<script src="retro.js?v=1"></script>
+<script>
+/* 데이터삭제: 이 사이트에 쌓인 기록(설정·메모·저장파일·게임 세이브·토큰 등)을 모두 지우고, 처음 접속한 상태로 되돌립니다. (캐쉬지우기와 별개) */
+(function(){
+ if(window.__wipeBound)return;window.__wipeBound=true;
+ var busy=false;
+ var KNOWN_DB=['dosweb','EmulatorJS-roms','EmulatorJS-bios','EmulatorJS-core','EmulatorJS-states','/data/saves','/home/web_user/retroarch/userdata'];
+ function delDB(n){return new Promise(function(res){try{var q=indexedDB.deleteDatabase(n);q.onsuccess=q.onerror=q.onblocked=function(){res()};setTimeout(res,1500)}catch(e){res()}})}
+ function wipeDBs(){
+  if(!window.indexedDB)return Promise.resolve();
+  var names={};KNOWN_DB.forEach(function(n){names[n]=1});
+  var p=(indexedDB.databases?indexedDB.databases().catch(function(){return[]}):Promise.resolve([]));
+  return p.then(function(list){
+   (list||[]).forEach(function(d){if(d&&d.name)names[d.name]=1});
+   return Promise.all(Object.keys(names).map(delDB));
+  });
+ }
+ function wipeCookies(){
+  try{
+   var dir=location.pathname.replace(/[^\/]*$/,'');
+   document.cookie.split(';').forEach(function(c){
+    var n=c.split('=')[0].replace(/^\s+|\s+$/g,'');if(!n)return;
+    ['/',dir].forEach(function(p){document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path='+p});
+   });
+  }catch(e){}
+ }
+ function run(b){
+  if(busy)return;
+  if(!confirm('이 사이트에 쌓인 기록을 모두 삭제합니다.\n\n지워지는 항목:\n- 설정·테마·화면 선택 기록\n- 메모·일기 등 저장된 내 데이터\n- 게임스크린샷 연결(토큰) 정보\n- 게임 저장·불러오기 데이터\n- 캐쉬(임시 파일)\n\n삭제 후 처음 접속한 것처럼 첫 화면으로 돌아가며,\n지운 데이터는 되돌릴 수 없습니다.\n\n정말 삭제할까요?'))return;
+  busy=true;b.disabled=true;
+  var lab=b.querySelector('span')||b;lab.textContent='삭제 중…';
+  try{localStorage.clear()}catch(e){}
+  try{sessionStorage.clear()}catch(e){}
+  wipeCookies();
+  var jobs=[wipeDBs()];
+  if(window.caches&&caches.keys)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));
+  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
+  Promise.all(jobs.map(function(p){return p.catch(function(){})})).then(function(){
+   try{localStorage.clear();sessionStorage.clear()}catch(e){}
+   lab.textContent='완료! 처음 화면으로 이동';
+   setTimeout(function(){location.replace(new URL('index.html',location.href).href)},800);
+  });
+ }
+ document.addEventListener('click',function(e){
+  var t=e.target&&e.target.closest?e.target:null;if(!t)return;
+  var c=t.closest('.js-wipe');if(c)run(c);
+ });
+})();
+</script>
+<div class="topleft"><button type="button" id="bInfo">사이트정보</button><button type="button" id="bGuide">어플설치방법</button><button type="button" id="bSave">게임 세이브방법</button></div>
+<div id="iosAl" role="alertdialog" aria-modal="true" aria-labelledby="alT" aria-describedby="alM"><div class="al"><div class="al-b"><b id="alT">사이트 정보</b><p id="alM">사용자가 보유한 게임 파일(롬 파일)을 인터넷에서 직접 불러와, 별도의 에뮬레이터 설치 없이 웹 브라우저에서 간편하게 게임을 즐길 수 있도록 운영하는 사이트입니다.</p></div><button type="button" class="al-ok" id="alOk">확인</button></div></div>
+<div id="guideOv" aria-hidden="true"><div class="gv"><iframe id="guideFr" title="어플 설치 방법" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="guideX">닫기</button></div></div></div>
+<div id="saveOv" class="gOv" aria-hidden="true"><div class="gv"><iframe id="saveFr" title="게임 세이브 방법" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="saveX">닫기</button></div></div></div>
+<script>
+(function(){
+ var al=document.getElementById('iosAl'),ov=document.getElementById('guideOv'),fr=document.getElementById('guideFr');
+ var URL_='https://youngho1206.tistory.com/m/1';
+ var sv=document.getElementById('saveOv'),sf=document.getElementById('saveFr');
+ var SAVE_URL='https://youngho1206.tistory.com/2';
+ function alOpen(){al.classList.add('on');document.getElementById('alOk').focus()}
+ function alClose(){al.classList.remove('on')}
+ function gOpen(){if(!fr.getAttribute('src'))fr.src=URL_;ov.classList.add('on');ov.setAttribute('aria-hidden','false');document.getElementById('guideX').focus()}
+ function gClose(){ov.classList.remove('on');ov.setAttribute('aria-hidden','true')}
+ function sOpen(){if(!sf.getAttribute('src'))sf.src=SAVE_URL;sv.classList.add('on');sv.setAttribute('aria-hidden','false');document.getElementById('saveX').focus()}
+ function sClose(){sv.classList.remove('on');sv.setAttribute('aria-hidden','true')}
+ document.getElementById('bInfo').onclick=alOpen;
+ document.getElementById('alOk').onclick=alClose;
+ document.getElementById('bGuide').onclick=gOpen;
+ document.getElementById('guideX').onclick=gClose;
+ document.getElementById('bSave').onclick=sOpen;
+ document.getElementById('saveX').onclick=sClose;
+ addEventListener('keydown',function(e){if(e.key==='Escape'){alClose();gClose();sClose()}});
+})();
+</script>
+<script>
+/* 방문자 수: 무료 카운터 서비스 사용(1순위 abacus, 안 되면 counterapi). 같은 기기는 하루 1회만 집계합니다. */
+(function(){
+ var NS='youngho1206-emulator';
+ var d=new Date(),day=d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
+ var counted=false;try{counted=localStorage.getItem('visitDay3')===day}catch(e){}
+ var P=[
+  function(k,up){return 'https://abacus.jasoncameron.dev/'+(up?'hit':'get')+'/'+NS+'/'+k},
+  function(k,up){return 'https://api.counterapi.dev/v1/'+NS+'/'+k+(up?'/up':'')}
+ ];
+ function num(j){var n=j&&(j.value!=null?j.value:(j.count!=null?j.count:null));return n==null?NaN:Number(n)}
+ function req(i,k,up){return fetch(P[i](k,up),{cache:'no-store'}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(j){var n=num(j);if(isNaN(n))throw 'fmt';return n})}
+ function hit(k){
+  var seq=Promise.reject();
+  [0,1].forEach(function(i){
+   seq=seq.catch(function(){return counted?req(i,k,false).catch(function(){return req(i,k,true)}):req(i,k,true)});
+  });
+  return seq;
+ }
+ function show(id,p){p.then(function(n){document.getElementById(id).textContent=n.toLocaleString('ko-KR')}).catch(function(){document.getElementById(id).textContent='-'})}
+ var pt=hit('d'+day),pa=hit('total');
+ show('vToday',pt);show('vTotal',pa);
+ Promise.all([pt,pa]).then(function(){try{localStorage.setItem('visitDay3',day)}catch(e){}}).catch(function(){});
+})();
+</script>
+</body>
+</html>

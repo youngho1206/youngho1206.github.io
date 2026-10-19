@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=overlays-content">
+<script>
+/* 아이폰 확대(핀치·더블탭) 방지 — 조작버튼을 두 손가락으로 누르거나 빠르게 눌러도 화면이 커지지 않게 막고, 이미 커졌으면 원래 크기로 되돌립니다. */
+(function(){
+ var A='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover',
+     B='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+ function nz(d,w){
+  if(!d||d.__nz)return;d.__nz=1;
+  var opt={passive:false},lt=0;
+  try{var s=d.createElement('style');s.textContent='html,body{touch-action:pan-x pan-y!important;-webkit-text-size-adjust:100%}';(d.head||d.documentElement).appendChild(s)}catch(_){}
+  ['gesturestart','gesturechange','gestureend'].forEach(function(t){d.addEventListener(t,function(e){e.preventDefault()},opt)});
+  function multi(e){if(e.touches&&e.touches.length>1&&e.cancelable)e.preventDefault()}
+  d.addEventListener('touchstart',multi,opt);d.addEventListener('touchmove',multi,opt);
+  d.addEventListener('touchend',function(e){
+   var n=Date.now(),t=e.target&&e.target.tagName||'';
+   if(n-lt<320&&e.cancelable&&!/^(INPUT|SELECT|TEXTAREA|LABEL|A)$/.test(t))e.preventDefault();
+   lt=n;
+  },opt);
+  if(d===document&&w.visualViewport){
+   var flip=0;
+   w.visualViewport.addEventListener('resize',function(){
+    if(w.visualViewport.scale<=1.02)return;
+    var m=d.querySelector('meta[name=viewport]');
+    if(!m){m=d.createElement('meta');m.name='viewport';d.head.appendChild(m)}
+    flip^=1;m.setAttribute('content',flip?A:B);
+    setTimeout(function(){try{w.scrollTo(0,0)}catch(_){}},30);
+   });
+  }
+ }
+ window.__nz=nz;nz(document,window);
+})();
+</script>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>MS-DOS</title>
+<link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+<style>
+*{box-sizing:border-box}
+:root{--zh:clamp(176px,33vh,290px);--mh:calc(48px + env(safe-area-inset-top));--bs:clamp(48px,12vmin,80px);--ac:#E8A020}
+html,body{margin:0;height:100%;background:#000;color:#eee;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;font-family:system-ui,"Malgun Gothic",sans-serif}
+#app{position:fixed;inset:0;background:#000;overflow:hidden}
+#dos{position:absolute;inset:0;background:#000}
+/* 세로 화면(폰/태블릿): 메뉴 아래·조작버튼 위 영역에 게임 화면을 맞춤 / 가로 화면: 화면 위에 겹쳐 표시 */
+#dos{transform-origin:0 0}
+/* ---- 메뉴 (에뮬레이터 화면 위) ---- */
+#menu{position:absolute;z-index:70;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));background:linear-gradient(#000d,#0000);pointer-events:none}
+#menu>*{pointer-events:auto}
+#mb{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#mb::-webkit-scrollbar{display:none}
+#menu button{flex:none;background:#1c1c1eea;color:#f2f2f2;border:1px solid #ffffff30;border-radius:999px;padding:7px 12px;font-size:13px;font-family:inherit;white-space:nowrap;line-height:1.2}
+#menu button:active,#menu button.hot{background:var(--ac);color:#000;border-color:var(--ac)}
+#tg{width:36px;height:34px;padding:0!important;font-size:16px!important}
+body.menu-off #mb{display:none}
+body.menu-off #menu{background:none}
+@media (min-width:900px){#menu button{font-size:14px;padding:8px 15px}#tg{height:38px}}
+/* ---- 안내/시작 화면 ---- */
+#msg{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;padding-top:var(--mh);text-align:center;background:#000;font-size:15px;line-height:1.6}
+#msg.err{color:#ff8a80}
+#msg small{color:#bbb;word-break:break-all;white-space:pre-wrap;text-align:left;max-width:100%;max-height:50vh;overflow:auto;-webkit-user-select:text;user-select:text}
+.pri{background:var(--ac);color:#000;border:0;border-radius:12px;padding:14px 44px;font-size:18px;font-weight:700}
+/* ---- 대화상자 ---- */
+#dlg{position:absolute;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:14px;background:#000b}
+#dlg.on{display:flex}
+#dbox{position:relative;width:min(560px,100%);max-height:100%;overflow:auto;background:#161617;border:1px solid #2c2c2f;border-radius:16px;padding:16px}
+#dbox h2{margin:2px 40px 14px 2px;font-size:18px}
+#dx{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:0;background:#2a2a2d;color:#fff;font-size:16px}
+#dbox pre{margin:0;white-space:pre-wrap;word-break:break-all;font-size:12px;color:#9f9;-webkit-user-select:text;user-select:text}
+.g{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 8px;padding:14px;border:1px solid #2c2c2f;border-radius:10px;background:#1f1f22;color:#eee;font-size:16px;text-align:left;font-family:inherit}
+.g b{flex:1}.g small{color:#999}.g:disabled{opacity:.4}.g.cur{border-color:var(--ac)}
+.g:active:not(:disabled){background:#2c2c30}
+#dbox select{width:100%;margin:0 0 8px;padding:12px;border-radius:10px;border:1px solid #2c2c2f;background:#1f1f22;color:#eee;font-size:15px}
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
+.kg button{padding:12px 4px;border-radius:10px;border:1px solid #333;background:#1f1f22;color:#eee;font-size:14px;font-weight:700}
+.kg button:active{background:var(--ac);color:#000}
+#toast{position:absolute;z-index:95;left:50%;top:calc(var(--mh) + 8px);transform:translateX(-50%);max-width:88%;padding:10px 16px;border-radius:999px;background:#000d;border:1px solid #ffffff40;color:#fff;font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+/* ---- 모바일/태블릿 조작 버튼 ---- */
+#ctl{position:absolute;z-index:40;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none;padding:0 max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+body.ctl-on #ctl{display:flex}
+#ctl>*{pointer-events:auto;touch-action:none}
+@media (orientation:portrait){#ctl{height:var(--zh);align-items:center;background:#0c0c0d;border-top:1px solid #222;padding-bottom:max(8px,env(safe-area-inset-bottom))}}
+#pad{position:relative;flex:none;width:calc(var(--bs)*2.7);height:calc(var(--bs)*2.7);border-radius:50%;background:#ffffff18;border:2px solid #ffffff34;opacity:.9}
+#pad i{position:absolute;width:34%;height:34%;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fffb;font-size:calc(var(--bs)*.42);border-radius:30%}
+#pad i.on{background:#E8A020b0;color:#000}
+#pad .u{left:33%;top:3%}#pad .d{left:33%;bottom:3%}#pad .l{left:3%;top:33%}#pad .r{right:3%;top:33%}
+#btns{display:grid;grid-template-columns:repeat(3,auto);gap:calc(var(--bs)*.13);justify-items:center;align-items:center;opacity:.92}
+.k{width:var(--bs);height:var(--bs);border-radius:50%;border:2px solid #ffffff40;background:#ffffff22;color:#fff;font-size:calc(var(--bs)*.26);font-weight:700;font-family:inherit;padding:0;display:flex;align-items:center;justify-content:center;touch-action:none}
+.k.s{width:calc(var(--bs)*.74);height:calc(var(--bs)*.74);font-size:calc(var(--bs)*.22)}
+.k.w{grid-column:span 2;width:100%;height:calc(var(--bs)*.82);border-radius:999px}
+.k.on,.k:active{background:#E8A020d0;color:#000}
+#kb{position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px;-webkit-user-select:text;user-select:text}
+body.pfs #menu{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="dos"></div>
+  <div id="msg">불러오는 중…</div>
+  <div id="ctl" oncontextmenu="return false">
+    <div id="pad"><i class="u" data-d="up">▲</i><i class="d" data-d="down">▼</i><i class="l" data-d="left">◀</i><i class="r" data-d="right">▶</i></div>
+    <div id="btns">
+      <button class="k s" data-k="esc">Esc</button><button class="k s" data-k="shift">Shift</button><button class="k s" id="kbd">⌨</button>
+      <button class="k" data-k="ctrl">Ctrl</button><button class="k" data-k="alt">Alt</button><button class="k" data-k="space">Space</button>
+      <button class="k w" data-k="enter">Enter</button><button class="k s" id="more">⋯</button>
+    </div>
+  </div>
+  <div id="menu">
+    <button id="tg" title="메뉴 접기/펴기">☰</button>
+    <div id="mb">
+      <button id="b-load">📂 게임불러오기</button>
+      <button id="b-re">🔄 게임다시시작</button>
+      <button id="b-ctl">🎮 버튼숨기기</button>
+      <button id="b-sopen">📥 세이브열기</button>
+      <button id="b-ssave">💾 세이브저장</button>
+      <button id="b-fs">⛶ 전체화면</button>
+      <button id="b-cap">📷 화면캡처</button>
+      <button id="b-eng">⚙ 도스엔진선택</button>
+    </div>
+  </div>
+  <div id="dlg"><div id="dbox"></div></div>
+  <div id="toast"></div>
+</div>
+<input type="file" id="pick" accept=".zip" style="display:none">
+<input type="file" id="picksave" style="display:none">
+<input id="kb" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" aria-hidden="true" tabindex="-1">
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const msg = $('msg'), logs = [], body = document.body;
+  ['log', 'info', 'warn', 'error'].forEach(k => { const o = console[k].bind(console); console[k] = function () { try { logs.push(Array.from(arguments).map(x => (x && x.message) || (typeof x === 'object' ? JSON.stringify(x) : String(x))).join(' ')); if (logs.length > 200) logs.shift(); } catch (e) {} o.apply(null, arguments); }; });
+  window.addEventListener('error', e => logs.push('error: ' + e.message));
+  window.addEventListener('unhandledrejection', e => logs.push('rejection: ' + (e.reason && e.reason.message || e.reason)));
+  const status = (h, err) => { msg.style.display = 'flex'; msg.className = err ? 'err' : ''; msg.innerHTML = h; };
+  const fail = (where, e) => { const t = (e && (e.stack || e.message)) || String(e); status('<b>' + esc(where) + '</b><small>' + esc(t) + (logs.length ? '\n\n' + esc(logs.slice(-6).join('\n')) : '') + '</small>', true); };
+  let tt; const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2400); };
+  /* 세로 화면 + 버튼 표시: 게임 화면을 (필요하면 축소해서) 메뉴와 버튼창 사이, 버튼창 바로 위에 맞춤 / 그 외에는 원래 위치 */
+  function anchor() {
+    const d = $('dos'); if (!d) return; d.style.transform = '';
+    if (!body.classList.contains('ctl-on') || !window.matchMedia('(orientation:portrait)').matches) return;
+    let c = null, a = 0;
+    d.querySelectorAll('canvas').forEach(x => { const r = x.getBoundingClientRect(), v = r.width * r.height; if (v > a) { a = v; c = x; } });
+    if (!c) return;
+    const r = c.getBoundingClientRect(), W = window.innerWidth;
+    const top = body.classList.contains('menu-off') ? 0 : $('menu').getBoundingClientRect().bottom;
+    const bot = $('ctl').getBoundingClientRect().top;
+    if (bot - top < 50) return;
+    const sc = Math.min(1, W / r.width, (bot - top) / r.height);
+    const tx = (W - r.width * sc) / 2 - r.left * sc, ty = bot - r.height * sc - r.top * sc;
+    d.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + sc.toFixed(4) + ')';
+  }
+  const FSE = () => document.fullscreenElement || document.webkitFullscreenElement;
+  /* 게임별 전체화면 버튼 (기본: Ctrl/Alt/Space/Enter/Esc, DOS/list.json 의 "k" 배열 또는 ⚙ 설정으로 변경) */
+  const BTN = [['ctrl', 'Ctrl'], ['alt', 'Alt'], ['space', 'Space'], ['enter', 'Enter'], ['esc', 'Esc'], ['shift', 'Shift'], ['kbd', '⌨ 키보드'], ['more', '⋯ 기타키']];
+  const BK = () => 'dosBtn:' + String(G && G.base || 'x').toLowerCase();
+  function selBtns() {
+    try { const v = JSON.parse(localStorage.getItem(BK())); if (Array.isArray(v)) return v; } catch (e) {}
+    return G && Array.isArray(G.k) ? G.k : ['ctrl', 'alt', 'space', 'enter', 'esc'];
+  }
+  function applyBtns() {
+    const fs = !!FSE() || body.classList.contains('pfs'), sel = selBtns();
+    document.querySelectorAll('#btns>*').forEach(e => { e.style.display = (!fs || sel.indexOf(e.dataset.k || e.id) >= 0) ? '' : 'none'; });
+  }
+  const relayout = () => { applyBtns(); setTimeout(() => window.dispatchEvent(new Event('resize')), 60); [150, 450, 1000].forEach(t => setTimeout(anchor, t)); };
+  setInterval(anchor, 500); window.addEventListener('resize', () => setTimeout(anchor, 120));
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+  window.addEventListener('orientationchange', relayout);
+
+  /* ---- 브라우저 저장소(IndexedDB): 세이브 / 내 컴퓨터 zip 보관 ---- */
+  const DB = (() => {
+    let p; const open = () => p || (p = new Promise((ok, no) => { const r = indexedDB.open('dosweb', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }));
+    const tx = (m, f) => open().then(d => new Promise((ok, no) => { const t = d.transaction('kv', m), r = f(t.objectStore('kv')); t.oncomplete = () => ok(r.result); t.onerror = () => no(t.error); }));
+    return { get: k => tx('readonly', s => s.get(k)), set: (k, v) => tx('readwrite', s => s.put(v, k)) };
+  })();
+
+  /* ---- 엔진: 기본 js-dos v8 (v8.js-dos.com), 문제 있을 때만 v6(내 서버 assets/jsdos → CDN)로 전환 ---- */
+  const qs = new URLSearchParams(location.search);
+  let ENG = qs.get('engine') || ''; if (!ENG) { try { ENG = localStorage.getItem('dosEngine') || ''; } catch (e) {} }
+  if (ENG !== 'v6') ENG = 'v8';
+  const V8 = 'https://v8.js-dos.com/latest/js-dos.js';
+  const LOCAL = 'assets/jsdos/', CDN = 'https://unpkg.com/js-dos@6.22.60/dist/';
+  const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { s.remove(); no(new Error('불러오기 실패: ' + src + '\n(인터넷/차단 확인)')); }; document.body.appendChild(s); });
+  let BASE = LOCAL;
+  async function loadEngine() {
+    if (typeof Dos === 'function') return;
+    if (ENG === 'v8') {
+      await load(V8);
+      if (typeof Dos !== 'function') throw new Error('js-dos v8 을 불러왔지만 Dos 함수가 없어요');
+      return;
+    }
+    try { await load(LOCAL + 'js-dos.js'); BASE = LOCAL; }
+    catch (e) { await load(CDN + 'js-dos.js'); BASE = CDN; }
+    if (typeof Dos !== 'function') throw new Error('js-dos v6 를 불러왔지만 Dos 함수가 없어요');
+  }
+  const loadZip = () => typeof JSZip === 'function' ? Promise.resolve() : load('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  const nav = o => { const u = new URLSearchParams(location.search); for (const k in o) u.set(k, o[k]); location.search = u.toString(); };
+
+  /* ---- 대화상자 ---- */
+  const dlg = (html, closable) => {
+    const b = $('dbox'); b.innerHTML = (closable === false ? '' : '<button id="dx">✕</button>') + html;
+    $('dlg').classList.add('on'); const x = $('dx'); if (x) x.onclick = closeDlg; return b;
+  };
+  const closeDlg = () => $('dlg').classList.remove('on');
+  $('dlg').addEventListener('mousedown', e => { if (e.target === $('dlg') && $('dx')) closeDlg(); });
+
+  /* ---- 키 입력 (모바일 버튼 → 에뮬레이터) ---- */
+  let CI = null, PROPS = null, G = null, G_URL = null;
+  const KM = { up: [265, 38, 'ArrowUp'], down: [264, 40, 'ArrowDown'], left: [263, 37, 'ArrowLeft'], right: [262, 39, 'ArrowRight'], enter: [257, 13, 'Enter'], space: [32, 32, ' '], esc: [256, 27, 'Escape'], tab: [258, 9, 'Tab'], backspace: [259, 8, 'Backspace'], ctrl: [341, 17, 'Control'], alt: [342, 18, 'Alt'], shift: [340, 16, 'Shift'], del: [261, 46, 'Delete'], ins: [260, 45, 'Insert'], home: [268, 36, 'Home'], end: [269, 35, 'End'], pgup: [266, 33, 'PageUp'], pgdn: [267, 34, 'PageDown'] };
+  for (let i = 1; i <= 12; i++) KM['f' + i] = [289 + i, 111 + i, 'F' + i];
+  for (let i = 0; i < 26; i++) { const c = String.fromCharCode(97 + i); KM[c] = [65 + i, 65 + i, c]; }
+  for (let i = 0; i < 10; i++) KM['' + i] = [48 + i, 48 + i, '' + i];
+  [[',', 44, 188], ['-', 45, 189], ['.', 46, 190], ['/', 47, 191], [';', 59, 186], ['=', 61, 187], ['[', 91, 219], ['\\', 92, 220], [']', 93, 221], ['`', 96, 192], ["'", 39, 222]].forEach(a => KM[a[0]] = [a[1], a[2], a[0]]);
+  function key(n, down) {
+    const k = KM[n]; if (!k) return;
+    if (CI && ENG === 'v8' && CI.sendKeyEvent) {
+      let c = k[0];
+      try { const f = window.emulatorsUi && window.emulatorsUi.controls && window.emulatorsUi.controls.domToKeyCode; if (f) { const v = f(k[1]); if (v) c = v; } } catch (e) {}
+      CI.sendKeyEvent(c, down); return;
+    }
+    /* v6 등: 실제 키보드 이벤트로 전달 */
+    const ev = new KeyboardEvent(down ? 'keydown' : 'keyup', { key: k[2], bubbles: true, cancelable: true });
+    try { Object.defineProperty(ev, 'keyCode', { get: () => k[1] }); Object.defineProperty(ev, 'which', { get: () => k[1] }); } catch (e) {}
+    (document.querySelector('#dos canvas') || document).dispatchEvent(ev);
+  }
+  const tap = n => { key(n, true); setTimeout(() => key(n, false), 45); };
+  const SH = { '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0', '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/', '~': '`' };
+  function typeChar(c) {
+    let n = c, sh = false;
+    if (c >= 'A' && c <= 'Z') { n = c.toLowerCase(); sh = true; } else if (SH[c]) { n = SH[c]; sh = true; } else if (c === ' ') n = 'space'; else if (c === '\n') n = 'enter';
+    if (!KM[n]) return;
+    if (sh) key('shift', true); tap(n); if (sh) setTimeout(() => key('shift', false), 70);
+  }
+  const typeText = s => Array.from(s).forEach((c, i) => setTimeout(() => typeChar(c), i * 90));
+
+  /* 방향패드 (8방향, 멀티터치 가능) */
+  const pad = $('pad'), held = {};
+  function padSet(dirs) {
+    ['up', 'down', 'left', 'right'].forEach(d => { const on = dirs.indexOf(d) >= 0; if (!!held[d] !== on) { held[d] = on; key(d, on); pad.querySelector('[data-d=' + d + ']').classList.toggle('on', on); } });
+  }
+  function padDirs(e) {
+    const r = pad.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+    if (Math.hypot(x, y) < r.width * 0.12) return [];
+    const a = Math.atan2(y, x) * 180 / Math.PI, o = [];
+    if (a > -67.5 && a < 67.5) o.push('right'); if (a > 22.5 && a < 157.5) o.push('down');
+    if (a > 112.5 || a < -112.5) o.push('left'); if (a < -22.5 && a > -157.5) o.push('up');
+    return o;
+  }
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); try { pad.setPointerCapture(e.pointerId); } catch (_) {} padSet(padDirs(e)); });
+  pad.addEventListener('pointermove', e => { if (pad.hasPointerCapture && pad.hasPointerCapture(e.pointerId)) padSet(padDirs(e)); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => pad.addEventListener(t, () => padSet([])));
+
+  /* 동작 버튼 (누르고 있으면 계속 눌림) */
+  document.querySelectorAll('[data-k]').forEach(b => {
+    const n = b.dataset.k;
+    b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (_) {} b.classList.add('on'); key(n, true); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => b.addEventListener(t, () => { if (b.classList.contains('on')) { b.classList.remove('on'); key(n, false); } }));
+  });
+
+  /* 키보드(⌨): 폰 키보드로 입력한 글자를 도스로 전달 */
+  const kb = $('kb');
+  $('kbd').addEventListener('click', () => { kb.value = ''; kb.focus(); });
+  kb.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Backspace') { e.preventDefault(); tap('backspace'); }
+    else if (e.key === 'Enter') { e.preventDefault(); tap('enter'); }
+    else if (e.key.indexOf('Arrow') === 0) { e.preventDefault(); tap(e.key.slice(5).toLowerCase()); }
+    else if (e.key === 'Escape') { e.preventDefault(); kb.blur(); }
+  });
+  kb.addEventListener('input', e => { if (e.inputType === 'deleteContentBackward') tap('backspace'); else if (kb.value) typeText(kb.value); kb.value = ''; });
+
+  /* 기타 키 (F1~F12, 숫자, Tab, Y/N …) */
+  $('more').addEventListener('click', () => {
+    const L = ['tab', 'y', 'n', 'z', 'x', 'c', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].concat(Array.from({ length: 12 }, (_, i) => 'f' + (i + 1)), ['backspace', 'del', 'ins', 'home', 'end', 'pgup', 'pgdn']);
+    const b = dlg('<h2>⌨ 기타 키</h2><div class="kg">' + L.map(k => '<button data-t="' + k + '">' + (k === 'backspace' ? 'Bksp' : k === 'pgup' ? 'PgUp' : k === 'pgdn' ? 'PgDn' : k.charAt(0).toUpperCase() + k.slice(1)) + '</button>').join('') + '</div>');
+    b.querySelectorAll('[data-t]').forEach(x => x.onclick = () => tap(x.dataset.t));
+  });
+
+  /* ---- 메뉴 동작 ---- */
+  document.querySelectorAll('#menu button').forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+  $('tg').onclick = () => { body.classList.toggle('menu-off'); relayout(); };
+  const needGame = () => { if (G) return false; toast('실행 중인 게임이 없어요'); return true; };
+
+  /* 버튼 표시/숨기기 */
+  const touch = (window.matchMedia && matchMedia('(pointer:coarse)').matches) || navigator.maxTouchPoints > 0;
+  const setCtl = (on, keep) => {
+    body.classList.toggle('ctl-on', on); $('b-ctl').textContent = on ? '🎮 버튼숨기기' : '🎮 버튼표시';
+    if (!keep) { try { localStorage.setItem('dosCtl', on ? '1' : '0'); } catch (e) {} } relayout();
+  };
+  let ctl0 = null; try { ctl0 = localStorage.getItem('dosCtl'); } catch (e) {}
+  setCtl(ctl0 === null ? touch : ctl0 === '1', true);
+  $('b-ctl').onclick = () => setCtl(!body.classList.contains('ctl-on'));
+
+  /* 전체화면: 시작할 때 가로로 돌리고 고정 / 전체화면에서는 방향키 + 이 게임에서 쓰는 버튼만 */
+  const lockLand = () => { try { const o = screen.orientation; if (o && o.lock) { const p = o.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {} };
+  const unlock = () => { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} };
+  $('b-fs').onclick = () => {
+    const el = $('app');
+    if (FSE()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+    if (body.classList.contains('pfs')) { body.classList.remove('pfs'); unlock(); relayout(); return; }
+    const soft = () => { body.classList.add('pfs'); lockLand(); toast('전체화면 (왼쪽 위 모서리를 길게 누르면 해제)'); relayout(); };
+    const r = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!r) return soft();
+    try { const p = r.call(el); if (p && p.then) p.then(lockLand, soft); else lockLand(); } catch (e) { soft(); }
+  };
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(t => document.addEventListener(t, () => { if (!FSE()) unlock(); relayout(); }));
+  /* 소프트 전체화면 해제: 화면 왼쪽 위 모서리 길게 터치 */
+  let pt; document.addEventListener('pointerdown', e => { if (body.classList.contains('pfs') && e.clientX < 60 && e.clientY < 60) pt = setTimeout(() => { body.classList.remove('pfs'); unlock(); relayout(); }, 700); });
+  ['pointerup', 'pointercancel'].forEach(t => document.addEventListener(t, () => clearTimeout(pt)));
+
+  /* 화면캡처 */
+  $('b-cap').onclick = async () => {
+    if (needGame()) return;
+    try {
+      let cv;
+      if (CI && CI.screenshot) { const im = await CI.screenshot(); cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; cv.getContext('2d').putImageData(im, 0, 0); }
+      else { cv = document.querySelector('#dos canvas'); if (!cv) throw new Error('화면을 찾지 못했어요'); }
+      cv.toBlob(b => {
+        if (!b) return toast('캡처에 실패했어요');
+        const a = document.createElement('a'), d = new Date(), p = n => String(n).padStart(2, '0');
+        a.href = URL.createObjectURL(b); a.download = (G.base || 'dos') + '_' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()) + '.png';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast('📷 화면을 저장했어요');
+      }, 'image/png');
+    } catch (e) { toast('캡처 실패: ' + (e.message || e)); }
+  };
+
+  /* 세이브 (게임이 만든 파일 변경분을 브라우저에 보관 / 파일로 내보내기·불러오기) */
+  const SK = n => 'sav:' + String(G.base || 'x').toLowerCase() + ':' + n;
+  async function grab() {
+    if (!CI || !CI.persist || ENG !== 'v8') throw new Error('v6 엔진은 세이브를 지원하지 않아요. ⚙ 도스엔진선택에서 v8을 사용하세요');
+    let d = await CI.persist(true); if (d && !(d instanceof Uint8Array) && d.persist) d = d.persist;
+    if (!d || !d.length) throw new Error('저장할 내용이 없어요 (게임 안에서 먼저 저장 메뉴로 세이브하세요)');
+    return d;
+  }
+  async function saveDlg(mode) {
+    if (needGame()) return;
+    if (ENG !== 'v8') return toast('v6 엔진은 세이브를 지원하지 않아요 (v8 사용)');
+    const rows = await Promise.all([1, 2, 3].map(n => DB.get(SK(n)).catch(() => null)));
+    const sv = mode === 'save';
+    const b = dlg('<h2>' + (sv ? '💾 세이브 저장' : '📥 세이브 열기') + '</h2>' + rows.map((r, i) => '<button class="g" data-s="' + (i + 1) + '"' + (!sv && !r ? ' disabled' : '') + '><b>슬롯 ' + (i + 1) + '</b><small>' + (r ? esc(new Date(r.t).toLocaleString('ko-KR')) : '비어 있음') + '</small></button>').join('') + '<button class="g" id="s-file"><b>' + (sv ? '⬇ 파일로 내려받기' : '📂 파일에서 세이브 열기') + '</b></button>');
+    b.querySelectorAll('[data-s]').forEach(x => x.onclick = async () => {
+      const n = +x.dataset.s;
+      try {
+        if (sv) { const d = await grab(); await DB.set(SK(n), { t: Date.now(), d }); closeDlg(); toast('💾 슬롯 ' + n + ' 에 저장했어요'); }
+        else { const r = await DB.get(SK(n)); closeDlg(); toast('📥 슬롯 ' + n + ' 불러오는 중…'); await boot(r.d); }
+      } catch (e) { toast(e.message || String(e)); }
+    });
+    $('s-file').onclick = async () => {
+      if (sv) {
+        try { const d = await grab(), a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([d], { type: 'application/octet-stream' })); a.download = (G.base || 'dos') + '.dossave'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); closeDlg(); toast('⬇ 세이브 파일을 내려받았어요'); }
+        catch (e) { toast(e.message || String(e)); }
+      } else $('picksave').click();
+    };
+  }
+  $('b-ssave').onclick = () => saveDlg('save');
+  $('b-sopen').onclick = () => saveDlg('load');
+  $('picksave').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f || !G) return;
+    try { closeDlg(); toast('📥 세이브 불러오는 중…'); await boot(new Uint8Array(await f.arrayBuffer())); } catch (er) { toast('세이브를 열지 못했어요: ' + (er.message || er)); }
+  };
+
+  /* 게임별 전체화면 버튼 고르기 */
+  function btnDlg() {
+    const on = id => selBtns().indexOf(id) >= 0, st = id => on(id) ? 'background:#E8A020;color:#000' : '';
+    const b = dlg('<h2>🎮 이 게임 버튼 설정</h2><p style="margin:0 0 10px;color:#aaa;font-size:13px">전체화면에서 보일 버튼을 고르세요. 방향키는 항상 보여요. (게임별로 기억해요)</p><div class="kg">' + BTN.map(x => '<button data-b="' + x[0] + '" style="' + st(x[0]) + '">' + x[1] + '</button>').join('') + '</div>');
+    b.querySelectorAll('[data-b]').forEach(x => x.onclick = () => {
+      const id = x.dataset.b, cur = selBtns(), n = cur.indexOf(id) >= 0 ? cur.filter(v => v !== id) : cur.concat(id);
+      try { localStorage.setItem(BK(), JSON.stringify(n)); } catch (e) {}
+      x.style.cssText = st(id); applyBtns();
+    });
+  }
+  /* 도스엔진선택 (+ 실행파일 선택 / 로그 / 나가기) */
+  $('b-eng').onclick = () => {
+    const b = dlg('<h2>⚙ 도스 엔진 선택</h2>' +
+      '<button class="g' + (ENG === 'v8' ? ' cur' : '') + '" data-e="v8"><b>js-dos v8' + (ENG === 'v8' ? ' ✓' : '') + '</b><small>기본 · 권장 (세이브 지원)</small></button>' +
+      '<button class="g' + (ENG === 'v6' ? ' cur' : '') + '" data-e="v6"><b>js-dos v6' + (ENG === 'v6' ? ' ✓' : '') + '</b><small>v8에서 안 될 때</small></button>' +
+      (G && G.exes.length > 1 ? '<div style="margin:12px 0 6px;color:#aaa;font-size:13px">실행 파일 선택</div><select id="exe">' + G.exes.map(n => '<option' + (n === G.exe ? ' selected' : '') + ' value="' + esc(n) + '">▶ ' + esc(n) + '</option>').join('') + '</select>' : '') +
+      (G ? '<button class="g" id="d-btn" style="margin-top:8px"><b>🎮 이 게임 버튼 설정</b><small>전체화면에서 보일 버튼</small></button>' : '') +
+      '<button class="g" id="d-log" style="margin-top:8px"><b>📋 로그 보기</b></button>' +
+      '<button class="g" id="d-exit"><b>↩ 사이트로 나가기</b></button>');
+    b.querySelectorAll('[data-e]').forEach(x => x.onclick = () => { const n = x.dataset.e; if (n === ENG) return closeDlg(); try { localStorage.setItem('dosEngine', n); } catch (e) {} nav({ engine: n }); });
+    const s = $('exe'); if (s) s.onchange = () => nav({ exe: s.value });
+    const bb = $('d-btn'); if (bb) bb.onclick = btnDlg;
+    $('d-log').onclick = () => { dlg('<h2>📋 로그</h2><pre>' + esc(logs.join('\n') || '(로그 없음)') + '</pre>'); };
+    $('d-exit').onclick = () => { if(window.top!==window){try{parent.postMessage('sky-close','*')}catch(_){}return} if (history.length > 1 && document.referrer) history.back(); else location.href = 'index.html'; };
+  };
+
+  /* ---- 실행 파일 고르기 ---- */
+  const BAD = /(setup|install|uninst|unins|config|setsound|sound|readme|help|convert|patch|dos4gw|pmode|cwsdpmi|bootdisk)/i;
+  const rank = (names, base) => {
+    const sc = n => {
+      const p = n.split('/'), file = p[p.length - 1], stem = file.replace(/\.[^.]+$/, '').toLowerCase();
+      let v = p.length * 10;
+      if (BAD.test(file)) v += 100;
+      if (stem === base.toLowerCase()) v -= 50;
+      if (/^(run|start|go|play)$/.test(stem)) v -= 30;
+      if (/\.bat$/i.test(file)) v -= 5;
+      if (/\.com$/i.test(file)) v += 2;
+      return v;
+    };
+    return names.filter(n => /\.(exe|com|bat)$/i.test(n)).sort((a, b) => sc(a) - sc(b));
+  };
+
+  /* DOS/_conf/<zip이름>.conf 의 [autoexec] 줄만 사용 */
+  async function confAutoexec(base) {
+    for (const n of [base, base.toLowerCase()]) {
+      try {
+        const r = await fetch('DOS/_conf/' + encodeURIComponent(n) + '.conf', { cache: 'no-store' });
+        if (!r.ok) continue;
+        const t = await r.text(); if (/<html/i.test(t.slice(0, 200))) continue;
+        let on = false; const out = [];
+        for (const l of t.split(/\r?\n/)) { const s = l.trim(); if (/^\[autoexec\]/i.test(s)) { on = true; continue; } if (/^\[/.test(s)) on = false; else if (on && s && s[0] !== '#' && s[0] !== ';') out.push(s); }
+        if (out.length) return out;
+      } catch (e) {}
+    }
+    return null;
+  }
+  /* v8: 최소 설정(잘못된 옵션으로 죽는 것 방지) / v6 또는 ?conf=full: 전체 설정 */
+  const makeConf = auto => {
+    const full = qs.get('conf') === 'full' || ENG === 'v6';
+    const head = full
+      ? ['[cpu]', 'core=auto', 'cycles=max', '[sblaster]', 'sbtype=sb16', 'sbbase=220', 'irq=7', 'dma=1', 'hdma=5']
+      : ['[cpu]', 'cycles=auto'];
+    return head.concat(['[autoexec]'], auto).join('\n') + '\n';
+  };
+
+  /* ---- 에뮬레이터 시작/재시작 (ov = 세이브 데이터, 없으면 처음부터) ---- */
+  async function stopEmu() {
+    const p = PROPS, c = CI; PROPS = null; CI = null; window.DOS_CI = null;
+    const lim = f => Promise.race([Promise.resolve().then(f), new Promise(r => setTimeout(r, 2000))]).catch(() => {});
+    if (p && p.stop) await lim(() => p.stop()); else if (c && c.exit) await lim(() => c.exit());
+    const el = document.createElement('div'); el.id = 'dos'; $('dos').replaceWith(el);
+    if (G_URL) { try { URL.revokeObjectURL(G_URL); } catch (e) {} G_URL = null; }
+  }
+  async function boot(ov) {
+    if (!G) return;
+    if (ENG === 'v6' && (PROPS || CI || $('dos').firstChild)) { location.reload(); return; }   /* v6 는 다시 만들기가 불안정 → 새로고침 */
+    try {
+      await stopEmu(); relayout();
+      msg.style.display = 'none';
+      let url;
+      if (ENG === 'v8') {
+        /* 폴더 항목(doom/GUS/ 등)이 zip 에 있으면 v8 이 'No such file or directory' 로 죽음 → 파일만 다시 담고 .jsdos/dosbox.conf 추가 */
+        const clean = new JSZip();
+        for (const n of G.names) clean.file(n, G.zip.files[n].async('uint8array'), { createFolders: false, binary: true });
+        if (ov) {
+          const sz = await JSZip.loadAsync(ov);
+          for (const n of Object.keys(sz.files)) { if (sz.files[n].dir || n.indexOf('.jsdos/') === 0) continue; clean.file(n, sz.files[n].async('uint8array'), { createFolders: false, binary: true }); }
+        }
+        clean.file('.jsdos/dosbox.conf', makeConf(G.auto), { createFolders: false });
+        url = G_URL = URL.createObjectURL(await clean.generateAsync({ type: 'blob', compression: 'STORE' }));
+        /* kiosk:true → js-dos 기본 메뉴/사이드바 숨김 (메뉴는 위의 새 메뉴 사용) */
+        PROPS = window.DOS_PROPS = Dos($('dos'), {
+          url: url, autoStart: true, noCloud: true, kiosk: true,
+          onEvent: (ev, a) => { if (ev === 'ci-ready') { CI = window.DOS_CI = a; relayout(); } }
+        });
+        return;
+      }
+      /* v6: 고전 DOSBox 웹 빌드 (대체용) */
+      url = G_URL = URL.createObjectURL(new Blob([G.buf], { type: 'application/zip' }));
+      const canvas = document.createElement('canvas'); canvas.tabIndex = 0;
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;background:#000;outline:none;object-fit:contain';
+      $('dos').appendChild(canvas);
+      const dos = Dos(canvas, { wdosboxUrl: BASE + 'wdosbox.js' });
+      dos.ready((fs, run) => {
+        fs.extract(url).then(() => {
+          fs.createFile('web.conf', makeConf(G.auto));
+          canvas.focus();
+          run(['-conf', 'web.conf']).then(ci => { CI = window.DOS_CI = ci; });
+        }).catch(e => fail('압축 해제 실패', e));
+      });
+      canvas.addEventListener('click', () => canvas.focus());
+    } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
+  }
+  $('b-re').onclick = async () => { if (needGame()) return; closeDlg(); toast('🔄 처음부터 다시 시작해요'); await boot(null); };
+
+  /* ---- 게임 실행 (기본 v8 / 선택 v6) ---- */
+  async function play(buf, fname, title, blank, local) {
+    try {
+      if (!/\.zip$/i.test(fname)) throw new Error('도스는 zip 파일만 지원해요');
+      const base = fname.replace(/\.[^.]+$/, '');
+      document.title = title; closeDlg();
+
+      status('에뮬레이터(' + ENG + ') 불러오는 중…');
+      await Promise.all([loadEngine(), loadZip()]);
+
+      status('게임 준비 중…');
+      const zip = await JSZip.loadAsync(buf);
+      const names = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+      const exes = rank(names, base), want = qs.get('exe');
+      const exe = exes.includes(want) ? want : exes[0];
+
+      let auto = await confAutoexec(base);
+      if (!auto) {
+        if (!exe && !blank) throw new Error('zip 안에서 실행 파일(exe/com/bat)을 찾지 못했어요');
+        auto = ['mount c .', 'c:'];
+        if (exe) { const p = exe.split('/'), file = p.pop(); if (p.length) auto.push('cd ' + p.join('\\')); auto.push(file); }
+      }
+      G = { buf, base, title, names, zip, auto, exe, exes, local: !!local, k: null };
+      if (!local && !blank) { try { const r = await fetch('DOS/list.json', { cache: 'no-store' }); if (r.ok) { const it = (await r.json()).find(g => g.f === fname); if (it && Array.isArray(it.k)) G.k = it.k; } } catch (e) {} }
+
+      if (local) {   /* 엔진 전환 때 다시 불러올 수 있게 내 컴퓨터 zip 을 브라우저에 보관 */
+        DB.set('local', { name: fname, buf }).catch(() => {});
+        try { history.replaceState(null, '', '?local=1'); } catch (e) {}
+      }
+
+      status('<div style="font-size:20px;font-weight:800">' + esc(title) + '</div><div style="color:#aaa">' + esc(exe || '(conf 지정)') + '</div><button class="pri" id="go">▶ 시작</button>');
+      await new Promise(ok => { $('go').onclick = ok; });   /* 사용자 클릭 → 오디오/전체화면 허용 */
+      await boot(null);
+    } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
+  }
+
+  /* 게임 없이 DOS 프롬프트만 */
+  async function blankDos() {
+    try {
+      document.title = 'MS-DOS';
+      status('에뮬레이터(' + ENG + ') 불러오는 중…');
+      await Promise.all([loadEngine(), loadZip()]);
+      const z = new JSZip();
+      z.file('README.TXT', 'MS-DOS\r\n');
+      const buf = await z.generateAsync({ type: 'arraybuffer', compression: 'STORE' });
+      play(buf, 'MS-DOS.zip', 'MS-DOS', true);
+    } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
+  }
+
+  async function playUrl(f, t) {
+    let fname = ''; try { fname = decodeURIComponent(f); } catch (e) { fname = f; }
+    if (/[\/\\]/.test(fname) || fname.indexOf('..') >= 0) return showList();
+    status('게임 파일 받는 중…');
+    try {
+      const r = await fetch('DOS/' + encodeURIComponent(fname)); if (!r.ok) throw new Error('게임 파일을 찾을 수 없어요 (' + r.status + ')');
+      play(await r.arrayBuffer(), fname, t || fname.replace(/\.[^.]+$/, ''));
+    } catch (e) { fail('게임 파일을 받지 못했어요', e); }
+  }
+
+  /* ---- 게임 불러오기: 게임 목록 (DOS/list.json) + 내 컴퓨터 zip ---- */
+  async function showList() {
+    if (!G) msg.style.display = 'none';
+    let items = []; try { const r = await fetch('DOS/list.json', { cache: 'no-store' }); if (r.ok) items = await r.json(); } catch (e) {}
+    const b = dlg('<h2>MS-DOS (js-dos ' + ENG + ' 엔진)</h2>' +
+      '<button class="g" id="blank"><b>⌨ DOS 프롬프트 (빈 C:)</b><small>게임 없이 시작</small></button>' +
+      items.map((g, i) => '<button class="g" data-i="' + i + '"><b>' + esc(g.t || g.f) + '</b><small>' + esc(g.f) + '</small></button>').join('') +
+      (items.length ? '' : '<p style="color:#999">DOS/list.json 에 등록된 게임이 없어요.</p>') +
+      '<button class="g" id="loc"><b>📂 내 컴퓨터에서 zip 열기</b></button>', !!G);
+    b.querySelectorAll('[data-i]').forEach(x => x.onclick = () => { const g = items[x.dataset.i]; const u = new URLSearchParams(); u.set('f', g.f); if (g.t) u.set('t', g.t); location.search = u.toString(); });
+    $('loc').onclick = () => $('pick').click();
+    $('blank').onclick = () => { const u = new URLSearchParams(); u.set('blank', '1'); location.search = u.toString(); };
+  }
+  $('b-load').onclick = showList;
+  $('pick').onchange = async e => {
+    const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+    closeDlg(); status('파일 읽는 중…'); const buf = await file.arrayBuffer();
+    if (G) { G = null; await stopEmu(); }
+    play(buf, file.name, file.name.replace(/\.[^.]+$/, ''), false, true);
+  };
+
+  const f = qs.get('f');
+  if (qs.get('blank')) { blankDos(); }
+  else if (f) playUrl(f, qs.get('t'));
+  else if (qs.get('local')) {
+    DB.get('local').then(r => { if (r && r.buf) play(r.buf, r.name, r.name.replace(/\.[^.]+$/, ''), false, true); else showList(); }).catch(showList);
+  } else showList();
+})();
+</script>
+</body>
+</html>

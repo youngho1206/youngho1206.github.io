@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#67d3e6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>지도 · MAP</title>
+<style>
+:root{
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --teal:#007b8f;--tealBg:#c4ecf6;--ink:#1f1f1f;--mut:#5f6368;--bar:#eff3f6;
+  --sans:"Google Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#dfe9ef;font-family:var(--sans);color:var(--ink)}
+button{font-family:inherit}
+
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#stage{position:relative;flex:1;min-height:0;background:#cfe6ee}
+#map{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+
+/* 검색창 */
+.top{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:calc(12px + var(--sat));
+  display:flex;justify-content:center;pointer-events:none}
+.search{pointer-events:auto;position:relative;display:flex;align-items:center;gap:6px;width:min(100%,560px);height:54px;padding:0 8px 0 14px;
+  background:#fff;border-radius:99px;box-shadow:0 2px 6px rgba(60,64,67,.28),0 1px 2px rgba(60,64,67,.18)}
+.search .pin{flex:none;width:28px;height:28px;display:block}
+.search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;font:400 17px var(--sans);color:var(--ink);padding:0 4px}
+.search input::placeholder{color:#444}
+.search .ib{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;color:#202124}
+.search .ib:hover{background:rgba(60,64,67,.08)}
+.search .ib svg{width:22px;height:22px;fill:currentColor}
+.search .ib.clr{display:none}
+.search.has .ib.clr{display:grid}
+.search .me{width:38px;height:38px;border-radius:50%;background:#6b6b6b;display:grid;place-items:center;color:#fff;flex:none;margin-left:2px}
+.search .me svg{width:22px;height:22px;fill:#fff}
+
+/* 자동완성 힌트 */
+.sug{position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;border-radius:22px;box-shadow:0 4px 14px rgba(60,64,67,.3);overflow:hidden;display:none;max-height:44vh;overflow-y:auto}
+.search.open .sug{display:block}
+.sug button{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;padding:13px 18px;font:400 15px var(--sans);text-align:left;cursor:pointer;color:var(--ink)}
+.sug button:hover,.sug button:focus-visible{background:#f1f3f4;outline:0}
+.sug svg{flex:none;width:20px;height:20px;fill:#5f6368}
+
+/* 우측 버튼 */
+.fabs{position:absolute;z-index:5;right:max(14px,env(safe-area-inset-right));display:flex;flex-direction:column;gap:14px;align-items:flex-end}
+.fabs.t{top:calc(86px + var(--sat))}
+.fabs.b{bottom:calc(18px)}
+.fab{width:60px;height:60px;border:0;border-radius:20px;background:#fff;box-shadow:0 2px 6px rgba(60,64,67,.32);display:grid;place-items:center;cursor:pointer;color:#202124;transition:transform .15s}
+.fab:active{transform:scale(.93)}
+.fab.round{width:56px;height:56px;border-radius:50%}
+.fab svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fab.pri{background:var(--teal);color:#fff;width:64px;height:64px;border-radius:22px}
+.fab.pri svg{fill:#fff;stroke:none}
+.fab.on{color:#1a73e8}
+
+/* 레이어 시트 */
+.lay{position:absolute;z-index:6;right:max(14px,env(safe-area-inset-right));top:calc(86px + var(--sat));width:min(268px,calc(100vw - 28px));padding:16px;background:#fff;border-radius:20px;
+  box-shadow:0 6px 24px rgba(60,64,67,.4);opacity:0;visibility:hidden;transform:translateY(-8px) scale(.97);transform-origin:100% 0;transition:.2s}
+.lay.open{opacity:1;visibility:visible;transform:none}
+.lay h4{margin:0 0 12px;font:500 14px var(--sans);color:var(--mut)}
+.lay .row{display:flex;gap:10px}
+.lay .ty{flex:1;border:0;background:none;padding:0;cursor:pointer;text-align:center;font:500 12.5px var(--sans);color:var(--ink)}
+.lay .ty i{display:block;height:58px;border-radius:14px;margin-bottom:6px;border:2px solid transparent;background-size:cover;box-shadow:0 0 0 1px rgba(0,0,0,.1) inset}
+.lay .ty.on i{border-color:#1a73e8}
+.lay .ty.on{color:#1a73e8}
+.ty.m i{background:linear-gradient(135deg,#aadaff 0 30%,#e9e5dc 30% 55%,#c8e6c9 55% 75%,#fff 75% 100%)}
+.ty.s i{background:radial-gradient(circle at 30% 40%,#4a6a3a 0 25%,transparent 26%),radial-gradient(circle at 75% 65%,#2d4a6e 0 28%,transparent 29%),linear-gradient(135deg,#6f7c4f,#3b4a33)}
+.ty.h i{background:linear-gradient(90deg,transparent 48%,rgba(255,255,255,.85) 48% 54%,transparent 54%),radial-gradient(circle at 30% 40%,#4a6a3a 0 25%,transparent 26%),linear-gradient(135deg,#6f7c4f,#3b4a33)}
+
+/* 위치 표시 칩 */
+.chip{position:absolute;z-index:4;left:50%;bottom:16px;transform:translate(-50%,20px);max-width:calc(100% - 100px);padding:10px 16px;border-radius:99px;background:rgba(32,33,36,.92);color:#fff;font-size:13.5px;line-height:1.4;opacity:0;pointer-events:none;transition:.25s;text-align:center}
+.chip.on{opacity:1;transform:translate(-50%,0)}
+
+/* 하단 메뉴 */
+nav{flex:none;display:flex;justify-content:space-around;align-items:flex-start;background:var(--bar);padding:12px 6px calc(10px + var(--sab));border-top:1px solid rgba(0,0,0,.05)}
+nav .it{flex:1;max-width:240px;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;cursor:pointer;color:var(--mut);padding:0;font:500 13px var(--sans);text-decoration:none}
+nav .it .pill{width:64px;height:32px;border-radius:99px;display:grid;place-items:center;transition:background .2s}
+nav .it svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav .it.on{color:#1f1f1f;font-weight:700}
+nav .it.on .pill{background:var(--tealBg);color:#004d5a}
+nav .it:active .pill{background:rgba(0,0,0,.08)}
+nav .it.gps.on .pill{background:#cfe8ff;color:#0b57d0}
+
+/* PC 화면: 하단 메뉴를 가로로 넓게 */
+@media (min-width:900px){
+  nav{padding-top:8px}
+  .search{height:56px}
+}
+@media (max-height:480px) and (orientation:landscape){
+  nav{padding:6px 6px calc(6px + var(--sab))}
+  nav .it{flex-direction:row;justify-content:center;gap:8px}
+  nav .it .pill{width:44px;height:28px}
+  .fabs.b{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <iframe id="map" title="구글 지도" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+
+    <!-- 검색창 -->
+    <div class="top">
+      <form class="search" id="sf" role="search" autocomplete="off">
+        <svg class="pin" viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="pc"><path d="M24 3C15.700 3 9 9.700 9 18c0 3.400 1.200 6.600 3.200 9.200L24 45l11.800-17.800A14.900 14.900 0 0 0 39 18C39 9.700 32.300 3 24 3z"/></clipPath></defs><g clip-path="url(#pc)"><rect x="0" y="0" width="24" height="24" fill="#4285f4"/><rect x="24" y="0" width="24" height="24" fill="#ea4335"/><rect x="0" y="24" width="24" height="24" fill="#34a853"/><rect x="24" y="24" width="24" height="24" fill="#fbbc04"/></g><circle cx="24" cy="18" r="6.500" fill="#fff"/></svg>
+        <input id="q" type="search" enterkeyhint="search" placeholder="여기서 검색" aria-label="장소 검색" autocapitalize="off" spellcheck="false">
+        <button class="ib clr" type="button" id="clr" aria-label="지우기"><svg viewBox="0 0 24 24"><path d="M19 6.400 17.600 5 12 10.600 6.400 5 5 6.400 10.600 12 5 17.600 6.400 19 12 13.400 17.600 19 19 17.600 13.400 12z"/></svg></button>
+        <button class="ib" type="button" id="mic" aria-label="음성 검색"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.900V21h2v-3.100A7 7 0 0 0 19 11z"/></svg></button>
+        <div class="sug" id="sug" role="listbox"></div>
+      </form>
+    </div>
+
+    <!-- 레이어 버튼 -->
+    <div class="fabs t">
+      <button class="fab round" id="layBtn" type="button" aria-label="지도 유형" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12.500 9 5 9-5"/><path d="m3 16.500 9 5 9-5" opacity=".0"/></svg>
+      </button>
+    </div>
+    <div class="lay" id="lay" role="dialog" aria-label="지도 유형">
+      <h4>지도 유형</h4>
+      <div class="row">
+        <button class="ty m on" data-t="m" type="button"><i></i>일반지도</button>
+        <button class="ty s" data-t="k" type="button"><i></i>위성지도</button>
+        <button class="ty h" data-t="h" type="button"><i></i>위성+지명</button>
+      </div>
+    </div>
+
+    <!-- 내 위치 -->
+    <div class="fabs b">
+      <button class="fab round" id="locBtn" type="button" aria-label="내 위치">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.500"/><circle cx="12" cy="12" r="8"/><path d="M12 1.500v3M12 19.500v3M1.500 12h3M19.500 12h3"/></svg>
+      </button>
+    </div>
+
+    <div class="chip" id="chip" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- 하단 메뉴 -->
+  <nav aria-label="하단 메뉴">
+    <button class="it explore on" id="nExp" type="button">
+      <span class="pill"><svg viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M12 2a7 7 0 0 0-7 7c0 5.200 7 13 7 13s7-7.800 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg></span>탐색
+    </button>
+    <button class="it gps" id="nGps" type="button">
+      <span class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.500"/><circle cx="12" cy="12" r="8"/><path d="M12 1.500v3M12 19.500v3M1.500 12h3M19.500 12h3"/></svg></span>GPS
+    </button>
+    <a class="it exit" id="nExit" href="index.html">
+      <span class="pill"><svg viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="M10 8 6 12l4 4"/><path d="M6 12h10"/></svg></span>나가기
+    </a>
+  </nav>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const map=$('#map'),q=$('#q'),sf=$('#sf'),chip=$('#chip');
+
+/* ---------- 상태 ---------- */
+const st={type:'m',query:'',lat:null,lng:null,zoom:null,watch:null};
+const DEF={lat:37.5665,lng:126.9780}; /* 처음 화면: 서울 */
+try{
+  const sv=JSON.parse(localStorage.getItem('map.state')||'null');
+  if(sv&&typeof sv==='object'){if(['m','k','h'].includes(sv.type))st.type=sv.type}
+}catch(_){}
+const saveSt=()=>{try{localStorage.setItem('map.state',JSON.stringify({type:st.type}))}catch(_){}};
+
+/* ---------- 구글 지도 주소 만들기 (API 키 없이 쓰는 공식 퍼가기 주소) ---------- */
+function mapUrl(){
+  let loc;
+  if(st.query)loc=st.query;
+  else if(st.lat!=null)loc=st.lat+','+st.lng;
+  else loc=DEF.lat+','+DEF.lng;
+  const z=st.zoom||(st.query?14:(st.lat!=null?17:12));
+  return 'https://maps.google.com/maps?q='+encodeURIComponent(loc)+'&t='+st.type+'&z='+z+'&hl=ko&output=embed';
+}
+function showMap(){
+  const u=mapUrl();
+  if(map.getAttribute('src')!==u)map.src=u;
+}
+function say(t,ms=2600){
+  chip.textContent=t;chip.classList.add('on');
+  clearTimeout(say.t);say.t=setTimeout(()=>chip.classList.remove('on'),ms);
+}
+
+/* ---------- 지도 유형 ---------- */
+const lay=$('#lay'),layBtn=$('#layBtn');
+function setType(t){
+  st.type=t;saveSt();
+  lay.querySelectorAll('.ty').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  showMap();
+}
+layBtn.onclick=e=>{
+  e.stopPropagation();
+  const o=!lay.classList.contains('open');
+  lay.classList.toggle('open',o);layBtn.setAttribute('aria-expanded',o);
+  layBtn.classList.toggle('on',o);
+};
+lay.addEventListener('click',e=>{
+  const b=e.target.closest('.ty');if(!b)return;
+  setType(b.dataset.t);
+  lay.classList.remove('open');layBtn.classList.remove('on');layBtn.setAttribute('aria-expanded','false');
+});
+document.addEventListener('click',e=>{
+  if(!lay.contains(e.target)&&e.target!==layBtn&&!layBtn.contains(e.target)){
+    lay.classList.remove('open');layBtn.classList.remove('on');layBtn.setAttribute('aria-expanded','false');
+  }
+  if(!sf.contains(e.target))sf.classList.remove('open');
+});
+
+/* ---------- 검색 ---------- */
+const POP=['서울역','경복궁','제주도','부산 해운대','인천국제공항','도쿄 시부야','오사카 성','뉴욕 타임스퀘어','파리 에펠탑','런던 빅벤'];
+const pinSvg='<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.200 7 13 7 13s7-7.800 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg>';
+const clockSvg='<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.900 3.900.1.100L9 12H6a7 7 0 1 1 2.100 5l-1.400 1.400A9 9 0 1 0 13 3zm-1 5v5l4.300 2.500.8-1.300-3.600-2.100V8z"/></svg>';
+let hist=[];
+try{hist=JSON.parse(localStorage.getItem('map.hist')||'[]').filter(x=>typeof x==='string').slice(0,6)}catch(_){}
+function renderSug(){
+  const v=q.value.trim();
+  let items=[];
+  if(!v){items=hist.map(h=>({t:h,h:1})).concat(POP.slice(0,6-Math.min(hist.length,3)).map(t=>({t})))}
+  else{items=POP.filter(p=>p.toLowerCase().includes(v.toLowerCase())).slice(0,5).map(t=>({t}));items.unshift({t:v})}
+  sug.innerHTML=items.map(i=>`<button type="button" data-q="${i.t.replace(/"/g,'&quot;')}">${i.h?clockSvg:pinSvg}<span>${i.t.replace(/</g,'&lt;')}</span></button>`).join('');
+}
+const sug=$('#sug');
+function search(v){
+  v=(v||'').trim();if(!v)return;
+  st.query=v;st.zoom=null;q.value=v;sf.classList.add('has');sf.classList.remove('open');
+  hist=[v].concat(hist.filter(x=>x!==v)).slice(0,6);
+  try{localStorage.setItem('map.hist',JSON.stringify(hist))}catch(_){}
+  stopWatch();
+  $('#nGps').classList.remove('on');$('#nExp').classList.add('on');
+  showMap();q.blur();
+}
+sf.addEventListener('submit',e=>{e.preventDefault();search(q.value)});
+q.addEventListener('focus',()=>{renderSug();sf.classList.add('open')});
+q.addEventListener('input',()=>{sf.classList.toggle('has',!!q.value);renderSug();sf.classList.add('open')});
+sug.addEventListener('click',e=>{const b=e.target.closest('button');if(b)search(b.dataset.q)});
+$('#clr').onclick=()=>{q.value='';sf.classList.remove('has');st.query='';q.focus();renderSug()};
+
+/* 음성 검색 (지원하는 브라우저에서만) */
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mic=$('#mic');
+  if(!SR){mic.style.display='none';return}
+  mic.onclick=()=>{
+    try{
+      const r=new SR();r.lang='ko-KR';r.interimResults=false;r.maxAlternatives=1;
+      say('말씀해 주세요…',3000);
+      r.onresult=e=>{const t=e.results[0][0].transcript;if(t)search(t)};
+      r.onerror=()=>say('음성 인식을 사용할 수 없습니다.');
+      r.start();
+    }catch(_){say('음성 인식을 사용할 수 없습니다.')}
+  };
+})();
+
+/* ---------- GPS (내 기기 위치) ---------- */
+function stopWatch(){
+  if(st.watch!=null){navigator.geolocation.clearWatch(st.watch);st.watch=null}
+}
+let lastShown=0;
+function showPos(pos,first){
+  const {latitude:la,longitude:lo,accuracy:ac}=pos.coords;
+  st.lat=la;st.lng=lo;st.query='';
+  const now=Date.now();
+  /* 지도를 너무 자주 새로 불러오지 않도록: 처음이거나 15초 이상 지났을 때만 갱신 */
+  if(first||now-lastShown>15000){lastShown=now;st.zoom=ac>500?15:17;showMap()}
+  q.value='';sf.classList.remove('has');
+  say('내 위치 · 정확도 약 '+Math.round(ac)+'m',3200);
+}
+function gpsErr(err){
+  stopWatch();
+  $('#nGps').classList.remove('on');$('#nExp').classList.add('on');
+  const m={1:'위치 권한이 거부되었습니다. 브라우저 설정에서 위치를 허용해 주세요.',2:'현재 위치를 확인할 수 없습니다.',3:'위치 확인 시간이 초과되었습니다.'};
+  say(m[err&&err.code]||'위치를 가져올 수 없습니다.',4200);
+}
+function startGps(){
+  if(!('geolocation' in navigator)){say('이 기기에서는 GPS를 지원하지 않습니다.',3500);return}
+  if(!window.isSecureContext&&location.protocol!=='file:'&&location.hostname!=='localhost'){
+    say('GPS는 https:// 주소에서만 동작합니다.',4200);return;
+  }
+  $('#nGps').classList.add('on');$('#nExp').classList.remove('on');
+  say('내 위치를 찾는 중…',8000);
+  stopWatch();
+  let first=true;
+  st.watch=navigator.geolocation.watchPosition(p=>{showPos(p,first);first=false},gpsErr,{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+}
+$('#nGps').onclick=()=>{
+  if(st.watch!=null){stopWatch();$('#nGps').classList.remove('on');$('#nExp').classList.add('on');say('GPS를 껐습니다.');return}
+  startGps();
+};
+$('#locBtn').onclick=startGps;
+$('#nExp').onclick=()=>{
+  stopWatch();$('#nGps').classList.remove('on');$('#nExp').classList.add('on');
+  if(!st.query){st.lat=null;st.lng=null;st.zoom=null}
+  showMap();
+};
+
+/* 나가기 → index.html (페이지 이동 전에 GPS 정리) */
+$('#nExit').addEventListener('click',stopWatch);
+addEventListener('pagehide',stopWatch);
+
+/* ---------- 시작 ---------- */
+setType(st.type);
+})();
+</script>
+</body>
+</html>
