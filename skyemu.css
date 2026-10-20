@@ -223,3 +223,120 @@ body{background:transparent}
  .sk-list{padding-top:8px}
 }
 @media (prefers-reduced-motion:reduce){.sk-cell,#skm.on,.skm-box{animation:none!important}.sk *{transition:none!important}}
+
+/* =====================================================================
+   테마선택 팝업 (기본 · 사이버펑크 공통)
+   ===================================================================== */
+.sk-ths{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.sk-th{display:flex;flex-direction:column;gap:8px;padding:10px;border:2px solid var(--panbd);border-radius:3px;background:rgba(255,255,255,.14);color:inherit;text-align:left;cursor:pointer;font-family:inherit;transition:background .15s}
+.sk-th:hover{background:rgba(255,255,255,.3)}
+.sk-th.on{border-color:var(--selc,#4a9be6);box-shadow:0 0 0 1px var(--selc,#4a9be6)}
+.sk-th b{display:block;font-size:14px}
+.sk-th small{display:block;font-size:12px;color:var(--pansub)}
+.thp{display:flex;gap:6px;align-items:center;justify-content:center;aspect-ratio:16/8;padding:10px;border-radius:2px;overflow:hidden}
+.thp i{display:block;width:26%;aspect-ratio:1}
+.thp.sky{background:linear-gradient(135deg,#8fc3f0,#c9e4ff)}
+.thp.sky i{background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.9)}
+.thp.cy{background:linear-gradient(160deg,#2a0a4d,#05050f 70%)}
+.thp.cy i{background:#0a0716;border:1.5px solid #00f0ff;box-shadow:0 0 6px rgba(0,240,255,.6)}
+.thp.cy i:nth-child(2){border-color:#fcee09;box-shadow:0 0 6px rgba(252,238,9,.6)}
+.thp.cy i:nth-child(3){border-color:#ff2a6d;box-shadow:0 0 6px rgba(255,42,109,.6)}
+.sk-wp.cy{background:linear-gradient(160deg,#2a0a4d,#4a0d58 60%,#05050f)}
+.sk-wp.cy:before{content:"";position:absolute;inset:auto 0 0 0;height:46%;background:linear-gradient(90deg,#120730 0 14%,#0a0420 14% 30%,#1b0c3c 30% 48%,#0a0420 48% 66%,#120730 66% 84%,#1b0c3c 84%);border-top:2px solid #00f0ff}
+
+/* =====================================================================
+   사이버펑크 테마  (.sk[data-theme=cyber])
+   · 하늘색 글라스 디자인 위에 덮어쓰는 방식이라, 기본 테마는 그대로입니다.
+   ===================================================================== */
+html[data-cybg]{background:#05050f}
+html[data-cybg] #pagebg{display:none}
+#cy-sky,#cy-rain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+
+.sk[data-theme=cyber]{
+ --ink-auto:#00f0ff;--ink-sky:#00f0ff;--ink-navy:#fcee09;
+ --lbl:#e8f7ff;--lbl-sh:none;
+ --tfill:rgba(10,7,22,.9);--tfill-h:rgba(0,240,255,.16);--tbd:#00f0ff;--tsh:none;
+ --btnfill:#0a0716;--btnfill-h:#00f0ff;--btntxt:#00f0ff;--btnbd:#00f0ff;
+ --pan:#080614;--pantxt:#e8f7ff;--pansub:#7fb6c4;--panbd:#fcee09;
+ --fine:rgba(0,240,255,.78);--selc:#fcee09;
+}
+/* 화면 위 스캔라인 + 네 모서리 HUD */
+.sk[data-theme=cyber]:after{content:"";position:absolute;inset:0;z-index:40;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)}
+.sk[data-theme=cyber]:before{content:"";position:absolute;inset:8px;z-index:39;pointer-events:none;background:
+ linear-gradient(#fcee09,#fcee09) left top/34px 3px no-repeat,linear-gradient(#fcee09,#fcee09) left top/3px 34px no-repeat,
+ linear-gradient(#fcee09,#fcee09) right top/34px 3px no-repeat,linear-gradient(#fcee09,#fcee09) right top/3px 34px no-repeat,
+ linear-gradient(#00f0ff,#00f0ff) left bottom/34px 3px no-repeat,linear-gradient(#00f0ff,#00f0ff) left bottom/3px 34px no-repeat,
+ linear-gradient(#00f0ff,#00f0ff) right bottom/34px 3px no-repeat,linear-gradient(#00f0ff,#00f0ff) right bottom/3px 34px no-repeat}
+
+/* 제목 : 네온 + 가끔 글리치 */
+.sk[data-theme=cyber] .sk-title{position:relative;font-family:Orbitron,"Noto Sans KR",sans-serif;font-weight:900;letter-spacing:.06em;text-transform:uppercase;font-size:clamp(17px,4.4vw,40px);
+ background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#00f0ff;-webkit-text-fill-color:#00f0ff;-webkit-text-stroke:0;filter:none;opacity:1;
+ text-shadow:0 0 10px rgba(0,240,255,.85),0 0 30px rgba(0,240,255,.45)}
+.sk[data-theme=cyber] .sk-title:before,.sk[data-theme=cyber] .sk-title:after{content:attr(data-t);position:absolute;left:0;top:0;pointer-events:none;opacity:0;text-shadow:none}
+.sk[data-theme=cyber] .sk-title:before{color:#ff2a6d;-webkit-text-fill-color:#ff2a6d;animation:cyG1 6s infinite steps(1)}
+.sk[data-theme=cyber] .sk-title:after{color:#fcee09;-webkit-text-fill-color:#fcee09;animation:cyG2 6s infinite steps(1)}
+@keyframes cyG1{0%,92%,100%{opacity:0}93%{opacity:.9;transform:translate(-4px,1px);clip-path:inset(12% 0 58% 0)}95%{opacity:.9;transform:translate(3px,-1px);clip-path:inset(60% 0 8% 0)}97%{opacity:0}}
+@keyframes cyG2{0%,93%,100%{opacity:0}94%{opacity:.8;transform:translate(4px,0);clip-path:inset(40% 0 30% 0)}96%{opacity:.8;transform:translate(-3px,1px);clip-path:inset(5% 0 70% 0)}98%{opacity:0}}
+
+/* 위쪽 메뉴 버튼 : 모서리 절단 + 네온 테두리 */
+.sk[data-theme=cyber] .sk-b{--cut:9px;--col:#00f0ff;position:relative;isolation:isolate;border:0;border-radius:0;background:var(--col);color:var(--col);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;
+ clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.sk[data-theme=cyber] .sk-b:before{content:"";position:absolute;inset:1.5px;z-index:-1;background:#0a0716;transition:background .2s;
+ clip-path:polygon(calc(var(--cut) - .6px) 0,100% 0,100% calc(100% - var(--cut) + .6px),calc(100% - var(--cut) + .6px) 100%,0 100%,0 calc(var(--cut) - .6px))}
+.sk[data-theme=cyber] .sk-r .sk-b{--col:#fcee09}
+.sk[data-theme=cyber] #bTheme{--col:#ff2a6d}
+.sk[data-theme=cyber] .sk-b:hover{color:#05050f;box-shadow:none}
+.sk[data-theme=cyber] .sk-b:hover:before{background:var(--col)}
+
+/* 기종 분류 · 검색 */
+.sk[data-theme=cyber] .sk-cats button{border-radius:0;border:0;border-bottom:2px solid transparent;color:#7fb6c4;text-shadow:none;font-weight:600}
+.sk[data-theme=cyber] .sk-cats button:hover{background:rgba(0,240,255,.1);color:#00f0ff}
+.sk[data-theme=cyber] .sk-cats button.on{background:rgba(252,238,9,.12);color:#fcee09;border-bottom-color:#fcee09}
+.sk[data-theme=cyber] .sk-sch,.sk[data-theme=cyber] .sk-sq{border-radius:0;border-color:#00f0ff;background:#0a0716;color:#00f0ff}
+.sk[data-theme=cyber] .sk-sq:hover{background:#00f0ff;color:#05050f}
+.sk[data-theme=cyber]{scrollbar-color:#00f0ff transparent}
+.sk[data-theme=cyber] .sk-list{scrollbar-color:#00f0ff transparent}
+
+/* 기종 아이콘 상자 */
+.sk[data-theme=cyber] .sk-box{--cut:14px;border-radius:0;border:1.5px solid var(--tbd);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;
+ background:linear-gradient(155deg,rgba(0,240,255,.16),rgba(10,7,22,.95) 60%),#0a0716;
+ clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.sk[data-theme=cyber] .sk-box:before,.sk[data-theme=cyber] .sk-box:after{width:20px;height:1.5px;border:0;background:#00f0ff;opacity:1;transform:rotate(-45deg)}
+.sk[data-theme=cyber] .sk-box:before{left:-4px;top:5.25px;right:auto;bottom:auto}
+.sk[data-theme=cyber] .sk-box:after{right:-4px;bottom:5.25px;left:auto;top:auto}
+.sk[data-theme=cyber] .sk-tile:hover .sk-box,.sk[data-theme=cyber] .sk-tile:focus-visible .sk-box{border-color:#fcee09;transform:translateY(-3px);box-shadow:none;
+ background:linear-gradient(155deg,rgba(252,238,9,.2),rgba(10,7,22,.95) 60%),#0a0716}
+.sk[data-theme=cyber] .sk-tile:hover .sk-box:before,.sk[data-theme=cyber] .sk-tile:hover .sk-box:after,
+.sk[data-theme=cyber] .sk-tile:focus-visible .sk-box:before,.sk[data-theme=cyber] .sk-tile:focus-visible .sk-box:after{background:#fcee09;opacity:1}
+.sk[data-theme=cyber] .sk-box svg.ln{filter:drop-shadow(0 0 4px var(--ink))}
+.sk[data-theme=cyber] .sk-nm{font-weight:700;color:#e8f7ff;text-shadow:none}
+.sk[data-theme=cyber] .sk-tag{border-radius:0;color:#fcee09;border-color:#fcee09;opacity:1}
+.sk[data-theme=cyber] .pb{background:rgba(0,240,255,.25)}
+.sk[data-theme=cyber] .sk-grid.lv .sk-tile{border-radius:0;border-color:rgba(0,240,255,.5);background:rgba(10,7,22,.88)}
+.sk[data-theme=cyber] .sk-grid.lv .sk-tile:hover{background:rgba(0,240,255,.14)}
+.sk[data-theme=cyber] .sk-grid.lv .sk-box{border:0;background:transparent;clip-path:none}
+.sk[data-theme=cyber] .sk-grid.lv .sk-box:before,.sk[data-theme=cyber] .sk-grid.lv .sk-box:after{display:none}
+.sk[data-theme=cyber] .sk-grid.lv .sk-tile:hover .sk-box{background:transparent;transform:none}
+
+/* 팝업창 */
+.sk[data-theme=cyber] #skm{background:rgba(2,2,10,.74)}
+.sk[data-theme=cyber] .skm-box{--cut:18px;position:relative;isolation:isolate;border:0;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;background:#fcee09;
+ clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+.sk[data-theme=cyber] .skm-box:before{content:"";position:absolute;inset:2px;z-index:-1;background:#080614;
+ clip-path:polygon(calc(var(--cut) - .8px) 0,100% 0,100% calc(100% - var(--cut) + .8px),calc(100% - var(--cut) + .8px) 100%,0 100%,0 calc(var(--cut) - .8px))}
+.sk[data-theme=cyber] .skm-box{padding:2px}
+.sk[data-theme=cyber] .skm-h{border-bottom-color:rgba(252,238,9,.3)}
+.sk[data-theme=cyber] .skm-h b{color:#fcee09;text-shadow:0 0 10px rgba(252,238,9,.5)}
+.sk[data-theme=cyber] .skm-x{border-radius:0;border-color:#00f0ff;color:#00f0ff}
+.sk[data-theme=cyber] .skm-x:hover{background:#00f0ff;color:#05050f}
+.sk[data-theme=cyber] .skm-note{border-bottom-color:rgba(0,240,255,.3)}
+.sk[data-theme=cyber] .skm-note h4{color:#fcee09}
+.sk[data-theme=cyber] .sk-wp{border-radius:0;border-color:rgba(0,240,255,.5)}
+.sk[data-theme=cyber] .sk-wp.on{border-color:#fcee09;box-shadow:none}
+.sk[data-theme=cyber] .sk-wp.on:after{border-radius:0;background:#fcee09;color:#05050f}
+.sk[data-theme=cyber] .sk-ico,.sk[data-theme=cyber] .sk-th{border-radius:0;border-color:rgba(0,240,255,.5);background:rgba(0,240,255,.06)}
+.sk[data-theme=cyber] .sk-ico:hover,.sk[data-theme=cyber] .sk-th:hover{background:rgba(0,240,255,.16)}
+.sk[data-theme=cyber] .sk-ico.on,.sk[data-theme=cyber] .sk-th.on{border-color:#fcee09;box-shadow:inset 0 0 0 1px #fcee09;background:rgba(252,238,9,.1)}
+.sk[data-theme=cyber] .sk-pv{background:#0a0716;border-radius:0}
+.sk[data-theme=cyber] .sk-pv .pb1{border-radius:0;border-color:rgba(0,240,255,.6);background:rgba(0,240,255,.08)}
+@media (prefers-reduced-motion:reduce){.sk[data-theme=cyber] .sk-title:before,.sk[data-theme=cyber] .sk-title:after{animation:none!important}}

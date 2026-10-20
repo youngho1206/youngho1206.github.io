@@ -15,6 +15,7 @@ const root=q('#sky');
    1) 공지사항 — 아래 목록만 고치면 됩니다. (맨 위가 가장 최신)
    ===================================================================== */
 const NOTICES=[
+ {d:'2026.10.20',t:'사이버펑크 테마 추가',b:'오른쪽 위의 [테마선택]에서 사이버펑크 스타일을 고를 수 있어요. 네온 도시 배경과 각진 네온 메뉴로 바뀌어요.'},
  {d:'2026.10.20',t:'새 디자인 적용',b:'Retro PC Web Emulator 화면으로 새롭게 바뀌었어요. 오른쪽 위의 [배경선택]·[아이콘선택]에서 취향대로 바꿀 수 있어요.'},
  {d:'',t:'이용 안내',b:'ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요. 이 사이트는 게임 파일을 제공하지 않습니다.'}
 ];
@@ -40,14 +41,28 @@ const WALLS=[
  {id:'sky14',n:'숲 줄무늬',tone:'dark'},
  {id:'sky08',n:'다크 메탈',tone:'dark'}
 ];
-const K_BG='skyemu.bg',K_IC='skyemu.ic';
-let bgId=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgId))bgId='bg13';
+const K_BG='skyemu.bg',K_IC='skyemu.ic',K_TH='skyemu.theme',K_BGC='skyemu.bgc';
+/* 테마: sky = 기본(하늘색 글라스) / cyber = 사이버펑크. 배경은 테마마다 따로 기억합니다. */
+const CYW={id:'cyber',n:'네온 도시',tone:'dark'};   /* 사이버펑크 테마 전용 배경(그려서 만든 도시) */
+let thK=LS.get(K_TH)==='cyber'?'cyber':'sky';
+let bgSky=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgSky))bgSky='bg13';
+let bgCy=LS.get(K_BGC);if(bgCy!=='cyber'&&!WALLS.some(w=>w.id===bgCy))bgCy='cyber';
+let bgId=thK==='cyber'?bgCy:bgSky;
 function applyBg(id){
- const w=WALLS.find(x=>x.id===id)||WALLS[0];bgId=w.id;
- q('#pagebg').style.backgroundImage=`url("emuwall/${w.id}.jpg")`;
+ const cy=thK==='cyber'&&id==='cyber';
+ const w=cy?CYW:(WALLS.find(x=>x.id===id)||WALLS[0]);
+ bgId=w.id;if(thK==='cyber')bgCy=w.id;else bgSky=w.id;
+ document.documentElement.toggleAttribute('data-cybg',cy);
+ if(window.CyberBG){if(cy)CyberBG.on();else CyberBG.off()}
+ if(!cy)q('#pagebg').style.backgroundImage=`url("emuwall/${w.id}.jpg")`;
  root.dataset.tone=w.tone;
- const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',w.tone==='dark'?'#141a2a':'#8fc3f0');
- LS.set(K_BG,w.id);
+ const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cy?'#05050f':(w.tone==='dark'?'#141a2a':'#8fc3f0'));
+ LS.set(thK==='cyber'?K_BGC:K_BG,w.id);
+}
+function applyTheme(t){
+ thK=t==='cyber'?'cyber':'sky';
+ root.dataset.theme=thK;LS.set(K_TH,thK);
+ applyBg(thK==='cyber'?bgCy:bgSky);
 }
 
 /* =====================================================================
@@ -197,11 +212,29 @@ q('#bInfo').onclick=()=>{
 q('#bVer').onclick=()=>{location.href='index.html?select=1'};
 
 q('#bBg').onclick=()=>{
- const b=openModal('배경선택',`<div class="sk-wps">${WALLS.map(w=>`<button type="button" class="sk-wp${w.id===bgId?' on':''}" data-id="${w.id}" title="${esc(w.n)}"><img src="emuwall/th_${w.id}.jpg" alt="" loading="lazy" draggable="false"><span>${esc(w.n)}</span></button>`).join('')}</div>`,true);
+ const list=thK==='cyber'?[CYW].concat(WALLS):WALLS;
+ const tile=w=>w.id==='cyber'
+  ?`<button type="button" class="sk-wp cy${w.id===bgId?' on':''}" data-id="cyber" title="${esc(w.n)}"><span>${esc(w.n)}</span></button>`
+  :`<button type="button" class="sk-wp${w.id===bgId?' on':''}" data-id="${w.id}" title="${esc(w.n)}"><img src="emuwall/th_${w.id}.jpg" alt="" loading="lazy" draggable="false"><span>${esc(w.n)}</span></button>`;
+ const b=openModal('배경선택',`<div class="sk-wps">${list.map(tile).join('')}</div>`,true);
  b.onclick=e=>{
   const t=e.target.closest('.sk-wp');if(!t)return;
   applyBg(t.dataset.id);
   b.querySelectorAll('.sk-wp').forEach(x=>x.classList.toggle('on',x===t));
+ };
+};
+
+/* 테마선택 : 기본(하늘색) / 사이버펑크 */
+const THEMES=[
+ {k:'sky',n:'기본 · 하늘색 글라스',d:'밝고 투명한 하늘색 화면 (기본)',p:'sky'},
+ {k:'cyber',n:'사이버펑크',d:'네온 도시 배경 · 각진 네온 메뉴 · 스캔라인',p:'cy'}
+];
+q('#bTheme').onclick=()=>{
+ const b=openModal('테마선택',`<div class="sk-ths">${THEMES.map(o=>`<button type="button" class="sk-th${o.k===thK?' on':''}" data-k="${o.k}"><span class="thp ${o.p}"><i></i><i></i><i></i></span><span><b>${esc(o.n)}</b><small>${esc(o.d)}</small></span></button>`).join('')}</div><p class="sub" style="margin-top:12px">테마를 바꿔도 아이콘 스타일 선택은 그대로 유지돼요. 배경은 테마마다 따로 기억해요.</p>`);
+ b.onclick=e=>{
+  const t=e.target.closest('.sk-th');if(!t)return;
+  applyTheme(t.dataset.k);
+  b.querySelectorAll('.sk-th').forEach(x=>x.classList.toggle('on',x===t));
  };
 };
 
@@ -236,7 +269,7 @@ function tick(){
 tick();setInterval(tick,1000);
 
 /* ---------- 시작 ---------- */
-applyBg(bgId);applyIc(icK);
+applyTheme(thK);applyIc(icK);
 ICONS_READY.then(()=>{if(icK==='color')refreshAll()});
 refreshAll();
 })();
