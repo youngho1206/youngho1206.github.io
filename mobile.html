@@ -375,6 +375,8 @@ body{padding-top:calc(env(safe-area-inset-top) + 52px);padding-bottom:calc(env(s
 #msh .sheet{margin-bottom:calc(env(safe-area-inset-bottom) + 104px)}
 @media (max-width:360px){#topnav button{font-size:11.5px;gap:4px}#topnav button svg{display:none}}
 </style>
+<link rel="stylesheet" href="xmas.css?v=1">
+<script src="xmas.js?v=1"></script>
 </head>
 <body>
 <div class="bg"><i></i><i></i><i></i></div>
@@ -1330,7 +1332,7 @@ ICONS_READY.then(()=>{
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
-  'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
+  'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html','webthema/thema05.html','xmas.css','xmas.js'];
  var busy=false;
  function urls(){
   var u={};FILES.forEach(function(f){u[f]=1});
@@ -1477,7 +1479,7 @@ ICONS_READY.then(()=>{
   if(k==='default'){b.classList.remove('img');b.style.backgroundImage=''}
   else{b.classList.add('img');b.style.backgroundImage='url(mobilebg/'+k+'.jpg)'}
   try{localStorage.setItem('mbg.sel',k)}catch(e){}
-  var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',k==='default'?'#07070a':'#05060b');
+  var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',k==='default'?(window.XM&&XM.on()?'#243a6b':'#07070a'):'#05060b');
  }
  function showTheme(){
   var wrap=mk('thgrid'),sel=curBg();
@@ -1497,7 +1499,7 @@ ICONS_READY.then(()=>{
    var lst=mk('wtl');
    var paint=function(list){
     lst.innerHTML='';var cs=WT.sel;
-    [{id:'default',name:'기본페이지'}].concat(list||[]).forEach(function(t){
+    [{id:'default',name:'기본페이지 (크리스마스)'}].concat(list||[]).forEach(function(t){
      var b=mk('',null,'button');b.type='button';b.dataset.id=t.id;if(cs===t.id)b.className='on';
      b.appendChild(mk('',null,'i'));b.appendChild(document.createTextNode(t.name));lst.appendChild(b);
     });

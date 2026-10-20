@@ -25,6 +25,7 @@ const NOTICES=[
       tone: light = 밝은 배경(파란 글씨) / dark = 어두운 배경(흰 글씨)
    ===================================================================== */
 const WALLS=[
+ {id:'xmas',n:'크리스마스',tone:'dark'},
  {id:'bg13',n:'기본 하늘색',tone:'light'},
  {id:'sky02',n:'구름 하늘',tone:'dark'},
  {id:'sky05',n:'구름 언덕',tone:'dark'},
@@ -45,7 +46,8 @@ const K_BG='skyemu.bg',K_IC='skyemu.ic',K_TH='skyemu.theme',K_BGC='skyemu.bgc';
 /* 테마: sky = 기본(하늘색 글라스) / cyber = 사이버펑크. 배경은 테마마다 따로 기억합니다. */
 const CYW={id:'cyber',n:'네온 도시',tone:'dark'};   /* 사이버펑크 테마 전용 배경(그려서 만든 도시) */
 let thK=LS.get(K_TH)==='cyber'?'cyber':'sky';
-let bgSky=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgSky))bgSky='bg13';
+const XM_ON=document.documentElement.classList.contains('xmas');
+let bgSky=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgSky)||(XM_ON&&bgSky==='bg13')||(!XM_ON&&bgSky==='xmas'&&!LS.get('skyemu.xpick')))bgSky=XM_ON?'xmas':'bg13';
 let bgCy=LS.get(K_BGC);if(bgCy!=='cyber'&&!WALLS.some(w=>w.id===bgCy))bgCy='cyber';
 let bgId=thK==='cyber'?bgCy:bgSky;
 function applyBg(id){
@@ -77,7 +79,7 @@ const ICS=[
  {k:'bold',n:'단선 · 굵게',d:'선을 조금 더 굵게'},
  {k:'color',n:'컬러 · 기존 아이콘',d:'이전에 쓰던 색깔 아이콘'}
 ];
-let icK=LS.get(K_IC);if(!ICS.some(x=>x.k===icK))icK='auto';
+let icK=LS.get(K_IC);if(!ICS.some(x=>x.k===icK)||(XM_ON&&icK==='auto'))icK=XM_ON?'color':'auto';
 function applyIc(k){icK=k;root.dataset.ic=k==='color'?'auto':k;LS.set(K_IC,k)}
 
 /* 64x64 칸 안에 그린 단선 그림 (선 굵기·색은 CSS 가 정함) */

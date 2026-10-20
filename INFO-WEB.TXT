@@ -1,3 +1,13 @@
+12월 크리스마스 테마 작업내용 :
+- 버전선택 화면(index.html), 모바일 버전(mobile.html), 이전 PC버전(emulator.html)의 배경·아이콘·색을 크리스마스 느낌(눈 내리는 밤 · 전구 줄 · 빨강/초록/금색)으로 바꾸었습니다.
+- 기본 콘솔 아이콘을 새 크리스마스 아이콘(icons/ 폴더 24개)으로 교체했습니다.
+- 예전 기본 아이콘과 배경(검정·금색)은 테마 'Beta' 로 옮겨 두었습니다. (모바일: 테마 > 아이콘 · 스타일 테마 > Beta, 아이콘은 webthema/beta/ 폴더)
+- Beta 나 다른 테마를 고르면 크리스마스 효과가 자동으로 꺼지고, '기본페이지 (크리스마스)' 를 고르면 다시 켜집니다.
+- 새 파일: xmas.css, xmas.js, xmas/ (배경 2장), emuwall/xmas.jpg, emuwall/th_xmas.jpg, webthema/thema05.html, webthema/beta/ (아이콘 24개)
+- 수정 파일: index.html, index-select.html, mobile.html, emulator.html, skyhome.js, theme.js, webthema/themes.json, webthema/names.json, icons/ (24개), INFO-WEB.TXT (모두 같이 올려 주세요)
+- 업데이트가 안 보이면 '캐쉬삭제' 를 눌러 주세요.
+
+
 10월 20일 추가 작업내용 (2) :
 - 테마에 '노을 유리'(주황빛 유리 느낌 아이콘 + 노을 도시 배경)와 '파스텔 하늘'(연한 파랑 동그라미 아이콘 + 남색 선 그림)을 추가했습니다. 위쪽 '테마' 메뉴의 '아이콘 · 스타일 테마'에서 고를 수 있습니다.
 - 수정/새 파일: webthema/thema03.html, webthema/thema04.html, webthema/themes.json, webthema/names.json, INFO-WEB.TXT (모두 같이 올려 주세요)
