@@ -45,6 +45,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Orbitron:wght@700;900&display=swap">
 <link rel="stylesheet" href="skyemu.css?v=2">
+<link rel="stylesheet" href="metro.css?v=1">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 /* emulator */
@@ -1163,7 +1164,7 @@ ICONS_READY.then(()=>{
 
 </script>
 <script src="cyberbg.js?v=1"></script>
-<script src="skyhome.js?v=3"></script>
+<script src="skyhome.js?v=4"></script>
 <script>
 /* ---------- 기능 창(지도·메모·계산기) ---------- */
 function winOpen(it){document.getElementById('wt').textContent=it.n;document.getElementById('wf').src=it.href;document.getElementById('win').classList.add('on')}
@@ -1296,7 +1297,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 (function(){
  var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
-  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','skyhome.js','cyberbg.js','skyemu.css','dock.js','emudata.js','theme.js','themeadd.js','xmas.css','xmas.js','pctheme.js','pcplus.js',
+  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','skyhome.js','cyberbg.js','skyemu.css','metro.css','dock.js','emudata.js','theme.js','themeadd.js','xmas.css','xmas.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
   'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
  var busy=false;

@@ -142,12 +142,36 @@ const CATS=[
 ];
 let cat='all',view='grid',query='';
 
+/* ---------- Metro 타일 색 : [타일 배경색, 이름 글자색] — 여기서 마음대로 바꾸세요 ---------- */
+const METRO={
+ atari2600:['#a05000','#ffffff'], nes:['#e51400','#ffffff'],   sms:['#1ba1e2','#ffffff'],
+ pce:['#f0a30a','#1b1b1b'],       md:['#0050ef','#ffffff'],    gb:['#60a917','#ffffff'],
+ lynx:['#825a2c','#ffffff'],      snes:['#6a00ff','#ffffff'],   gg:['#d80073','#ffffff'],
+ psx:['#647687','#ffffff'],       vb:['#a20025','#ffffff'],     n64:['#008a00','#ffffff'],
+ ngp:['#00aba9','#ffffff'],       gbc:['#aa00ff','#ffffff'],    gba:['#76608a','#ffffff'],
+ mamegame:['#fa6800','#ffffff'],  nds:['#0072c6','#ffffff'],
+ dos:['#2d2d30','#9cff9c'],       win10:['#0078d7','#ffffff'],  win20:['#4617b4','#ffffff'],
+ win30:['#00a300','#ffffff'],     win31:['#008299','#ffffff'],  win95:['#2b5797','#ffffff'],
+ win98:['#7e3878','#ffffff'],
+ flash:['#fa6800','#ffffff'],     web:['#2b5797','#ffffff'],    cloud:['#1ba1e2','#ffffff'],
+ map:['#00a300','#ffffff'],       memo:['#e3a21a','#1b1b1b'],   calc:['#647687','#ffffff'],
+ files:['#2d89ef','#ffffff'],     clock:['#1d1d1d','#ffffff'],  cam:['#7e3878','#ffffff'],
+ gal:['#b91d47','#ffffff'],       cal:['#da532c','#ffffff'],    music:['#e51400','#ffffff'],
+ wall:['#603cba','#ffffff']
+};
+const METRO_FALL=['#2d89ef','#00a300','#da532c','#b91d47','#603cba','#00aba9','#e3a21a','#7e3878'];
+function metroOf(id){
+ if(METRO[id])return METRO[id];
+ let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;
+ return [METRO_FALL[h%METRO_FALL.length],'#ffffff'];
+}
 function cellHtml(x,i){
  const soon=x.t==='e'&&x.it.soon;
  const tag=x.t==='p'?'<span class="sk-tag">PC</span>':(soon?'<span class="sk-tag">준비중</span>':'');
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
- return `<div class="sk-cell" style="--d:${Math.min(i,30)*24}ms"><button type="button" class="sk-tile${soon?' soon':''}" data-t="${x.t}" data-id="${x.id}" title="${esc(x.n)}">`+
-  `<span class="sk-box">${tag}${artHtml(x)}</span><span class="sk-nm">${esc(x.n)}</span>${st}</button></div>`;
+ const m=metroOf(x.id);
+ return `<div class="sk-cell" style="--d:${Math.min(i,30)*24}ms"><button type="button" class="sk-tile mt${soon?' soon':''}" data-t="${x.t}" data-id="${x.id}" title="${esc(x.n)}" style="--mc:${m[0]};--fg:${m[1]}">`+
+  `<span class="mt-in">${tag}<span class="mt-nm">${esc(x.n)}</span>${st}</span></button></div>`;
 }
 function matches(x,s){
  const hay=(x.n+' '+x.id+' '+x.kw+' '+(x.it.l||'')+' '+(x.it.fn||'')).toLowerCase();
@@ -165,7 +189,7 @@ function render(){
   CATS.filter(c=>c.k==='all'||c.k==='tool').forEach(c=>c.items().forEach(x=>{const key=x.t+x.id;if(!seen.has(key)&&matches(x,s)){seen.add(key);items.push(x)}}));
  }else items=cur.items();
  const box=q('#cards');
- box.className='sk-grid'+(view==='list'?' lv':'');
+ box.className='sk-grid mtg'+(view==='list'?' lv':'');
  box.innerHTML=items.length?items.map(cellHtml).join(''):`<div class="sk-none">${s?'검색 결과가 없어요':'표시할 항목이 없어요'}</div>`;
  /* 이미 불러온 윈도우 이미지 상태 표시 유지 */
  if(window.__pcBadge)Object.keys(__pcBadge).forEach(id=>{const b=__pcBadge[id];window.badge&&badge(id,b.t,b.p)});
@@ -175,6 +199,28 @@ function refreshAll(){renderCats();render()}
 q('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.k;query='';q('#q').value='';refreshAll();q('#list').scrollTop=0};
 q('#q').oninput=e=>{query=e.target.value;render()};
 q('#bView').onclick=()=>{view=view==='grid'?'list':'grid';q('#bView').textContent=view==='grid'?'☰':'▦';q('#bView').title=view==='grid'?'목록으로 보기':'아이콘으로 보기';render()};
+
+/* =====================================================================
+   Metro 타일 움직임
+   · 마우스를 올리기만 했을 때 : 상자 '배경'(빛 · 광택)만 마우스를 따라 움직임
+   · 마우스를 누르고 있을 때   : 그 자리에서 눌린 쪽이 들어가며 기울어짐 (Win8 방식)
+   ===================================================================== */
+(function(){
+ const box=q('#cards');let down=null;
+ const TILT=11;   /* 최대 기울기(도) */
+ const rel=(e,t)=>{const r=t.getBoundingClientRect();return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}};
+ const tileOf=e=>e.target.closest&&e.target.closest('.sk-tile.mt');
+ function glow(t,p){const i=t.firstElementChild;i.style.setProperty('--mx',(p.x*100).toFixed(1)+'%');i.style.setProperty('--my',(p.y*100).toFixed(1)+'%');i.style.setProperty('--bx',(p.x*100).toFixed(1)+'%')}
+ function tilt(t,p){const i=t.firstElementChild;i.style.setProperty('--ry',((p.x-.5)*2*TILT).toFixed(2)+'deg');i.style.setProperty('--rx',((.5-p.y)*2*TILT).toFixed(2)+'deg')}
+ function release(){if(!down)return;const i=down.firstElementChild;down.classList.remove('press');i.style.setProperty('--rx','0deg');i.style.setProperty('--ry','0deg');down=null}
+ box.addEventListener('pointermove',e=>{const t=tileOf(e);if(!t)return;const p=rel(e,t);glow(t,p);if(down===t)tilt(t,p)});
+ box.addEventListener('pointerdown',e=>{
+  if(e.button>0)return;const t=tileOf(e);if(!t)return;
+  down=t;t.classList.add('press');const p=rel(e,t);glow(t,p);tilt(t,p);
+ });
+ box.addEventListener('pointerout',e=>{const t=tileOf(e);if(t&&t===down&&!t.contains(e.relatedTarget))release()});
+ addEventListener('pointerup',release);addEventListener('pointercancel',release);addEventListener('blur',release);
+})();
 
 /* 기종 아이콘을 누르면 → 기존 에뮬레이터 기능으로 연결 (openEmu / openPc / winOpen 은 emulator.html 의 기존 코드) */
 q('#cards').onclick=e=>{

@@ -1,0 +1,97 @@
+/* =====================================================================
+   metro.css — emulator.html 홈 화면 : Windows 8 Metro UI 타일
+   · 아이콘 대신 색깔 상자 안에 기종 이름만 표시
+   · 마우스를 올리면(클릭 전) 상자 '배경'만 움직임 (빛이 마우스를 따라감)
+   · 마우스를 누르고 있으면 그 자리에서 눌린 쪽으로 기울어짐 (Win8 방식)
+   · 타일 색 / 글자색은 skyhome.js 의 METRO 표에서 바꿀 수 있습니다.
+   ===================================================================== */
+
+/* 아이콘 스타일 선택은 이제 의미가 없어서 숨김 */
+#bIc{display:none!important}
+
+.sk .sk-grid.mtg{
+  width:min(1180px,100%);
+  grid-template-columns:repeat(auto-fill,minmax(158px,1fr));
+  gap:8px;
+}
+.sk .sk-grid.mtg .sk-cell{display:block;perspective:640px;transform-style:flat}
+
+/* 타일 바깥 버튼 (크기·클릭 영역만 담당) */
+.sk .sk-grid .sk-tile.mt{
+  position:relative;display:block;width:100%;aspect-ratio:1.55;
+  padding:0!important;margin:0;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none;
+  color:var(--fg,#fff);text-align:left;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+}
+.sk .sk-grid .sk-tile.mt:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* 실제로 색이 칠해지고 기울어지는 상자 */
+.mt-in{
+  position:absolute;inset:0;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:9px 11px 10px;
+  background-color:var(--mc,#2d89ef);
+  background-image:linear-gradient(160deg,rgba(255,255,255,.10),rgba(0,0,0,.12));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,0);
+  transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
+  transition:transform .16s cubic-bezier(.2,.8,.3,1),box-shadow .2s;
+  will-change:transform;
+}
+/* 마우스를 올렸을 때 움직이는 '배경' : 마우스를 따라다니는 빛 + 가로로 쓸리는 광택 */
+.mt-in:before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:
+    radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.34) 0,rgba(255,255,255,.12) 32%,rgba(255,255,255,0) 62%),
+    linear-gradient(105deg,rgba(255,255,255,0) 34%,rgba(255,255,255,.22) 50%,rgba(255,255,255,0) 66%);
+  background-size:100% 100%,300% 100%;
+  background-position:0 0,var(--bx,50%) 0;
+  background-repeat:no-repeat;
+  transition:opacity .25s;
+}
+.sk-tile.mt:hover .mt-in:before,
+.sk-tile.mt:focus-visible .mt-in:before,
+.sk-tile.mt.press .mt-in:before{opacity:1}
+.sk-tile.mt:hover .mt-in,
+.sk-tile.mt:focus-visible .mt-in{box-shadow:inset 0 0 0 2px rgba(255,255,255,.55)}
+
+/* 누르고 있는 동안 : 그 자리에서 기울어지며 살짝 작아짐 */
+.sk-tile.mt.press .mt-in{--sc:.965;transition:transform .06s linear,box-shadow .2s}
+
+/* 글자 */
+.mt-in>*{position:relative;z-index:1}
+.mt-nm{
+  display:block;max-width:100%;
+  font:600 15px/1.25 "Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  letter-spacing:.01em;color:var(--fg,#fff);
+  word-break:keep-all;overflow-wrap:anywhere;text-shadow:none;
+}
+.mt-in .sk-tag{
+  position:absolute;top:7px;right:8px;z-index:2;padding:1px 5px;border:1px solid currentColor;border-radius:0;
+  color:var(--fg,#fff);font:700 8.5px/1.4 system-ui,sans-serif;letter-spacing:.06em;opacity:.85;
+}
+.sk-tile.mt.soon .mt-in{filter:saturate(.55) brightness(.92)}
+.sk .mt-in .st{margin:2px 0 0;min-height:0;color:var(--fg,#fff);text-shadow:none;opacity:.9;font-size:11px}
+.sk .mt-in .st:empty{display:none}
+.sk .mt-in .pb{width:100%;height:3px;margin:5px 0 0;background:rgba(255,255,255,.35)}
+.sk .mt-in .pb i{background:#fff}
+
+/* 목록 보기(☰) : 가로로 긴 막대 타일 */
+.sk .sk-grid.mtg.lv{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px}
+.sk .sk-grid.mtg.lv .sk-tile.mt{aspect-ratio:auto;height:54px}
+.sk .sk-grid.mtg.lv .mt-in{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:0 14px}
+.sk .sk-grid.mtg.lv .mt-in .sk-tag{position:static;margin-left:auto}
+
+/* 사이버펑크 테마에서도 Metro 타일은 각지게 그대로 */
+.sk[data-theme=cyber] .sk-grid.mtg .sk-tile.mt{border:0!important;background:transparent!important}
+
+@media (max-width:640px){
+  .sk .sk-grid.mtg{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+  .mt-nm{font-size:13px}
+  .mt-in{padding:7px 8px 8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .mt-in{transition:none!important}
+  .sk-tile.mt.press .mt-in{--sc:1}
+}
