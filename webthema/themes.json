@@ -1,10 +1,6 @@
 {
   "themes": [
     {
-      "id": "thema05",
-      "name": "Beta"
-    },
-    {
       "id": "thema01",
       "name": "아침"
     },
@@ -19,6 +15,10 @@
     {
       "id": "thema04",
       "name": "파스텔 하늘"
+    },
+    {
+      "id": "thema05",
+      "name": "아이폰 4"
     }
   ]
 }
