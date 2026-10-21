@@ -15,6 +15,7 @@ const root=q('#sky');
    1) 공지사항 — 아래 목록만 고치면 됩니다. (맨 위가 가장 최신)
    ===================================================================== */
 const NOTICES=[
+ {d:'2026.10.21',t:'크리스마스 테마 적용',b:'눈 내리는 포근한 겨울 화면과 귀여운 크리스마스 아이콘으로 바뀌었어요. 예전 느낌은 오른쪽 위 [테마선택]에서 고를 수 있어요.'},
  {d:'2026.10.20',t:'사이버펑크 테마 추가',b:'오른쪽 위의 [테마선택]에서 사이버펑크 스타일을 고를 수 있어요. 네온 도시 배경과 각진 네온 메뉴로 바뀌어요.'},
  {d:'2026.10.20',t:'새 디자인 적용',b:'Retro PC Web Emulator 화면으로 새롭게 바뀌었어요. 오른쪽 위의 [배경선택]·[아이콘선택]에서 취향대로 바꿀 수 있어요.'},
  {d:'',t:'이용 안내',b:'ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요. 이 사이트는 게임 파일을 제공하지 않습니다.'}
@@ -25,7 +26,6 @@ const NOTICES=[
       tone: light = 밝은 배경(파란 글씨) / dark = 어두운 배경(흰 글씨)
    ===================================================================== */
 const WALLS=[
- {id:'xmas',n:'크리스마스',tone:'dark'},
  {id:'bg13',n:'기본 하늘색',tone:'light'},
  {id:'sky02',n:'구름 하늘',tone:'dark'},
  {id:'sky05',n:'구름 언덕',tone:'dark'},
@@ -42,29 +42,39 @@ const WALLS=[
  {id:'sky14',n:'숲 줄무늬',tone:'dark'},
  {id:'sky08',n:'다크 메탈',tone:'dark'}
 ];
-const K_BG='skyemu.bg',K_IC='skyemu.ic',K_TH='skyemu.theme',K_BGC='skyemu.bgc';
+const K_BG='skyemu.bg',K_IC='skyemu.ic2',K_TH='skyemu.theme2',K_BGC='skyemu.bgc',K_BGX='skyemu.bgx';
+/* 크리스마스 테마 전용 배경(직접 그린 겨울 풍경) */
+const XMW=[
+ {id:'xmas1',n:'오두막 겨울밤',tone:'dark'},
+ {id:'xmas2',n:'크리스마스 트리',tone:'dark'},
+ {id:'xmas3',n:'오로라 마을',tone:'dark'},
+ {id:'xmas4',n:'눈사람',tone:'dark'}
+];
 /* 테마: sky = 기본(하늘색 글라스) / cyber = 사이버펑크. 배경은 테마마다 따로 기억합니다. */
 const CYW={id:'cyber',n:'네온 도시',tone:'dark'};   /* 사이버펑크 테마 전용 배경(그려서 만든 도시) */
-let thK=LS.get(K_TH)==='cyber'?'cyber':'sky';
-const XM_ON=document.documentElement.classList.contains('xmas');
-let bgSky=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgSky)||(XM_ON&&bgSky==='bg13')||(!XM_ON&&bgSky==='xmas'&&!LS.get('skyemu.xpick')))bgSky=XM_ON?'xmas':'bg13';
+let thK=['xmas','sky','cyber'].includes(LS.get(K_TH))?LS.get(K_TH):'xmas';
+let bgX=LS.get(K_BGX);if(!XMW.some(w=>w.id===bgX)&&!WALLS.some(w=>w.id===bgX))bgX='xmas1';
+let bgSky=LS.get(K_BG);if(!WALLS.some(w=>w.id===bgSky))bgSky='bg13';
 let bgCy=LS.get(K_BGC);if(bgCy!=='cyber'&&!WALLS.some(w=>w.id===bgCy))bgCy='cyber';
-let bgId=thK==='cyber'?bgCy:bgSky;
+let bgId=thK==='cyber'?bgCy:thK==='xmas'?bgX:bgSky;
 function applyBg(id){
  const cy=thK==='cyber'&&id==='cyber';
- const w=cy?CYW:(WALLS.find(x=>x.id===id)||WALLS[0]);
- bgId=w.id;if(thK==='cyber')bgCy=w.id;else bgSky=w.id;
+ const pool=thK==='xmas'?XMW.concat(WALLS):WALLS;
+ const w=cy?CYW:(pool.find(x=>x.id===id)||pool[0]);
+ bgId=w.id;if(thK==='cyber')bgCy=w.id;else if(thK==='xmas')bgX=w.id;else bgSky=w.id;
  document.documentElement.toggleAttribute('data-cybg',cy);
+ document.documentElement.toggleAttribute('data-xmas',thK==='xmas');
  if(window.CyberBG){if(cy)CyberBG.on();else CyberBG.off()}
+ if(window.XmasSnow){if(thK==='xmas')XmasSnow.on(-1);else XmasSnow.off()}
  if(!cy)q('#pagebg').style.backgroundImage=`url("emuwall/${w.id}.jpg")`;
  root.dataset.tone=w.tone;
- const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cy?'#05050f':(w.tone==='dark'?'#141a2a':'#8fc3f0'));
- LS.set(thK==='cyber'?K_BGC:K_BG,w.id);
+ const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cy?'#05050f':(thK==='xmas'?'#1b1f4b':(w.tone==='dark'?'#141a2a':'#8fc3f0')));
+ LS.set(thK==='cyber'?K_BGC:(thK==='xmas'?K_BGX:K_BG),w.id);
 }
 function applyTheme(t){
- thK=t==='cyber'?'cyber':'sky';
+ thK=['xmas','sky','cyber'].includes(t)?t:'xmas';
  root.dataset.theme=thK;LS.set(K_TH,thK);
- applyBg(thK==='cyber'?bgCy:bgSky);
+ applyBg(thK==='cyber'?bgCy:(thK==='xmas'?bgX:bgSky));
 }
 
 /* =====================================================================
@@ -72,14 +82,14 @@ function applyTheme(t){
       단선 아이콘은 직접 그린 선 그림(SVG)이고, '컬러'는 기존 아이콘(icons/ 폴더 PNG)입니다.
    ===================================================================== */
 const ICS=[
- {k:'auto',n:'단선 · 자동',d:'배경 밝기에 맞춰 선 색이 바뀌어요 (기본)'},
+ {k:'color',n:'컬러 · 크리스마스 아이콘',d:'귀엽고 따뜻한 크리스마스 컬러 아이콘 (기본)'},
+ {k:'auto',n:'단선 · 자동',d:'배경 밝기에 맞춰 선 색이 바뀌어요'},
  {k:'sky',n:'단선 · 하늘색',d:'하늘색 가는 선'},
  {k:'white',n:'단선 · 흰색',d:'흰색 가는 선'},
  {k:'navy',n:'단선 · 진한 파랑',d:'또렷한 남색 선'},
- {k:'bold',n:'단선 · 굵게',d:'선을 조금 더 굵게'},
- {k:'color',n:'컬러 · 기존 아이콘',d:'이전에 쓰던 색깔 아이콘'}
+ {k:'bold',n:'단선 · 굵게',d:'선을 조금 더 굵게'}
 ];
-let icK=LS.get(K_IC);if(!ICS.some(x=>x.k===icK)||(XM_ON&&icK==='auto'))icK=XM_ON?'color':'auto';
+let icK=LS.get(K_IC);if(!ICS.some(x=>x.k===icK))icK='color';
 function applyIc(k){icK=k;root.dataset.ic=k==='color'?'auto':k;LS.set(K_IC,k)}
 
 /* 64x64 칸 안에 그린 단선 그림 (선 굵기·색은 CSS 가 정함) */
@@ -142,36 +152,12 @@ const CATS=[
 ];
 let cat='all',view='grid',query='';
 
-/* ---------- Metro 타일 색 : [타일 배경색, 이름 글자색] — 여기서 마음대로 바꾸세요 ---------- */
-const METRO={
- atari2600:['#a05000','#ffffff'], nes:['#e51400','#ffffff'],   sms:['#1ba1e2','#ffffff'],
- pce:['#f0a30a','#1b1b1b'],       md:['#0050ef','#ffffff'],    gb:['#60a917','#ffffff'],
- lynx:['#825a2c','#ffffff'],      snes:['#6a00ff','#ffffff'],   gg:['#d80073','#ffffff'],
- psx:['#647687','#ffffff'],       vb:['#a20025','#ffffff'],     n64:['#008a00','#ffffff'],
- ngp:['#00aba9','#ffffff'],       gbc:['#aa00ff','#ffffff'],    gba:['#76608a','#ffffff'],
- mamegame:['#fa6800','#ffffff'],  nds:['#0072c6','#ffffff'],
- dos:['#2d2d30','#9cff9c'],       win10:['#0078d7','#ffffff'],  win20:['#4617b4','#ffffff'],
- win30:['#00a300','#ffffff'],     win31:['#008299','#ffffff'],  win95:['#2b5797','#ffffff'],
- win98:['#7e3878','#ffffff'],
- flash:['#fa6800','#ffffff'],     web:['#2b5797','#ffffff'],    cloud:['#1ba1e2','#ffffff'],
- map:['#00a300','#ffffff'],       memo:['#e3a21a','#1b1b1b'],   calc:['#647687','#ffffff'],
- files:['#2d89ef','#ffffff'],     clock:['#1d1d1d','#ffffff'],  cam:['#7e3878','#ffffff'],
- gal:['#b91d47','#ffffff'],       cal:['#da532c','#ffffff'],    music:['#e51400','#ffffff'],
- wall:['#603cba','#ffffff']
-};
-const METRO_FALL=['#2d89ef','#00a300','#da532c','#b91d47','#603cba','#00aba9','#e3a21a','#7e3878'];
-function metroOf(id){
- if(METRO[id])return METRO[id];
- let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))>>>0;
- return [METRO_FALL[h%METRO_FALL.length],'#ffffff'];
-}
 function cellHtml(x,i){
  const soon=x.t==='e'&&x.it.soon;
  const tag=x.t==='p'?'<span class="sk-tag">PC</span>':(soon?'<span class="sk-tag">준비중</span>':'');
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
- const m=metroOf(x.id);
- return `<div class="sk-cell" style="--d:${Math.min(i,30)*24}ms"><button type="button" class="sk-tile mt${soon?' soon':''}" data-t="${x.t}" data-id="${x.id}" title="${esc(x.n)}" style="--mc:${m[0]};--fg:${m[1]}">`+
-  `<span class="mt-in">${tag}<span class="mt-nm">${esc(x.n)}</span>${st}</span></button></div>`;
+ return `<div class="sk-cell" style="--d:${Math.min(i,30)*24}ms"><button type="button" class="sk-tile${soon?' soon':''}" data-t="${x.t}" data-id="${x.id}" title="${esc(x.n)}">`+
+  `<span class="sk-box">${tag}${artHtml(x)}</span><span class="sk-nm">${esc(x.n)}</span>${st}</button></div>`;
 }
 function matches(x,s){
  const hay=(x.n+' '+x.id+' '+x.kw+' '+(x.it.l||'')+' '+(x.it.fn||'')).toLowerCase();
@@ -189,7 +175,7 @@ function render(){
   CATS.filter(c=>c.k==='all'||c.k==='tool').forEach(c=>c.items().forEach(x=>{const key=x.t+x.id;if(!seen.has(key)&&matches(x,s)){seen.add(key);items.push(x)}}));
  }else items=cur.items();
  const box=q('#cards');
- box.className='sk-grid mtg'+(view==='list'?' lv':'');
+ box.className='sk-grid'+(view==='list'?' lv':'');
  box.innerHTML=items.length?items.map(cellHtml).join(''):`<div class="sk-none">${s?'검색 결과가 없어요':'표시할 항목이 없어요'}</div>`;
  /* 이미 불러온 윈도우 이미지 상태 표시 유지 */
  if(window.__pcBadge)Object.keys(__pcBadge).forEach(id=>{const b=__pcBadge[id];window.badge&&badge(id,b.t,b.p)});
@@ -199,28 +185,6 @@ function refreshAll(){renderCats();render()}
 q('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.k;query='';q('#q').value='';refreshAll();q('#list').scrollTop=0};
 q('#q').oninput=e=>{query=e.target.value;render()};
 q('#bView').onclick=()=>{view=view==='grid'?'list':'grid';q('#bView').textContent=view==='grid'?'☰':'▦';q('#bView').title=view==='grid'?'목록으로 보기':'아이콘으로 보기';render()};
-
-/* =====================================================================
-   Metro 타일 움직임
-   · 마우스를 올리기만 했을 때 : 상자 '배경'(빛 · 광택)만 마우스를 따라 움직임
-   · 마우스를 누르고 있을 때   : 그 자리에서 눌린 쪽이 들어가며 기울어짐 (Win8 방식)
-   ===================================================================== */
-(function(){
- const box=q('#cards');let down=null;
- const TILT=11;   /* 최대 기울기(도) */
- const rel=(e,t)=>{const r=t.getBoundingClientRect();return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}};
- const tileOf=e=>e.target.closest&&e.target.closest('.sk-tile.mt');
- function glow(t,p){const i=t.firstElementChild;i.style.setProperty('--mx',(p.x*100).toFixed(1)+'%');i.style.setProperty('--my',(p.y*100).toFixed(1)+'%');i.style.setProperty('--bx',(p.x*100).toFixed(1)+'%')}
- function tilt(t,p){const i=t.firstElementChild;i.style.setProperty('--ry',((p.x-.5)*2*TILT).toFixed(2)+'deg');i.style.setProperty('--rx',((.5-p.y)*2*TILT).toFixed(2)+'deg')}
- function release(){if(!down)return;const i=down.firstElementChild;down.classList.remove('press');i.style.setProperty('--rx','0deg');i.style.setProperty('--ry','0deg');down=null}
- box.addEventListener('pointermove',e=>{const t=tileOf(e);if(!t)return;const p=rel(e,t);glow(t,p);if(down===t)tilt(t,p)});
- box.addEventListener('pointerdown',e=>{
-  if(e.button>0)return;const t=tileOf(e);if(!t)return;
-  down=t;t.classList.add('press');const p=rel(e,t);glow(t,p);tilt(t,p);
- });
- box.addEventListener('pointerout',e=>{const t=tileOf(e);if(t&&t===down&&!t.contains(e.relatedTarget))release()});
- addEventListener('pointerup',release);addEventListener('pointercancel',release);addEventListener('blur',release);
-})();
 
 /* 기종 아이콘을 누르면 → 기존 에뮬레이터 기능으로 연결 (openEmu / openPc / winOpen 은 emulator.html 의 기존 코드) */
 q('#cards').onclick=e=>{
@@ -260,7 +224,7 @@ q('#bInfo').onclick=()=>{
 q('#bVer').onclick=()=>{location.href='index.html?select=1'};
 
 q('#bBg').onclick=()=>{
- const list=thK==='cyber'?[CYW].concat(WALLS):WALLS;
+ const list=thK==='cyber'?[CYW].concat(WALLS):(thK==='xmas'?XMW.concat(WALLS):WALLS);
  const tile=w=>w.id==='cyber'
   ?`<button type="button" class="sk-wp cy${w.id===bgId?' on':''}" data-id="cyber" title="${esc(w.n)}"><span>${esc(w.n)}</span></button>`
   :`<button type="button" class="sk-wp${w.id===bgId?' on':''}" data-id="${w.id}" title="${esc(w.n)}"><img src="emuwall/th_${w.id}.jpg" alt="" loading="lazy" draggable="false"><span>${esc(w.n)}</span></button>`;
@@ -272,9 +236,10 @@ q('#bBg').onclick=()=>{
  };
 };
 
-/* 테마선택 : 기본(하늘색) / 사이버펑크 */
+/* 테마선택 : 크리스마스 / 하늘색 / 사이버펑크 */
 const THEMES=[
- {k:'sky',n:'기본 · 하늘색 글라스',d:'밝고 투명한 하늘색 화면 (기본)',p:'sky'},
+ {k:'xmas',n:'크리스마스',d:'눈 내리는 포근한 겨울 · 귀여운 크리스마스 (기본)',p:'xm'},
+ {k:'sky',n:'하늘색 글라스',d:'밝고 투명한 하늘색 화면 (이전 기본)',p:'sky'},
  {k:'cyber',n:'사이버펑크',d:'네온 도시 배경 · 각진 네온 메뉴 · 스캔라인',p:'cy'}
 ];
 q('#bTheme').onclick=()=>{

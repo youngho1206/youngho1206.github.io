@@ -340,3 +340,71 @@ html[data-cybg] #pagebg{display:none}
 .sk[data-theme=cyber] .sk-pv{background:#0a0716;border-radius:0}
 .sk[data-theme=cyber] .sk-pv .pb1{border-radius:0;border-color:rgba(0,240,255,.6);background:rgba(0,240,255,.08)}
 @media (prefers-reduced-motion:reduce){.sk[data-theme=cyber] .sk-title:before,.sk[data-theme=cyber] .sk-title:after{animation:none!important}}
+
+/* =====================================================================
+   크리스마스 테마  (.sk[data-theme=xmas])  — 기본 테마
+   · 눈 내리는 겨울 풍경 + 둥글둥글 귀여운 모양. 배경 눈은 xmas.js 가 그립니다.
+   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+html[data-xmas]{background:#1b1f4b;--acc:#ffcf7d;--acc2:#fff0c8;--line:rgba(255,214,170,.32)}
+html[data-xmas] #pagebg{background-color:#1b1f4b}
+html[data-xmas] #pagebg:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(18,14,58,.22),rgba(18,14,58,.1) 45%,rgba(22,16,60,.5))}
+.sk[data-theme=xmas]{
+ --jua:Jua,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+ --ink-auto:#fff;--ink-sky:#ffe0a8;--ink-navy:#ffd0d5;
+ --lbl:#fff;--lbl-sh:0 2px 6px rgba(10,6,40,.7);
+ --tfill:rgba(255,255,255,.2);--tfill-h:rgba(255,255,255,.34);--tbd:rgba(255,255,255,.6);--tsh:0 10px 22px rgba(10,6,40,.35);
+ --btnfill:rgba(46,28,80,.55);--btnfill-h:rgba(232,73,91,.9);--btntxt:#fff;--btnbd:rgba(255,255,255,.6);
+ --pan:#fff8ef;--pantxt:#5b3340;--pansub:#8a6670;--panbd:#e8495b;
+ --fine:rgba(255,240,230,.9);--selc:#e8495b;
+ font-family:var(--jua)}
+.sk[data-theme=xmas] .sk-title{font-family:var(--jua);font-weight:400;letter-spacing:.02em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;-webkit-text-stroke:0;opacity:1;
+ text-shadow:2px 0 #d63c52,-2px 0 #d63c52,0 2px #d63c52,0 -2px #d63c52,1.5px 1.5px #d63c52,-1.5px -1.5px #d63c52,1.5px -1.5px #d63c52,-1.5px 1.5px #d63c52,0 5px 0 #a8263d,0 14px 24px rgba(10,6,40,.45);filter:none}
+.sk[data-theme=xmas] .sk-b{border-radius:99px;border-width:2px;font-family:var(--jua);font-weight:400;font-size:14px;box-shadow:0 3px 0 rgba(10,6,40,.45)}
+.sk[data-theme=xmas] .sk-b:hover{background:var(--btnfill-h);box-shadow:0 5px 0 rgba(10,6,40,.45);transform:translateY(-1px)}
+.sk[data-theme=xmas] .sk-cats button{border-radius:99px;font-family:var(--jua);font-weight:400;font-size:14px;color:#f3e6f8}
+.sk[data-theme=xmas] .sk-cats button:hover{background:rgba(255,255,255,.18)}
+.sk[data-theme=xmas] .sk-cats button.on{color:#fff;background:linear-gradient(135deg,#ff8a96,#e8495b 70%);border-color:#ffd3d8;box-shadow:0 3px 0 #a8263d}
+.sk[data-theme=xmas] .sk-sch,.sk[data-theme=xmas] .sk-sq{border-radius:99px;border-width:2px}
+.sk[data-theme=xmas] .sk-box{border-radius:26px;border-width:2px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+ background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,.08))}
+.sk[data-theme=xmas] .sk-box:before{content:"";display:block;position:absolute;left:14%;top:-9px;width:72%;height:16px;border:0;opacity:1!important;pointer-events:none;border-radius:9px 9px 0 0;
+ background:radial-gradient(circle 6px at 10% 10px,#fff 96%,transparent 100%),radial-gradient(circle 8px at 36% 11px,#fff 96%,transparent 100%),radial-gradient(circle 5px at 62% 10px,#fff 96%,transparent 100%),radial-gradient(circle 7px at 86% 11px,#fff 96%,transparent 100%),linear-gradient(#fff,#fff) 0 0/100% 9px no-repeat;
+ filter:drop-shadow(0 2px 2px rgba(20,20,80,.3))}
+.sk[data-theme=xmas] .sk-box:after{display:none}
+.sk[data-theme=xmas] .sk-tile:hover .sk-box,.sk[data-theme=xmas] .sk-tile:focus-visible .sk-box{border-color:#ffe9c8;transform:translateY(-5px) rotate(-1deg);box-shadow:0 16px 30px rgba(10,6,40,.42),0 0 26px rgba(255,200,140,.4)}
+.sk[data-theme=xmas] .sk-box img{width:84%;height:84%;filter:drop-shadow(0 4px 5px rgba(10,6,40,.35))}
+.sk[data-theme=xmas] .sk-nm{font-family:var(--jua);font-weight:400;font-size:14px;letter-spacing:.02em}
+.sk[data-theme=xmas] .sk-tag{border-radius:99px;background:#e8495b;color:#fff;border-color:#fff;opacity:1;font-family:var(--jua);font-weight:400}
+.sk[data-theme=xmas] .sk-grid.lv .sk-tile{border-radius:20px;border:2px solid var(--tbd)}
+.sk[data-theme=xmas] .sk-grid.lv .sk-box{border:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+.sk[data-theme=xmas] .sk-grid.lv .sk-box:before{display:none}
+.sk[data-theme=xmas] .pb{background:rgba(255,255,255,.3)}
+.sk[data-theme=xmas] .pb i{background:linear-gradient(90deg,#ff8a96,#ffcf7d)}
+/* 팝업 : 사탕 줄무늬 테두리 종이 카드 */
+.sk[data-theme=xmas] #skm{background:rgba(22,10,44,.6)}
+.sk[data-theme=xmas] .skm-box{border:6px solid transparent;border-radius:26px;-webkit-backdrop-filter:none;backdrop-filter:none;
+ background:#fff8ef padding-box,repeating-linear-gradient(45deg,#e8495b 0 12px,#fff 12px 24px) border-box;box-shadow:0 24px 60px rgba(10,6,40,.6)}
+.sk[data-theme=xmas] .skm-h{border-bottom:2px dotted rgba(232,73,91,.35)}
+.sk[data-theme=xmas] .skm-h b{font-family:var(--jua);font-weight:400;font-size:22px;color:#e8495b}
+.sk[data-theme=xmas] .skm-x{border-radius:50%;border:2px solid #e8495b;color:#e8495b}
+.sk[data-theme=xmas] .skm-x:hover{background:#e8495b;color:#fff}
+.sk[data-theme=xmas] .skm-note{border-bottom-color:rgba(232,73,91,.3)}
+.sk[data-theme=xmas] .skm-note h4{color:#e8495b;font-family:var(--jua);font-weight:400;font-size:16px}
+.sk[data-theme=xmas] .sk-wp{border-radius:16px}
+.sk[data-theme=xmas] .sk-wp.on{border-color:#e8495b;box-shadow:0 0 0 2px #fff}
+.sk[data-theme=xmas] .sk-wp.on:after{background:#e8495b}
+.sk[data-theme=xmas] .sk-ico,.sk[data-theme=xmas] .sk-th{border-radius:18px;border:2px solid rgba(232,73,91,.35);background:#fff}
+.sk[data-theme=xmas] .sk-ico:hover,.sk[data-theme=xmas] .sk-th:hover{background:#ffeef0}
+.sk[data-theme=xmas] .sk-ico.on,.sk[data-theme=xmas] .sk-th.on{border-color:#e8495b;box-shadow:inset 0 0 0 1px #e8495b;background:#ffe9ec}
+.sk[data-theme=xmas] .sk-pv{background:linear-gradient(135deg,#3b2f7a,#8a4a8a);border-radius:12px}
+.sk[data-theme=xmas] .sk-pv .pb1{border-radius:10px}
+.thp.xm{background:linear-gradient(160deg,#2b2a6a,#7a4a8a 60%,#e98aa0)}
+.thp.xm i{background:rgba(255,255,255,.28);border:1px solid #fff;border-radius:30%}
+.sk[data-theme=xmas] .thp{border-radius:10px}
+/* 실행 화면 / 안내창 */
+html[data-xmas] #bar,html[data-xmas] #pbar{background:rgba(46,28,76,.95)}
+html[data-xmas] #drop,html[data-xmas] #pmsg{background:radial-gradient(circle at 50% 38%,#4a2b66,#170f30 72%)}
+html[data-xmas] .btn{color:#fff;background:linear-gradient(135deg,#ff9aa4,#e8495b 62%,#b82a40);box-shadow:0 5px 0 #8f2236,0 12px 28px rgba(232,73,91,.4)}
+html[data-xmas] #toast,html[data-xmas] #resdlg .rbox{background:rgba(44,28,74,.96)}
+@media (prefers-reduced-motion:reduce){.sk[data-theme=xmas] *{transition:none!important}}

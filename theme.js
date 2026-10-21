@@ -19,6 +19,9 @@
   get(){try{return localStorage.getItem(KEY)}catch(_){return null}},
   set(v){try{localStorage.setItem(KEY,v)}catch(_){}}
  };
+ /* 기본 테마(크리스마스)일 때만 <html class="xmas"> 를 켭니다. 다른 테마(Beta 등)를 고르면 꺼져서 예전 디자인이 그대로 보입니다. */
+ const xmasOn=on=>{try{document.documentElement.classList.toggle('xmas',!!on)}catch(_){}};
+ {const _s=store.get();xmasOn(!_s||_s===DEF)}
  const tcMeta=()=>document.querySelector('meta[name="theme-color"]');
  const timeout=(ms)=>new Promise((_,rej)=>setTimeout(()=>rej(Error('timeout')),ms));
 
@@ -103,12 +106,12 @@
  /* ---------- 적용 ---------- */
  WT.apply=async function(id){
   if(!id||id===DEF){
-   setCss('');WT.map=null;WT.sel=DEF;setTC(null);store.set(DEF);
+   setCss('');WT.map=null;WT.sel=DEF;setTC(null);store.set(DEF);xmasOn(true);
    WT.refreshIcons();fire();return;
   }
   const th=await loadTheme(id);
   await preload(th.icons);
-  setCss(th.css);WT.map=th.icons;WT.sel=id;setTC(th.tc);store.set(id);
+  setCss(th.css);WT.map=th.icons;WT.sel=id;setTC(th.tc);store.set(id);xmasOn(false);
   WT.refreshIcons();fire();
  };
 
@@ -117,7 +120,7 @@
     ② themes.json 이 없으면 thema01~30 / theme01~30 을 '한꺼번에 동시에' 확인합니다.
     ③ 이전에 받은 목록은 브라우저에 기억해 두고, 메뉴를 누르면 바로 보여준 뒤
        페이지가 열릴 때 뒤에서 미리 새로고침합니다. */
- const LKEY='wt.list';
+ const LKEY='wt.list2';
  const fetchT=(u,o,ms)=>Promise.race([fetch(u,o),timeout(ms||5000)]);
  try{const c=JSON.parse(localStorage.getItem(LKEY)||'null');if(Array.isArray(c)&&c.length)WT.themes=c}catch(_){}
  async function scanList(){
@@ -166,7 +169,7 @@
   if(hasSaved){
    try{await Promise.race([WT.apply(saved),timeout(6000)])}
    catch(_){ /* 테마 파일이 지워졌거나 느린 경우 → 기본으로 */
-    setCss('');WT.map=null;WT.sel=DEF;setTC(null);store.set(DEF);
+    setCss('');WT.map=null;WT.sel=DEF;setTC(null);store.set(DEF);xmasOn(true);
    }
   }
   reveal();

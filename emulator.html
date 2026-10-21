@@ -35,7 +35,7 @@
 })();
 </script>
 
-<meta name="theme-color" content="#02050f">
+<meta name="theme-color" content="#1b1f4b">
 <script src="theme.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -44,8 +44,7 @@
 <link rel="stylesheet" href="perf.css?v=1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Orbitron:wght@700;900&display=swap">
-<link rel="stylesheet" href="skyemu.css?v=2">
-<link rel="stylesheet" href="metro.css?v=1">
+<link rel="stylesheet" href="skyemu.css?v=3">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 /* emulator */
@@ -269,13 +268,11 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
 }
 </style>
 <script src="pctheme.js"></script>
-<link rel="stylesheet" href="xmas.css?v=1">
-<script src="xmas.js?v=1"></script>
 </head>
 <body>
 <div id="pagebg"></div>
 <div class="arc sk" id="sky" data-tone="light" data-ic="auto">
- <script>try{if(localStorage.getItem("skyemu.theme")==="cyber"){var s=document.getElementById("sky");s.dataset.theme="cyber";s.dataset.tone="dark";if((localStorage.getItem("skyemu.bgc")||"cyber")==="cyber")document.documentElement.setAttribute("data-cybg","")}}catch(e){}</script>
+ <script>try{var t=localStorage.getItem("skyemu.theme2")||"xmas",s=document.getElementById("sky");if(t==="cyber"){s.dataset.theme="cyber";s.dataset.tone="dark";if((localStorage.getItem("skyemu.bgc")||"cyber")==="cyber")document.documentElement.setAttribute("data-cybg","")}else if(t==="xmas"){s.dataset.theme="xmas";s.dataset.tone="dark";document.documentElement.setAttribute("data-xmas","")}}catch(e){}</script>
  <header class="sk-hd">
   <div class="sk-l">
    <button type="button" class="sk-b" id="bNotice" title="공지사항"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L13 18.5v-13L7.5 9.5z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></svg>공지사항</button>
@@ -285,7 +282,7 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
   <div class="sk-t"><h1 class="sk-title" data-t="Retro PC Web Emulator">Retro PC Web Emulator</h1></div>
   <div class="sk-r">
    <button type="button" class="sk-b js-cache" id="bCache" title="저장된 캐쉬를 지우고 최신 버전으로 새로 불러옵니다"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9.5 7V4.8h5V7M7 7l.8 12h8.4L17 7"/></svg>캐쉬지우기</button>
-   <button type="button" class="sk-b" id="bTheme" title="테마 선택 (기본 · 사이버펑크)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 1 0 0 15c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.2-1.5-1.2-2.6 0-.9.8-1.5 1.8-1.5H17a3.5 3.5 0 0 0 3.5-3.5C20.5 7.3 16.8 4.5 12 4.5z"/><circle cx="8" cy="11" r="1"/><circle cx="11.5" cy="8" r="1"/><circle cx="15.5" cy="9" r="1"/></svg>테마선택</button>
+   <button type="button" class="sk-b" id="bTheme" title="테마 선택 (크리스마스 · 하늘색 · 사이버펑크)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 1 0 0 15c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.2-1.5-1.2-2.6 0-.9.8-1.5 1.8-1.5H17a3.5 3.5 0 0 0 3.5-3.5C20.5 7.3 16.8 4.5 12 4.5z"/><circle cx="8" cy="11" r="1"/><circle cx="11.5" cy="8" r="1"/><circle cx="15.5" cy="9" r="1"/></svg>테마선택</button>
    <button type="button" class="sk-b" id="bBg" title="배경화면 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4.5 17l5-4.5 3.5 3 3-2.5 3.5 3.5"/></svg>배경선택</button>
    <button type="button" class="sk-b" id="bIc" title="아이콘 스타일 선택"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="6" height="6"/><rect x="13.5" y="4.5" width="6" height="6"/><rect x="4.5" y="13.5" width="6" height="6"/><rect x="13.5" y="13.5" width="6" height="6"/></svg>아이콘선택</button>
   </div>
@@ -1163,8 +1160,9 @@ ICONS_READY.then(()=>{
 });
 
 </script>
+<script src="xmas.js?v=1"></script>
 <script src="cyberbg.js?v=1"></script>
-<script src="skyhome.js?v=4"></script>
+<script src="skyhome.js?v=3"></script>
 <script>
 /* ---------- 기능 창(지도·메모·계산기) ---------- */
 function winOpen(it){document.getElementById('wt').textContent=it.n;document.getElementById('wf').src=it.href;document.getElementById('win').classList.add('on')}
@@ -1297,7 +1295,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 (function(){
  var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
-  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','skyhome.js','cyberbg.js','skyemu.css','metro.css','dock.js','emudata.js','theme.js','themeadd.js','xmas.css','xmas.js','pctheme.js','pcplus.js',
+  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','skyhome.js','cyberbg.js','xmas.js','xmas.css','skyemu.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
   'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
  var busy=false;

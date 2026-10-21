@@ -35,7 +35,7 @@
 })();
 </script>
 
-<meta name="theme-color" content="#07070a">
+<meta name="theme-color" content="#1b1f4b">
 <script src="theme.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -376,14 +376,15 @@ body{padding-top:calc(env(safe-area-inset-top) + 52px);padding-bottom:calc(env(s
 @media (max-width:360px){#topnav button{font-size:11.5px;gap:4px}#topnav button svg{display:none}}
 </style>
 <link rel="stylesheet" href="xmas.css?v=1">
-<script src="xmas.js?v=1"></script>
 </head>
 <body>
 <div class="bg"><i></i><i></i><i></i></div>
 <script>
 /* 테마 배경: 저장된 배경을 바로 적용 */
-(function(){try{var k=localStorage.getItem('mbg.sel');if(k&&k!=='default'&&/^[a-z]+$/.test(k)){var b=document.querySelector('.bg');b.classList.add('img');b.style.backgroundImage='url(mobilebg/'+k+'.jpg)'}}catch(e){}})();
+(function(){try{var k=localStorage.getItem('mbg.sel');if(k&&k!=='default'&&/^[a-z0-9]+$/.test(k)){var b=document.querySelector('.bg');b.classList.add('img');b.style.backgroundImage='url(mobilebg/'+k+'.jpg)'}}catch(e){}})();
 </script>
+<script src="xmas.js?v=1"></script>
+<script>XmasSnow.auto(-1)</script>
 <nav id="topnav" class="gbar" aria-label="상단 메뉴"><button type="button" data-t="notice" id="tNotice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>공지사항<i class="dot"></i></button><button type="button" data-t="save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><rect x="8" y="13" width="8" height="7" rx="1"/></svg>세이브방법</button><button type="button" class="js-back" data-t="ver" title="모바일 / PC 버전 선택 화면으로"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/><path d="M3 9l-1.5 3L3 15M21 9l1.5 3L21 15"/></svg>버전선택</button><button type="button" data-t="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 18l5-5 4 3.5 3-2.5 4 4"/></svg>테마</button></nav>
 
 
@@ -1415,7 +1416,7 @@ ICONS_READY.then(()=>{
 (function(){
  var $=function(s){return document.querySelector(s)};
  var SAVE_URL='https://youngho1206.tistory.com/2';
- var BGS=[['bridge','골든게이트'],['sunset','노을 설산'],['stars','별밤'],['moon','달'],['dublin','더블린'],['eiffel','에펠탑'],['mandala','만다라'],['banff','야경 설산'],['lake','호수']];
+ var BGS=[['xmas2','크리스마스 트리'],['xmas3','오로라 마을'],['xmas4','눈사람'],['bridge','골든게이트'],['sunset','노을 설산'],['stars','별밤'],['moon','달'],['dublin','더블린'],['eiffel','에펠탑'],['mandala','만다라'],['banff','야경 설산'],['lake','호수']];
  var sh=$('#msh'),cur=null;
  function mk(c,t,tag){var e=document.createElement(tag||'div');if(c)e.className=c;if(t!=null)e.textContent=t;return e}
  function mark(){
@@ -1479,7 +1480,7 @@ ICONS_READY.then(()=>{
   if(k==='default'){b.classList.remove('img');b.style.backgroundImage=''}
   else{b.classList.add('img');b.style.backgroundImage='url(mobilebg/'+k+'.jpg)'}
   try{localStorage.setItem('mbg.sel',k)}catch(e){}
-  var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',k==='default'?(window.XM&&XM.on()?'#243a6b':'#07070a'):'#05060b');
+  var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',document.documentElement.classList.contains('xmas')?'#1b1f4b':(k==='default'?'#07070a':'#05060b'));
  }
  function showTheme(){
   var wrap=mk('thgrid'),sel=curBg();
@@ -1499,7 +1500,7 @@ ICONS_READY.then(()=>{
    var lst=mk('wtl');
    var paint=function(list){
     lst.innerHTML='';var cs=WT.sel;
-    [{id:'default',name:'기본페이지 (크리스마스)'}].concat(list||[]).forEach(function(t){
+    [{id:'default',name:'크리스마스 (기본)'}].concat(list||[]).forEach(function(t){
      var b=mk('',null,'button');b.type='button';b.dataset.id=t.id;if(cs===t.id)b.className='on';
      b.appendChild(mk('',null,'i'));b.appendChild(document.createTextNode(t.name));lst.appendChild(b);
     });
@@ -1508,7 +1509,7 @@ ICONS_READY.then(()=>{
    WT.list().then(paint).catch(function(){});
    lst.onclick=function(e){
     var b=e.target.closest('button');if(!b||b.dataset.busy)return;b.dataset.busy='1';var old=b.lastChild.textContent;b.lastChild.textContent='적용 중…';
-    WT.apply(b.dataset.id).then(function(){paint(WT.themes)}).catch(function(){b.lastChild.textContent='불러오기 실패';setTimeout(function(){b.lastChild.textContent=old;delete b.dataset.busy},1500)});
+    WT.apply(b.dataset.id).then(function(){if(b.dataset.id==='thema05'){setBg('default');wrap.querySelectorAll('.thit').forEach(function(t){t.classList.toggle('on',t.dataset.k==='default')})}paint(WT.themes)}).catch(function(){b.lastChild.textContent='불러오기 실패';setTimeout(function(){b.lastChild.textContent=old;delete b.dataset.busy},1500)});
    };
    nodes.push(mk('sec2','아이콘 · 스타일 테마'),lst);
   }
