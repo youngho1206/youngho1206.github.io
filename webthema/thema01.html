@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script src="../noads.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script>
 /* 아이폰 확대(핀치·더블탭) 방지 — 조작버튼을 두 손가락으로 누르거나 빠르게 눌러도 화면이 커지지 않게 막고, 이미 커졌으면 원래 크기로 되돌립니다. */
@@ -347,7 +348,7 @@ footer{color:rgba(255,255,255,.82);border-top-color:rgba(255,255,255,.4)}
     <button id="bLoad">📂 게임</button>
     <button id="bSave" disabled>💾 저장</button>
     <button id="bRest" disabled>📥 불러오기</button>
-    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bCtl" disabled>🎮 버튼숨기기</button>
     <button id="bFs">⛶ 전체화면</button>
     <button id="bHide">▲ 메뉴숨김</button>
   </div>
@@ -489,7 +490,7 @@ function loadProgress(pct,line){
 }
 function startGame(file){
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 버튼숨기기';
  const est=Math.max(5,Math.min(60,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  fr.src='about:blank';
@@ -541,7 +542,7 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
+ $('#bCtl').textContent=ctlOn?'🎮 버튼숨기기':'🎮 버튼표시';
 };
 $('#bHide').onclick=()=>{$('#bar').classList.add('hide');emu.classList.add('nobar')};
 $('#fab').onclick=()=>{$('#bar').classList.remove('hide');emu.classList.remove('nobar')};

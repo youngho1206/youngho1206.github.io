@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script src="noads.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1f4b">
 <link rel="manifest" href="manifest.webmanifest">
@@ -214,15 +215,15 @@ h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em
       <svg viewBox="0 0 64 64"><rect x="19" y="5" width="26" height="54" rx="5"/><path d="M27 11h10M28 53h8"/><rect x="24" y="18" width="16" height="26" rx="1.5"/><path d="M28 31h8M32 27v8"/></svg>
       <div class="tx"><b>모바일버전으로 접속하기</b><span>스마트폰에 맞춘 인터페이스</span></div>
     </a>
-    <a class="card cp" id="cd" href="desktop.html" data-k="d">
-      <span class="tg">// PC &amp; TABLET</span><span class="rec">추천</span>
-      <svg viewBox="0 0 64 64"><rect x="5" y="9" width="38" height="26" rx="2.5"/><path d="M18 43h12M24 35v8M14 49h20"/><rect x="42" y="24" width="17" height="30" rx="3.5"/><path d="M48 49h5"/></svg>
-      <div class="tx"><b>PC 및 태블릿버전으로 접속하기</b><span>넓은 화면에 최적화된 화면</span></div>
-    </a>
-    <a class="card cp sm" id="cold" href="emulator.html">
-      <span class="tg">// LEGACY PC</span>
+    <a class="card cp" id="cold" href="emulator.html">
+      <span class="tg">// PC &amp; TABLET</span>
       <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="3"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
-      <div class="tx"><b>이전 PC버전으로 접속하기</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
+      <div class="tx"><b>PC 및 태블릿 모드</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
+    </a>
+    <a class="card cp sm" id="cd" href="desktop.html" data-k="d">
+      <span class="tg">// DESKTOP</span><span class="rec">추천</span>
+      <svg viewBox="0 0 64 64"><rect x="5" y="9" width="38" height="26" rx="2.5"/><path d="M18 43h12M24 35v8M14 49h20"/><rect x="42" y="24" width="17" height="30" rx="3.5"/><path d="M48 49h5"/></svg>
+      <div class="tx"><b>데스크탑 모드</b><span>넓은 화면에 최적화된 화면</span></div>
     </a>
     <a class="card cp sm r" id="cp" href="gallery.html">
       <span class="tg">// SCREENSHOT</span>
@@ -343,7 +344,7 @@ $('#bHome').onclick=function(){
 /* ---------- 게임하는 방법 ---------- */
 $('#bHow').onclick=function(){
  open_('게임하는 방법','HOW TO PLAY',[steps([
-  '위에서 내 기기에 맞는 버전(모바일 / PC 및 태블릿)을 고릅니다.',
+  '위에서 내 기기에 맞는 버전(모바일 / PC 및 태블릿 / 데스크탑)을 고릅니다.',
   '원하는 게임기종을 선택합니다.',
   '‘게임 파일 불러오기’로 내가 가진 롬파일(zip 포함)을 선택하거나 화면에 끌어다 놓습니다.',
   '게임이 시작되면 화면의 버튼으로 조작하고, 저장·화면캡처·전체화면 기능을 이용합니다.',

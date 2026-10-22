@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script src="noads.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script>
 /* 아이폰 확대(핀치·더블탭) 방지 — 조작버튼을 두 손가락으로 누르거나 빠르게 눌러도 화면이 커지지 않게 막고, 이미 커졌으면 원래 크기로 되돌립니다. */
@@ -303,7 +304,7 @@ body:has(#emu.show) #topnav,body:has(#pc.show) #topnav{display:none}
     <button id="bLoad">📂 게임</button>
     <button id="bSave" disabled>💾 저장</button>
     <button id="bRest" disabled>📥 불러오기</button>
-    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bCtl" disabled>🎮 버튼숨기기</button>
     <button id="bCore" style="display:none" title="마메게임 엔진(코어) 변경">🧩 코어</button>
     <button id="bFs">⛶ 전체화면</button>
     <button id="bHide">▲ 메뉴숨김</button>
@@ -485,7 +486,7 @@ function startGame(file,ci=0,lvl){
  if(cur.id==='psx'){const bad=LoadGame.badFormat(file);if(bad){iosAlert(bad,'파일 형식 안내');return}if(lvl==null){const adv=LoadGame.advice(file);if(adv)toast(adv)}}
  startGame.n=(startGame.n||0)+1;const myN=startGame.n,psxLvl=lvl==null?LoadGame.autoLevel():lvl;
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 버튼숨기기';
  const est=Math.max(5,Math.min(300,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  try{if(LoadGame.has(cur.id))LoadGame.start($('#stage'))}catch(e){}
@@ -564,7 +565,7 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
+ $('#bCtl').textContent=ctlOn?'🎮 버튼숨기기':'🎮 버튼표시';
 };
 /* 메뉴숨김: 숨기면 화면 전체를 게임이 쓰고, 맨 위를 터치(PC는 마우스를 올림)하면 메뉴가 잠깐 나타났다가 자동으로 사라짐 */
 let barT=0,barL=0;
