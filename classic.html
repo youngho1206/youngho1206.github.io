@@ -1482,5 +1482,204 @@ ICONS_READY.then(()=>{
  });
 })();
 </script>
+<!-- DEVSTATUS:START -->
+<script>
+(function(){
+'use strict';
+/* 장치 상태 바 + 절전 모드 */
+if(window.top!==window||window.__dsBar)return;
+window.__dsBar=1;
+var KEY='ds.saver';
+var isAndroid=/Android/i.test(navigator.userAgent||'');
+var S={bt:0,usb:0,otg:0,kb:0,ms:0,pad:0};
+var saver=false,autoSaver=false,batt=null,padIv=0;
+var origGP=navigator.getGamepads?navigator.getGamepads.bind(navigator):null;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+
+var st=document.createElement('style');
+st.textContent=`
+#ds-bar{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:8px;padding:3px 10px;border-radius:12px;background:rgba(15,17,22,.8);color:#d8dde6;font:600 10.5px/1 system-ui,-apple-system,"Malgun Gothic",sans-serif;border:1px solid rgba(255,255,255,.14);-webkit-user-select:none;user-select:none;max-width:calc(100vw - 8px);white-space:nowrap;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+#ds-bar .it{display:flex;align-items:center;gap:3px;padding:3px 0}
+#ds-bar .it[data-act]{cursor:pointer}
+#ds-bar i{width:7px;height:7px;border-radius:50%;background:#6b7280;display:block;flex:none}
+#ds-bar .off{opacity:.55}
+#ds-bar .on i{background:#2bdc5b;box-shadow:0 0 5px 1px rgba(43,220,91,.85)}
+#ds-bar .sv.on i{background:#f5b301;box-shadow:0 0 5px 1px rgba(245,179,1,.8)}
+#ds-bar .sv{opacity:1}
+html.ds-saver #ds-bar .on i{box-shadow:none}
+#ds-bar .bat{width:17px;height:9px;border:1px solid #9aa3b2;border-radius:2px;position:relative;display:block;padding:0;box-sizing:border-box}
+#ds-bar .bat::after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:3px;background:#9aa3b2;border-radius:0 1px 1px 0}
+#ds-bar .bat b{display:block;height:100%;width:0;background:#2bdc5b}
+#ds-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 32px);left:50%;transform:translateX(-50%);z-index:2147483001;display:none;background:rgba(15,17,22,.92);color:#fff;font:600 12px/1.3 system-ui,-apple-system,"Malgun Gothic",sans-serif;padding:7px 12px;border-radius:10px;max-width:90vw;text-align:center}
+html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}
+`;
+document.head.appendChild(st);
+
+var items=[['bt','BT','블루투스','pair'],['usb','USB','USB','wired'],['otg','OTG','OTG','wired'],['kb','⌨','키보드'],['ms','🖱','마우스'],['pad','🎮','게임패드']];
+var bar=document.createElement('div');
+bar.id='ds-bar';
+bar.innerHTML='<span class="it bw" title="배터리"><span class="bat"><b></b></span><span class="bp">--</span></span>'
+ +items.map(function(a){return '<span class="it off" data-k="'+a[0]+'"'+(a[3]?' data-act="'+a[3]+'"':'')+'><i></i><span>'+a[1]+'</span></span>'}).join('')
+ +'<span class="it sv off" data-act="sv"><i></i><span>절전</span></span>';
+document.body.appendChild(bar);
+var tt=document.createElement('div');tt.id='ds-toast';document.body.appendChild(tt);
+var sv=bar.querySelector('.sv');
+function toast(m){tt.textContent=m;tt.style.display='block';clearTimeout(tt._t);tt._t=setTimeout(function(){tt.style.display='none'},2600)}
+
+function render(){
+  items.forEach(function(a){
+    var el=bar.querySelector('[data-k="'+a[0]+'"]'),on=!!S[a[0]];
+    el.classList.toggle('on',on);el.classList.toggle('off',!on);
+    el.title=a[2]+(on?' · 연결됨':' · 미연결')+(a[3]?' (탭하여 연결)':'');
+  });
+  sv.classList.toggle('on',saver);sv.classList.toggle('off',!saver);
+  sv.title='절전 모드 '+(saver?'켜짐':'꺼짐')+' (탭하여 전환)';
+}
+
+/* ---------- 배터리 ---------- */
+function paintBatt(){
+  var f=bar.querySelector('.bat b'),p=bar.querySelector('.bp'),w=bar.querySelector('.bw');
+  if(!batt){p.textContent='--';f.style.width='0';w.title='이 브라우저는 배터리 정보를 제공하지 않습니다';return}
+  var l=Math.round(batt.level*100);
+  f.style.width=l+'%';f.style.background=l<=20?'#ef4444':l<=50?'#f5b301':'#2bdc5b';
+  p.textContent=(batt.charging?'⚡':'')+l+'%';
+  w.title='배터리 '+l+'%'+(batt.charging?' · 충전 중':'');
+}
+function onBatt(){
+  paintBatt();
+  if(ls(KEY)||!batt)return; /* 사용자가 직접 정했으면 자동 전환 안 함 */
+  var low=batt.level<=0.2&&!batt.charging;
+  if(low&&!saver){autoSaver=true;setSaver(true);toast('배터리 20% 이하 · 절전 모드 켜짐')}
+  else if(!low&&autoSaver&&saver){autoSaver=false;setSaver(false)}
+}
+if(navigator.getBattery){
+  navigator.getBattery().then(function(b){
+    batt=b;['levelchange','chargingchange'].forEach(function(e){b.addEventListener(e,onBatt)});onBatt();
+  }).catch(function(){});
+}
+
+/* ---------- 게임패드 ---------- */
+function scanPads(){
+  var c=0;
+  try{var g=origGP?origGP():[];for(var i=0;i<g.length;i++)if(g[i]&&g[i].connected)c++}catch(e){}
+  var v=c>0?1:0;if(S.pad!==v){S.pad=v;render()}
+}
+addEventListener('gamepadconnected',scanPads);
+addEventListener('gamepaddisconnected',function(){setTimeout(scanPads,50)});
+
+/* 절전 모드: 게임패드가 없으면 getGamepads()를 호출해도 장치 조회를 하지 않음 */
+function patchGP(w){
+  try{
+    var n=w.navigator;if(!n||!n.getGamepads||n.__dsP)return;
+    var o=(w===window&&origGP)?origGP:n.getGamepads.bind(n);
+    n.__dsP=1;
+    Object.defineProperty(n,'getGamepads',{configurable:true,writable:true,value:function(){
+      return (saver&&!S.pad)?[null,null,null,null]:o();
+    }});
+  }catch(e){}
+}
+function patchAll(){
+  patchGP(window);
+  var f=document.querySelectorAll('iframe');
+  for(var i=0;i<f.length;i++){try{patchGP(f[i].contentWindow)}catch(e){}}
+}
+document.addEventListener('load',function(e){
+  var t=e.target;if(t&&t.tagName==='IFRAME'){try{patchGP(t.contentWindow)}catch(x){}}
+},true);
+
+/* 절전 모드: 화면에 상호작용 없는 장식 캔버스(눈, 배경효과 등) 숨김 */
+function hideDeco(on){
+  var c=document.querySelectorAll('canvas');
+  for(var i=0;i<c.length;i++){
+    var el=c[i];
+    if(on){
+      if(el.dataset.dsH)continue;
+      var cs=getComputedStyle(el);
+      if(cs.position==='fixed'&&cs.pointerEvents==='none'){el.dataset.dsH=el.style.display||'-';el.style.display='none'}
+    }else if(el.dataset.dsH){
+      el.style.display=el.dataset.dsH==='-'?'':el.dataset.dsH;delete el.dataset.dsH;
+    }
+  }
+}
+function padPoll(){
+  if(!saver&&!padIv&&origGP){padIv=setInterval(scanPads,2500)}
+  else if(saver&&padIv){clearInterval(padIv);padIv=0}
+}
+function setSaver(v){
+  saver=!!v;
+  document.documentElement.classList.toggle('ds-saver',saver);
+  patchAll();hideDeco(saver);padPoll();render();
+}
+
+/* ---------- 마우스 / 키보드 ---------- */
+var mq=window.matchMedia?matchMedia('(any-pointer:fine) and (any-hover:hover)'):null;
+function msUpd(){S.ms=(mq&&mq.matches)||S.msSeen?1:0;render()}
+if(mq){if(mq.addEventListener)mq.addEventListener('change',msUpd);else if(mq.addListener)mq.addListener(msUpd)}
+function msSeen(e){
+  if(e.pointerType==='mouse'&&e.isTrusted){S.msSeen=1;removeEventListener('pointermove',msSeen,true);msUpd()}
+}
+addEventListener('pointermove',msSeen,true);
+
+var kbT=0,kbLast=0;
+addEventListener('keydown',function(e){
+  if(!e.isTrusted||!e.code||e.key==='Unidentified')return; /* 화면 키보드 제외 */
+  if(!S.kb){S.kb=1;render()}
+  var t=Date.now();
+  if(t-kbLast>1500){kbLast=t;clearTimeout(kbT);kbT=setTimeout(function(){S.kb=0;render()},300000)}
+},true);
+
+/* ---------- USB / OTG / HID ---------- */
+function refreshWired(){
+  var n=0,p=[];
+  try{if(navigator.usb)p.push(navigator.usb.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
+  try{if(navigator.hid)p.push(navigator.hid.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
+  Promise.all(p).then(function(){S.usb=(!isAndroid&&n>0)?1:0;S.otg=(isAndroid&&n>0)?1:0;render()});
+}
+['usb','hid'].forEach(function(k){
+  try{if(navigator[k]){navigator[k].addEventListener('connect',refreshWired);navigator[k].addEventListener('disconnect',refreshWired)}}catch(e){}
+});
+async function wiredPair(){
+  try{
+    if(navigator.usb)await navigator.usb.requestDevice({filters:[]});
+    else if(navigator.hid)await navigator.hid.requestDevice({filters:[]});
+    else{toast('이 브라우저는 USB/OTG 연결을 지원하지 않습니다');return}
+  }catch(e){if(!e||e.name!=='NotFoundError')toast('USB/OTG 연결 실패')}
+  refreshWired();
+}
+
+/* ---------- 블루투스 ---------- */
+var btDevs=[];
+function btRefresh(){
+  var c=0;btDevs.forEach(function(d){if(d.gatt&&d.gatt.connected)c++});
+  S.bt=c>0?1:0;render();
+}
+function btAdd(d){if(btDevs.indexOf(d)<0){btDevs.push(d);d.addEventListener('gattserverdisconnected',btRefresh)}}
+if(navigator.bluetooth&&navigator.bluetooth.getDevices){
+  navigator.bluetooth.getDevices().then(function(l){l.forEach(btAdd);btRefresh()}).catch(function(){});
+}
+async function btPair(){
+  if(!navigator.bluetooth){toast('이 브라우저는 블루투스 연결을 지원하지 않습니다');return}
+  try{
+    var d=await navigator.bluetooth.requestDevice({acceptAllDevices:true});
+    btAdd(d);if(d.gatt)await d.gatt.connect();
+    btRefresh();toast((d.name||'블루투스 장치')+' 연결됨');
+  }catch(e){if(!e||e.name!=='NotFoundError')toast('블루투스 연결 실패')}
+}
+
+/* ---------- 클릭 ---------- */
+bar.addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('[data-act]'):null;if(!t)return;
+  var a=t.getAttribute('data-act');
+  if(a==='sv'){var v=!saver;ls(KEY,v?'on':'off');autoSaver=false;setSaver(v);toast(v?'절전 모드 켜짐 · 연결된 장치만 사용':'절전 모드 꺼짐')}
+  else if(a==='pair')btPair();
+  else if(a==='wired')wiredPair();
+});
+
+/* ---------- 시작 ---------- */
+msUpd();refreshWired();scanPads();
+setSaver(ls(KEY)==='on');
+})();
+</script>
+<!-- DEVSTATUS:END -->
 </body>
 </html>
