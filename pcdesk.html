@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>영호의 페이지</title>
+<style>
+:root{--bg:#000070;--fg:#9ff;--hi:#fff;--bar:#00a;--ac:#ff0}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:var(--fg);font:15px/1.5 "D2Coding","Nanum Gothic Coding",Consolas,monospace}
+#app{max-width:860px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg);padding:8px}
+#hd{display:flex;justify-content:space-between;border-bottom:2px double var(--fg);padding-bottom:4px;color:var(--hi);font-weight:bold}
+#hd a{cursor:pointer;color:var(--ac);margin-left:8px}
+#tip{padding:8px 2px;color:var(--ac)}
+#box{flex:1;overflow:auto;border:3px double var(--fg);padding:8px;min-height:0}
+.ttl{color:var(--hi);border-bottom:1px dashed var(--fg);margin-bottom:6px;padding-bottom:2px}
+.it{padding:2px 6px;cursor:pointer;white-space:pre-wrap;word-break:break-all}
+.it.on{background:var(--hi);color:#00a}
+.it.on::before{content:"▶ "}.it:not(.on)::before{content:"  "}
+.it span[data-s]{color:var(--ac)}.it.on span[data-s]{color:#a00}
+#ft{padding:4px 2px;font-size:12px;color:#8ad}
+#pad{display:flex;justify-content:space-between;align-items:center;padding:6px 10px}
+#pad button{background:#003;color:var(--hi);border:2px outset var(--fg);font:inherit;width:48px;height:48px;border-radius:8px;touch-action:manipulation}
+#dp{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:2px}
+#dp button:nth-child(1){grid-area:1/2}#dp button:nth-child(2){grid-area:2/1}#dp button:nth-child(3){grid-area:2/3}#dp button:nth-child(4){grid-area:3/2}
+#ab button{width:56px;height:56px;border-radius:50%;margin-left:10px}
+.emu #pad{display:none}
+.dos{background:#00a;color:#ccc;height:100%;display:flex;flex-direction:column}
+.dos .m{background:#aaa;color:#000;padding:0 6px;display:flex;gap:12px;flex-wrap:wrap}
+.dos .m a{cursor:pointer}
+.dos .t{background:#aaa;color:#00a;text-align:center;margin:0 auto;padding:0 12px}
+.dos textarea{flex:1;background:#00a;color:#fff;border:0;outline:0;resize:none;font:inherit;padding:6px;min-height:200px}
+.dos .s{background:#aaa;color:#000;padding:0 6px;font-size:13px}
+.bar a{cursor:pointer;color:var(--ac);margin-right:10px}
+#gw{background:#000;width:100%;aspect-ratio:4/3;max-height:70vh;margin-top:6px}#gw>div,#gw iframe{width:100%;height:100%;border:0}
+.sv{border:1px solid var(--fg);padding:6px;margin-top:6px}.sv a{display:block;cursor:pointer;padding:3px}
+img.v,video.v{max-width:100%;max-height:60vh;display:block;margin:6px 0}audio{width:100%}
+</style></head><body>
+<div id="app">
+<div id="hd"><span>영호의 페이지</span><span><a id="nt">[공지사항]</a><a id="ins">[앱 설치]</a></span></div>
+<div id="tip"></div><div id="box"></div><div id="ft"></div>
+<div id="pad"><div id="dp"><button data-k="up">▲</button><button data-k="left">◀</button><button data-k="right">▶</button><button data-k="down">▼</button></div>
+<div id="ab"><button data-k="back">B</button><button data-k="enter">A</button></div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s),box=$('#box'),LS=localStorage;
+const jget=(k,d)=>{try{return JSON.parse(LS[k])||d}catch(e){return d}};
+let stack=[];
+function go(s){s.cur=0;stack.push(s);render()}
+function back(){if(stack.length>1){const s=stack.pop();s.leave&&s.leave();render()}}
+function top(){return stack[stack.length-1]}
+function render(){const s=top();document.body.classList.toggle('emu',!!s.emu);$('#tip').textContent=s.tip||'여기서 원하는 메뉴의 단어를 선택하세요.';
+ $('#ft').textContent='↑↓ 이동  Enter 선택  Esc 뒤로  F ☆즐겨찾기  Space 체크';
+ if(s.draw){box.innerHTML='';s.draw(box);return}
+ box.innerHTML=`<div class=ttl>${s.title}</div>`+s.items.map((it,i)=>`<div class="it${i==s.cur?' on':''}" data-i=${i}>${it.h}</div>`).join('');
+ const o=box.querySelector('.on');o&&o.scrollIntoView({block:'nearest'})}
+function menu(title,tip,arr){return{title,tip,items:arr.map(([t,f],i)=>({h:`${i+1}. ${t}`,a:f}))}}
+box.onclick=e=>{const s=top();if(s.draw)return;const r=e.target.closest('.it');if(!r)return;const it=s.items[r.dataset.i];s.cur=+r.dataset.i;const sp=e.target.closest('[data-s]');
+ if(sp&&it.subs&&it.subs[sp.dataset.s])it.subs[sp.dataset.s]();else it.a&&it.a();};
+function press(k){const s=top();if(s.emu||s.draw&&k!='back')return;const n=s.items?s.items.length:0,it=s.items&&s.items[s.cur];
+ if(k=='up'){s.cur=(s.cur-1+n)%n;render()}else if(k=='down'){s.cur=(s.cur+1)%n;render()}
+ else if(k=='enter'){it&&it.a&&it.a()}else if(k=='back')back();
+ else if(it&&it.subs&&it.subs[k])it.subs[k]()}
+document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||top().emu)return;
+ const m={ArrowUp:'up',ArrowDown:'down',Enter:'enter',Escape:'back',Backspace:'back',f:'f',F:'f',' ':'x'}[e.key];
+ if(m){e.preventDefault();press(m)}else if(/^[1-9]$/.test(e.key)){const s=top();if(s.items&&s.items[e.key-1]){s.cur=e.key-1;render();press('enter')}}});
+document.querySelectorAll('#pad button').forEach(b=>b.onclick=()=>press(b.dataset.k));
+/* ---------- 공지/설치 ---------- */
+let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e});
+$('#ins').onclick=()=>dp?dp.prompt():alert("브라우저 메뉴에서 '홈 화면에 추가'를 선택하세요.");
+$('#nt').onclick=()=>go({title:'[공지사항]',tip:'Esc = 뒤로',draw(b){b.innerHTML=`<div class=ttl>[공지사항]</div><pre style="white-space:pre-wrap;margin:0">
+◎ 영호의 페이지에 오신 것을 환영합니다.
+◎ 조작: 방향키(↑↓) + Enter / Esc, 화면 조이스틱도 사용 가능
+◎ 사진·음악·영상은 깃허브 저장소의 media/photo, media/music, media/video 폴더에 저장됩니다.
+◎ 올리기·삭제는 깃허브 토큰 확인 후 진행됩니다. (토큰은 이 브라우저에만 저장)
+◎ 게임은 저장소의 roms/기종코드/ 폴더에 넣으면 목록에 나타납니다.
+◎ 웹게임(.html)은 roms/web/ 폴더에 넣으세요.
+◎ 모바일·자바(J2ME) 게임은 웹 코어가 없어 준비 중입니다.
+</pre><div class=it onclick="setRepo()">[저장소/토큰 설정]</div><div class=it onclick="delete LS.tok;alert('토큰을 삭제했습니다.')">[저장된 토큰 삭제]</div>`}});
+function setRepo(){const r=prompt('깃허브 저장소 (예: 아이디/저장소)',LS.repo||'');if(r)LS.repo=r.trim()}
+/* ---------- GitHub ---------- */
+function repo(){let r=LS.repo;if(!r){const h=location.hostname;if(h.endsWith('.github.io')){const p=location.pathname.split('/')[1];r=h.split('.')[0]+'/'+(p&&!p.includes('.')?p:h)}}
+ if(!r){r=prompt('깃허브 저장소 (예: 아이디/저장소)');if(r)LS.repo=r.trim()}return r}
+async function api(path,o={}){const r=repo();if(!r)throw Error('저장소가 설정되지 않았습니다');
+ const res=await fetch(`https://api.github.com/repos/${r}/contents/${path}`,{...o,headers:{Accept:'application/vnd.github+json',...(LS.tok?{Authorization:'Bearer '+LS.tok}:{}),...o.headers}});
+ if(res.status==404&&!o.method)return[];if(!res.ok)throw Error('GitHub 오류 '+res.status);return res.json()}
+async function auth(){let t=LS.tok||prompt('깃허브 토큰(ghp_...)을 입력하세요');if(!t)return false;
+ try{const r=await fetch('https://api.github.com/user',{headers:{Authorization:'Bearer '+t}});if(!r.ok)throw 0;LS.tok=t;return true}catch(e){delete LS.tok;alert('토큰 확인에 실패했습니다.');return false}}
+const b64=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result.split(',')[1]);x.readAsDataURL(f)});
+function upload(k,done){const i=document.createElement('input');i.type='file';i.multiple=true;i.accept=MT[k].acc;
+ i.onchange=async()=>{if(!i.files.length||!await auth())return;try{for(const f of i.files)await api(`${MT[k].dir}/${f.name}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'upload '+f.name,content:await b64(f)})});alert('업로드 완료');done&&done()}catch(e){alert(e.message)}};i.click()}
+function dlBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()}
+/* ---------- 메인 ---------- */
+const main=()=>menu('[메인 메뉴]','여기서 원하는 메뉴의 단어를 선택하세요.',[['일상',()=>go(daily())],['게임',()=>go(games())]]);
+const daily=()=>menu('[일상]','',[['메모',()=>go(memoMenu())],['사진',()=>go(mediaMenu('photo'))],['음악',()=>go(mediaMenu('music'))],['영상',()=>listScreen('video',[['전체선택','all'],['일괄선택','inv'],['다운로드','dl'],['유튜브공유','share'],['영상올리기','up'],['삭제','del']]))]]);
+/* ---------- 메모 ---------- */
+const memos=()=>jget('memos',[]);
+const memoMenu=()=>menu('[메모]','',[['글쓰기',()=>editor({id:Date.now(),t:'',body:''})],['수정',()=>pick('수정할 메모',m=>editor(m))],['삭제',()=>pick('삭제할 메모',m=>{if(confirm(m.t+' 삭제?')){LS.memos=JSON.stringify(memos().filter(x=>x.id!=m.id));back();back();go(memoMenu());go(top())}})],['저장',()=>{const a=memos();if(!a.length)return alert('저장된 메모가 없습니다.');dlBlob(new Blob([a.map(m=>'## '+m.t+'\n'+m.body).join('\n\n----\n\n')],{type:'text/plain'}),'memo.txt')}]]);
+function pick(t,fn){const a=memos();go({title:t,items:a.length?a.map(m=>({h:m.t||'제목없음',a:()=>fn(m)})):[{h:'(메모가 없습니다)'}]})}
+function editor(m){go({title:'EDIT',tip:'Ctrl+S 저장 / Esc 나가기',draw(b){
+ b.innerHTML=`<div class=dos><div class=m><a>파일(F)</a><a>편집(E)</a><a>검색(S)</a><a>옵션(O)</a><a>도움말(H)</a><a id=sv style="margin-left:auto">[저장]</a><a id=ex>[나가기]</a></div><div class=t>${m.t||'제목없음'}</div><textarea id=ta spellcheck=false></textarea><div class=s id=st>F1=도움말  Ctrl+S=저장  Esc=나가기</div></div>`;
+ const ta=$('#ta');ta.value=m.body;ta.focus();
+ const save=()=>{m.body=ta.value;m.t=(ta.value.split('\n')[0]||'제목없음').slice(0,30);const a=memos().filter(x=>x.id!=m.id);a.unshift(m);LS.memos=JSON.stringify(a);$('#st').textContent='저장되었습니다.'};
+ $('#sv').onclick=save;$('#ex').onclick=()=>back();
+ ta.onkeydown=e=>{if(e.ctrlKey&&e.key=='s'){e.preventDefault();save()}else if(e.key=='Escape')back()};
+ ta.onkeyup=ta.onclick=()=>{const l=ta.value.slice(0,ta.selectionStart).split('\n');$('#st').textContent=`Line:${l.length} Col:${l.pop().length+1}`}}})}
+/* ---------- 사진/음악/영상 ---------- */
+const MT={photo:{n:'사진',dir:'media/photo',acc:'image/*'},music:{n:'음악',dir:'media/music',acc:'audio/*'},video:{n:'영상',dir:'media/video',acc:'video/*'}};
+function mediaMenu(k){const T=MT[k],sh=k=='music'?'링크공유':T.n+'공유';
+ return menu(`[${T.n}]`,'',[[T.n+'올리기',()=>upload(k)],[T.n+'다운로드',()=>listScreen(k,[['전체선택','all'],['다운로드','dl']])],['선택',()=>listScreen(k,[['전체선택','all'],['일괄선택','inv'],['다운로드','dl'],[T.n+'삭제','del'],[sh,'share']])]])}
+async function listScreen(k,labels){const T=MT[k],sel=new Set();let files=[];
+ const s={title:`[${T.n} 자료실] /${T.dir}/`,tip:'제목=보기, [ ]=선택',items:[{h:'불러오는 중...'}]};go(s);
+ try{files=(await api(T.dir)).filter(f=>f.type=='file'&&f.name!='.gitkeep')}catch(e){s.items=[{h:'오류: '+e.message}];return render()}
+ const ch=()=>{const a=files.filter(f=>sel.has(f.name));if(!a.length)alert('선택된 파일이 없습니다.');return a};
+ const A={all:()=>{files.forEach(f=>sel.add(f.name));build()},inv:()=>{files.forEach(f=>sel.has(f.name)?sel.delete(f.name):sel.add(f.name));build()},
+  dl:async()=>{for(const f of ch())dlBlob(await (await fetch(f.download_url)).blob(),f.name)},
+  share:async()=>{const a=ch();if(!a.length)return;const l=a.map(f=>f.download_url).join('\n');try{await navigator.clipboard.writeText(l)}catch(e){}alert('링크를 복사했습니다.\n'+l);if(k=='video')open('https://www.youtube.com/upload')},
+  up:()=>upload(k,()=>{stack.pop();listScreen(k,labels)}),
+  del:async()=>{const a=ch();if(!a.length||!await auth()||!confirm(a.length+'개 삭제할까요?'))return;try{for(const f of a)await api(f.path,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'delete '+f.name,sha:f.sha})});stack.pop();listScreen(k,labels)}catch(e){alert(e.message)}}};
+ function build(){s.items=[...labels.map(([l,id])=>({h:`[${l}]`,a:A[id]})),...files.map(f=>({h:`<span data-s=x>[${sel.has(f.name)?'■':' '}]</span> ${f.name}`,a:()=>view(k,f),subs:{x:()=>{sel.has(f.name)?sel.delete(f.name):sel.add(f.name);build()}}}))];
+  if(!files.length)s.items.push({h:'(파일이 없습니다)'});render()}
+ build()}
+function view(k,f){go({title:f.name,tip:'Esc = 목록으로',draw(b){const u=f.download_url;b.innerHTML=`<div class=ttl>${f.name}</div>`+(k=='photo'?`<img class=v src="${u}">`:k=='music'?`<audio controls autoplay src="${u}"></audio>`:`<video class=v controls src="${u}"></video>`)}})}
+/* ---------- 게임 ---------- */
+const SYS=[['콘솔','nes','패미컴 (NES)'],['콘솔','snes','슈퍼패미컴 (SNES)'],['콘솔','segaMD','메가드라이브'],['콘솔','segaMS','세가 마스터시스템'],['콘솔','segaSaturn','세가 새턴'],['콘솔','psx','플레이스테이션'],['콘솔','n64','닌텐도 64'],['콘솔','3do','3DO'],
+['레트로','atari2600','아타리 2600'],['레트로','atari7800','아타리 7800'],['레트로','pce','PC 엔진'],['레트로','arcade','아케이드'],['레트로','mame2003','MAME 2003'],
+['휴대용','gb','게임보이'],['휴대용','gbc','게임보이 컬러'],['휴대용','gba','게임보이 어드밴스'],['휴대용','nds','닌텐도 DS'],['휴대용','psp','PSP'],['휴대용','segaGG','게임기어'],['휴대용','ngp','네오지오 포켓'],['휴대용','lynx','아타리 링스'],['휴대용','ws','원더스완'],
+['PC','dos','MS-DOS'],['웹','web','웹게임 (HTML)']];
+const games=()=>({title:'[게임 자료실] 기종을 선택하세요',tip:'기종 선택 → roms/기종코드/ 폴더의 게임 목록',items:SYS.map(([c,id,n])=>({h:`[${c}] ${n}  (${id})`,a:()=>go(sysMenu(id,n))}))});
+const sysMenu=(id,n)=>menu(`[${n}] 게임목록`,'',[['전체게임',()=>gameList(id,'all')],['최근게임',()=>gameList(id,'recent')],['즐겨찾기',()=>gameList(id,'fav')],['게임검색',()=>{const q=prompt('게임 이름');q&&gameList(id,'q',q)}]]);
+async function gameList(id,mode,q){const s={title:`[${id}] ${{all:'전체게임',recent:'최근게임',fav:'즐겨찾기',q:'검색: '+q}[mode]}`,tip:'☆=즐겨찾기  [게임시작]=실행',items:[{h:'불러오는 중...'}]};go(s);
+ let fl;try{fl=(await api('roms/'+id)).filter(f=>f.type=='file'&&f.name!='.gitkeep')}catch(e){s.items=[{h:'오류: '+e.message}];return render()}
+ const key=f=>id+'/'+f.name,favs=()=>jget('favs',[]),rec=()=>jget('recent',[]);
+ const build=()=>{let a=fl;if(mode=='fav')a=a.filter(f=>favs().includes(key(f)));
+  if(mode=='recent')a=rec().map(k=>fl.find(f=>key(f)==k)).filter(Boolean);
+  if(mode=='q')a=a.filter(f=>f.name.toLowerCase().includes(q.toLowerCase()));
+  s.items=[{h:'[내 기기에서 파일 열기]',a:()=>{const i=document.createElement('input');i.type='file';i.onchange=()=>i.files[0]&&play(id,{name:i.files[0].name,download_url:URL.createObjectURL(i.files[0]),path:''});i.click()}},
+  ...a.map(f=>({h:`<span data-s=f>${favs().includes(key(f))?'★':'☆'}</span> ${f.name} <span data-s=p>[게임시작]</span>`,a:()=>play(id,f),subs:{p:()=>play(id,f),f:()=>{const v=favs(),i=v.indexOf(key(f));i<0?v.push(key(f)):v.splice(i,1);LS.favs=JSON.stringify(v);build()}}}))];
+  if(!a.length)s.items.push({h:'(게임이 없습니다. roms/'+id+'/ 폴더에 넣어주세요)'});render()};build()}
+function play(id,f){const r=jget('recent',[]).filter(k=>k!=id+'/'+f.name);r.unshift(id+'/'+f.name);LS.recent=JSON.stringify(r.slice(0,30));
+ const s={emu:1,title:f.name,tip:f.name,draw(b){
+ b.innerHTML=`<div class=bar><a id=bo>[게임열기]</a><a id=br>[다시시작]</a><a id=bs>[세이브]</a><a id=bf>[전체화면]</a></div><div id=gw><div id=game></div></div><div id=svp></div>`;
+ const out=()=>{if(window.EJS_emulator)sessionStorage.g=1;stack.pop();window.EJS_emulator?location.reload():render()};
+ $('#bo').onclick=out;$('#br').onclick=()=>{try{EJS_emulator.gameManager.restart()}catch(e){location.reload()}};
+ $('#bf').onclick=()=>$('#gw').requestFullscreen&&$('#gw').requestFullscreen();
+ $('#bs').onclick=()=>{$('#svp').innerHTML=`<div class=sv><a id=s1>1.[세이브열기] 저장된 세이브파일을 불러옵니다.</a><a id=s2>2.[세이브저장] 현재 게임진행부분을 저장합니다.</a></div>`;
+  $('#s2').onclick=()=>{try{dlBlob(new Blob([EJS_emulator.gameManager.getState()]),f.name+'.state')}catch(e){alert('저장할 수 없습니다.')}};
+  $('#s1').onclick=()=>{const i=document.createElement('input');i.type='file';i.onchange=async()=>{try{EJS_emulator.gameManager.loadState(new Uint8Array(await i.files[0].arrayBuffer()))}catch(e){alert('불러올 수 없습니다.')}};i.click()}};
+ if(id=='web'){$('#game').outerHTML=`<iframe src="${f.path||f.download_url}" allowfullscreen></iframe>`;return}
+ Object.assign(window,{EJS_player:'#game',EJS_core:id,EJS_gameUrl:f.download_url,EJS_gameName:f.name.replace(/\.[^.]+$/,''),EJS_pathtodata:'https://cdn.emulatorjs.org/stable/data/',EJS_startOnLoaded:true});
+ const sc=document.createElement('script');sc.src='https://cdn.emulatorjs.org/stable/data/loader.js';document.body.appendChild(sc)},
+ leave(){if(window.EJS_emulator){sessionStorage.g=1;location.reload()}}};
+ go(s)}
+/* ---------- 시작 ---------- */
+go(main());
+if(sessionStorage.g){delete sessionStorage.g;go(games())}
+</script></body></html>
