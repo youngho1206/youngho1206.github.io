@@ -47,7 +47,7 @@ function show(){
  bg.innerHTML='<div class="adn-box">'
   +'<div class="adn-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 7.7-7 9.5-4-1.8-7-5.1-7-9.5V6z"/><path d="M8.8 12.2l2.3 2.3 4.2-4.6"/></svg></div>'
   +'<h2 class="adn-tt" id="adn-tt">광고 없는 사이트 안내</h2>'
-  +'<p class="adn-tx">이 사이트에는 <b>수익목적으로 사용하는 AD광고기능이 없으며</b> 이외 광고기능을 아예 차단하였습니다.</p>'
+  +'<p class="adn-tx">이 사이트는 <b>수익을 위해 만든 사이트가 아니라 광고가 나오지 않습니다.</b> 이외 아이콘이 안보일경우 사이트에서 제공되는 <b>절전모드</b>를 꺼보세요.(휴대폰절전모드는 아닙니다.)</p>'
   +'<label class="adn-ck"><input type="checkbox" id="adn-ck"><i></i><span>다음 접속시 안보기</span></label>'
   +'<button type="button" class="adn-ok" id="adn-ok">확인</button></div>';
  document.body.appendChild(bg);
