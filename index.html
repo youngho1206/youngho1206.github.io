@@ -161,6 +161,16 @@ h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em
 .gc li+li{border-top:1px dashed rgba(232,73,91,.3)}
 .gc li:before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font:400 15px/28px var(--jua);text-align:center;box-shadow:0 2px 0 #a8263d}
 .gc small{display:block;margin-top:10px;color:var(--mut);font:400 12.5px/1.55 var(--kr);white-space:normal}
+.ne-edit{display:block;margin:0 0 12px auto;border:0;border-radius:99px;background:var(--red);color:#fff;font:400 14px var(--jua);padding:8px 16px;cursor:pointer;box-shadow:0 3px 0 #a8263d}
+.ne-ta{width:100%;border:2px solid #f0c9c9;border-radius:12px;padding:10px;font:400 14px/1.6 var(--kr);color:var(--brown);resize:vertical;background:#fff}
+.ne-in{width:100%;margin-top:8px;border:2px solid #f0c9c9;border-radius:12px;padding:10px;font:400 14px var(--kr);background:#fff;color:var(--brown)}
+.ne-h{margin:6px 2px;color:var(--mut);font:400 12.5px/1.55 var(--kr)}
+.ne-c{display:block;margin:8px 2px;color:var(--brown);font:400 13.5px var(--kr)}
+.ne-m{min-height:18px;margin:4px 2px;color:var(--red);font:700 13px var(--kr)}
+.ne-r{display:flex;gap:8px;margin:6px 0}
+.ne-b{flex:1;height:44px;border:0;border-radius:99px;background:#d9c7c7;color:var(--brown);font:400 16px var(--jua);cursor:pointer}
+.ne-b.ok{background:var(--green);color:#fff}
+.ne-b:disabled{opacity:.6}
 
 #guideOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(22,10,44,.72);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 #guideOv.on{opacity:1;visibility:visible;transition-delay:0s}
@@ -296,12 +306,59 @@ $('#bNotice').onclick=function(){
    nodes.push(c);
   });
   var sub=n.date?'업데이트 '+n.date.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}):'';
+  var eb=mk('ne-edit','✏️ 수정','button');eb.type='button';eb.onclick=neEdit;nodes.unshift(eb);
   open_('공지사항',sub,nodes);
   if(n.text){try{localStorage.setItem(SEEN,sig(n.text))}catch(e){}}
   $('#bNotice').classList.remove('new');
  };
  if(notice)go(notice);else loadNotice().then(function(n){notice=n;go(n)});
 };
+
+/* ---------- 공지사항 수정 : GitHub 토큰으로 INFO-WEB.TXT 저장 ---------- */
+var NE={o:'youngho1206',r:'youngho1206.github.io',b:'main',p:'INFO-WEB.TXT'};
+function neTok(){try{return localStorage.getItem('gh_token')||''}catch(e){return''}}
+function neB64(s){var b=new TextEncoder().encode(s),o='';for(var i=0;i<b.length;i+=8192)o+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(o)}
+function neApi(t,m,path,body){return fetch('https://api.github.com/repos/'+NE.o+'/'+NE.r+path,{method:m,cache:'no-store',headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+t,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})}
+async function neSave(text,t){
+ var rr=await neApi(t,'GET',''),rj=await rr.json();
+ if(rr.status===401)throw new Error('토큰이 올바르지 않습니다');
+ if(!rr.ok)throw new Error('저장소를 확인할 수 없습니다 ('+rr.status+')');
+ if(rj.permissions&&rj.permissions.push===false)throw new Error('이 저장소에 쓰기 권한이 없는 토큰입니다');
+ for(var n=0;n<3;n++){
+  var fr=await neApi(t,'GET','/contents/'+NE.p+'?ref='+NE.b),sha;
+  if(fr.ok)sha=(await fr.json()).sha;else if(fr.status!==404)throw new Error('공지 파일을 읽지 못했습니다 ('+fr.status+')');
+  var pr=await neApi(t,'PUT','/contents/'+NE.p,{message:'공지사항 수정',content:neB64(text),sha:sha,branch:NE.b});
+  if(pr.ok)return;
+  if(pr.status===409||pr.status===422){await new Promise(function(r){setTimeout(r,600)});continue}
+  if(pr.status===403||pr.status===404)throw new Error('쓰기 권한이 없습니다. 토큰에 Contents 쓰기 권한이 있는지 확인하세요');
+  throw new Error('저장에 실패했습니다 ('+pr.status+')');
+ }
+ throw new Error('동시에 수정되어 실패했습니다. 다시 시도해 주세요');
+}
+function neEdit(){
+ var ta=mk('ne-ta',null,'textarea');ta.value=(notice&&notice.text)||'';ta.rows=14;ta.spellcheck=false;
+ var hint=mk('ne-h','공지가 여러 개면 사이에 --- 한 줄을 넣어 나눕니다. 각 공지의 첫 줄이 제목으로 보입니다.');
+ var tk=mk('ne-in',null,'input');tk.type='password';tk.placeholder='GitHub 토큰 (ghp_… / github_pat_…)';tk.value=neTok();tk.autocomplete='off';
+ var lb=mk('ne-c',null,'label'),cb=document.createElement('input');cb.type='checkbox';cb.checked=!!neTok();lb.appendChild(cb);lb.appendChild(document.createTextNode(' 이 기기에 토큰 기억하기'));
+ var msg=mk('ne-m'),row=mk('ne-r'),sv=mk('ne-b ok','저장','button'),cn=mk('ne-b','취소','button');
+ sv.type=cn.type='button';row.appendChild(sv);row.appendChild(cn);
+ var help=mk('ne-h','※ 구글 계정으로는 GitHub에 직접 저장할 수 없어 GitHub 토큰으로 저장합니다. 만들기: GitHub → Settings → Developer settings → Personal access tokens → 이 저장소(youngho1206.github.io)의 Contents "Read and write" 권한.');
+ open_('공지사항 수정','',[ta,hint,tk,lb,msg,row,help]);
+ cn.onclick=function(){$('#bNotice').onclick()};
+ sv.onclick=async function(){
+  var t=tk.value.trim(),txt=ta.value.replace(/\r\n?/g,'\n').trim();
+  if(!txt){msg.textContent='공지 내용을 입력해 주세요';return}
+  if(!t){msg.textContent='GitHub 토큰을 입력해 주세요';return}
+  sv.disabled=true;sv.textContent='저장 중…';msg.textContent='';
+  try{
+   await neSave(txt+'\n',t);
+   try{if(cb.checked)localStorage.setItem('gh_token',t);else localStorage.removeItem('gh_token')}catch(e){}
+   notice={text:txt,date:new Date()};try{localStorage.setItem(SEEN,sig(txt))}catch(e){}
+   $('#bNotice').onclick();
+   $('#shS').textContent='저장되었습니다 · 사이트 반영까지 1~2분 걸릴 수 있어요';$('#shS').style.display='';
+  }catch(e){msg.textContent=e.message;sv.disabled=false;sv.textContent='저장'}
+ };
+}
 
 /* ---------- 앱 설치 / 홈 바로가기 ---------- */
 var dip=null,ua=navigator.userAgent;
