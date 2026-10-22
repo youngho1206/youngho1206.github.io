@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<script src="noads.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <script>
 /* 아이폰 확대(핀치·더블탭) 방지 — 조작버튼을 두 손가락으로 누르거나 빠르게 눌러도 화면이 커지지 않게 막고, 이미 커졌으면 원래 크기로 되돌립니다. */
@@ -300,9 +299,8 @@ body:has(#emu.show) #topnav,body:has(#pc.show) #topnav{display:none}
     <span class="t" id="eTitle"></span>
     <button id="bLoad">📂 게임</button>
     <button id="bSave" disabled>💾 저장</button>
-    <button id="bCap" disabled title="지금 게임 화면을 사진(PNG)으로 저장합니다">📷 캡처</button>
     <button id="bRest" disabled>📥 불러오기</button>
-    <button id="bCtl" disabled>🎮 버튼숨기기</button>
+    <button id="bCtl" disabled>🎮 조작 ON</button>
     <button id="bCore" style="display:none" title="마메게임 엔진(코어) 변경">🧩 코어</button>
     <button id="bFs">⛶ 전체화면</button>
     <button id="bHide">▲ 메뉴숨김</button>
@@ -427,7 +425,7 @@ function openEmu(c){
  $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'');
  $('#romIn').multiple=false;$('#bCore').style.display=MG.is(c)?'':'none';MG.mount(c);
  $('#drop').classList.remove('hidden');
- ['bSave','bCap','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
+ ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
  fr.src='about:blank';
  emu.classList.add('show');setBarHidden(false);
  history.pushState({emu:1},'');
@@ -479,7 +477,7 @@ function loadProgress(pct,line){
 function startGame(file,ci=0){
  lastFile=file;coreIdx=ci;
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtl').textContent='🎮 버튼숨기기';
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
  const est=Math.max(5,Math.min(300,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  const list=MG.is(cur)?[cur.core].concat(cur.alt||[]):[cur.core],coreName=list[ci];
@@ -502,7 +500,7 @@ function startGame(file,ci=0){
     w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
-      started=true;clearTimeout(startGame.t);['bSave','bCap','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
+      started=true;clearTimeout(startGame.t);['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
       loadProgress(100,'게임 시작 완료');
       setTimeout(loadHide,500);
       toast('게임 시작! 🎮');
@@ -535,31 +533,6 @@ $('#bSave').onclick=()=>{
   document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
  }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
 };
-/* 📷 캡처 : 지금 게임 화면을 PNG 사진으로 저장 (예: NINTENDO64SUPERMARIO64_10221530.PNG) */
-$('#bCap').onclick=async()=>{
- try{
-  const w=fr.contentWindow,d=fr.contentDocument;
-  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
-  const name=`${cur.fn}${g}_${stamp()}.PNG`;
-  const save=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('📷 캡처 저장됨: '+name)};
-  /* 1순위: 에뮬레이터 내장 스크린샷 */
-  try{
-   const r=await w.EJS_emulator.gameManager.screenshot();
-   const b=r instanceof Blob?r:(r&&r.byteLength>200?new Blob([r],{type:'image/png'}):null);
-   if(b){save(b);return}
-  }catch(e){}
-  /* 2순위: 화면 캔버스를 복사해서 저장 */
-  const cv=[...d.querySelectorAll('canvas')].filter(c=>c.width>0&&c.height>0&&c.offsetWidth>0).sort((a,b)=>b.width*b.height-a.width*a.height)[0];
-  if(!cv)throw new Error('no canvas');
-  w.requestAnimationFrame(()=>{
-   try{
-    const t=document.createElement('canvas');t.width=cv.width;t.height=cv.height;
-    t.getContext('2d').drawImage(cv,0,0);
-    t.toBlob(b=>b?save(b):toast('캡처 실패: 게임이 시작된 후 다시 시도하세요'),'image/png');
-   }catch(e){toast('캡처 실패: 게임이 시작된 후 다시 시도하세요')}
-  });
- }catch(err){toast('캡처 실패: 게임이 시작된 후 다시 시도하세요')}
-};
 $('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
 $('#gsvIn').onchange=async e=>{
  const f=e.target.files[0];if(!f)return;
@@ -571,7 +544,7 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtl').textContent=ctlOn?'🎮 버튼숨기기':'🎮 버튼표시';
+ $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
 };
 /* 메뉴숨김: 숨기면 화면 전체를 게임이 쓰고, 맨 위를 터치(PC는 마우스를 올림)하면 메뉴가 잠깐 나타났다가 자동으로 사라짐 */
 let barT=0,barL=0;

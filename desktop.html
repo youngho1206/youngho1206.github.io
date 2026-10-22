@@ -2,8 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<script src="noads.js"></script>
-<script src="adnotice.js" defer></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#05070f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -154,22 +152,6 @@ button{font-family:inherit;cursor:pointer}
 .fe{grid-column:1/-1;text-align:center;color:#999;padding:60px 0;font-size:14px}
 .pth{height:30px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:0 10px;min-width:120px;max-width:44vw;overflow:hidden;white-space:nowrap;font-size:14px;margin-left:4px}
 .pth svg{width:16px;height:16px;stroke:currentColor;flex:none}
-/* 게임에뮬레이터 탐색창 */
-.emm{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
-.emm .fc{flex:1;min-height:0}
-.eh{display:none;flex:none;align-items:center;gap:12px;padding:6px 14px 6px 48px;background:#f5f6f8;border-bottom:1px solid #e3e5ea;font-size:12.5px;color:#777}
-.eh.on{display:flex}
-.eh span:first-child{flex:1}.eh .ey{width:70px}.eh .et{width:120px}
-.fc.lv .fi .en{flex:1;min-width:0}
-.fc.lv .fi .ey{width:70px;color:#888;font-size:13px}
-.fc.lv .fi .et{width:120px;color:#888;font-size:13px}
-.fc.lv .fi .ii{width:26px;height:26px}
-.fi .ii{width:54px;height:54px;object-fit:contain}
-.emm .fi svg.ic{stroke:#3d5a8a;fill:rgba(74,144,226,.12);stroke-width:2}
-.fs button .ii{width:20px;height:20px;flex:none}
-.fs button svg.ic{stroke:#666;fill:none;stroke-width:2}
-.fs button.on svg.ic{stroke:#fff}
-.est{flex:none;height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#f3f4f6;border-top:1px solid #dfe1e6;font-size:12.5px;color:#666}
 /* 계산기 */
 .cl-{height:100%}
 .ca{height:100%;display:flex;flex-direction:column;background:#eef0f2}
@@ -449,7 +431,7 @@ function openMenu(){renderMenu();$('#menu').classList.add('on');$('#start').styl
 function closeMenu(){$('#menu').classList.remove('on');$('#start').style.borderBottomColor=''}
 $('#start').onclick=e=>{e.stopPropagation();$('#menu').classList.contains('on')?closeMenu():openMenu()};
 $('#menu').onclick=e=>{
- const cb=e.target.closest('[data-c]');if(cb){mcat=cb.dataset.c;LS.s('sky.mcat',mcat);if(mcat==='emu'){closeMenu();openEmuExplorer();return}renderMenu();return}
+ const cb=e.target.closest('[data-c]');if(cb){mcat=cb.dataset.c;LS.s('sky.mcat',mcat);renderMenu();return}
  const ab=e.target.closest('[data-a]');if(ab){if(ab.dataset.a==='ver')location.href='index.html?select=1';else{const d=document.documentElement;(document.fullscreenElement?document.exitFullscreen():(d.requestFullscreen||d.webkitRequestFullscreen||(()=>toast('이 브라우저는 전체화면을 지원하지 않아요')))).call(d)}return}
  const t=e.target.closest('.tile');if(!t)return;
  if(t.dataset.e)openEmuWin(t.dataset.e);else openApp(t.dataset.p);
@@ -462,50 +444,6 @@ function openEmuWin(id){
  openWin({key:'emu-'+id,title:it.n,icon:shape(id),w:980,h:640,init(w){w.body.innerHTML=`<iframe allow="autoplay; gamepad; fullscreen; clipboard-read; clipboard-write" allowfullscreen src="emulator.html?embed=1&launch=${encodeURIComponent(id)}" title="${esc(it.n)}"></iframe>`}});
 }
 
-
-/* 게임에뮬레이터 탐색창 : 파일 탐색기처럼 기종을 보고 골라서 실행합니다 (더블클릭 / Enter, 폰·태블릿은 한 번 터치) */
-function openEmuExplorer(){
- const ALL=EMU();
- const CATS=[['all','전체 게임에뮬레이터','nes'],['c','게임기 · 아케이드','gb'],['p','윈도우 · DOS','win']];
- const KIND=x=>x.t==='p'?(x.id==='dos'?'DOS':'Windows'):(x.id==='mamegame'?'아케이드':'게임기');
- openWin({key:'emuexp',title:'게임에뮬레이터',icon:'nes',w:900,h:560,
-  left:`<button class="tbb" id="xb" title="뒤로">‹</button><button class="tbb" id="xf" title="앞으로">›</button><span class="pth" id="xp"></span>`,
-  right:`<button class="tbb" id="xq" title="검색">${SIC.pc.replace(/<rect.*<\/svg>/,'<circle cx="11" cy="11" r="6.500"/><path d="M16 16l5 5"/></svg>')}</button><button class="tbb" id="xv" title="보기 전환">☰</button>`,
-  init(w){
-   let cat='all',hist=['all'],hi=0,sel=null,lt=0,ltk='',list=false,filt='';
-   w.body.innerHTML=`<div class="fm"><div class="fs" id="xsb"></div><div class="emm"><div class="eh" id="xh"><span>이름</span><span class="ey">발매</span><span class="et">종류</span></div><div class="fc" id="xcn"></div><div class="est"><span id="xn"></span><span id="xs"></span></div></div></div>`;
-   const items=()=>ALL.filter(x=>(cat==='all'||x.t===cat)&&(!filt||(x.n+' '+x.id).toLowerCase().includes(filt)));
-   const draw=()=>{
-    const cn=CATS.find(c=>c[0]===cat);
-    w.setTitle(cn[1]);
-    $('#xp',w.el).innerHTML=`${SIC.home.replace('<svg','<svg class="ic"')}<span>${cat==='all'?'게임에뮬레이터':'게임에뮬레이터 / '+esc(cn[1])}</span>`;
-    $('#xsb',w.body).innerHTML=CATS.map(c=>`<button class="${c[0]===cat?'on':''}" data-c="${c[0]}">${svg(c[2])}<span>${c[1]}</span></button>`).join('');
-    const box=$('#xcn',w.body);box.className='fc'+(list?' lv':'');$('#xh',w.body).classList.toggle('on',list);
-    const it=items();
-    box.innerHTML=it.length?it.map(x=>`<div class="fi ${sel===x.id?'sel':''}" data-k="${x.id}" title="${esc(x.n)}">${svg(shape(x.id))}<span class="en">${esc(x.n)}${list?'':`<small>${x.s}</small>`}</span>${list?`<span class="ey">${x.s}</span><span class="et">${KIND(x)}</span>`:''}</div>`).join(''):'<div class="fe">검색 결과가 없어요</div>';
-    $('#xn',w.body).textContent=it.length+'개 항목'+(filt?' (검색: '+filt+')':'');
-    const cur=sel&&ALL.find(x=>x.id===sel);$('#xs',w.body).textContent=cur?cur.n+' 선택됨 · 더블클릭하면 실행':'';
-   };
-   const go=(c,push=true)=>{if(push){hist=hist.slice(0,hi+1);hist.push(c);hi=hist.length-1}cat=c;sel=null;filt='';draw()};
-   const run=id=>{openEmuWin(id)};
-   $('#xsb',w.body).onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.c)};
-   $('#xcn',w.body).onclick=e=>{
-    const it=e.target.closest('.fi');if(!it){sel=null;draw();return}
-    const k=it.dataset.k,now=Date.now();
-    if(mobile()||(ltk===k&&now-lt<450)){lt=0;run(k);return}
-    sel=k;ltk=k;lt=now;$$('.fi',w.body).forEach(f=>f.classList.toggle('sel',f===it));
-    const cur=ALL.find(x=>x.id===k);$('#xs',w.body).textContent=cur.n+' 선택됨 · 더블클릭하면 실행';
-   };
-   w.el.tabIndex=-1;
-   w.el.addEventListener('keydown',e=>{if(e.key==='Enter'&&sel&&!e.target.closest('input')){e.preventDefault();run(sel)}});
-   $('#xb',w.el).onclick=()=>{if(hi>0){hi--;go(hist[hi],false)}};
-   $('#xf',w.el).onclick=()=>{if(hi<hist.length-1){hi++;go(hist[hi],false)}};
-   $('#xv',w.el).onclick=e=>{list=!list;e.target.textContent=list?'▦':'☰';draw()};
-   $('#xq',w.el).onclick=async()=>{const q=await promptD('검색','찾을 게임기 이름',filt);if(q!=null){filt=q.trim().toLowerCase();draw()}};
-   draw();
-  }});
-}
-
 /* ===== 앱 ===== */
 function openApp(id){({guide:appGuide,memo:appMemo,files:appFiles,calc:appCalc,web:appWeb,set:appSet}[id]||(()=>{}))()}
 
@@ -514,7 +452,7 @@ const SLD=[
  {t:'Sky OS PC 버전은',d:'게임 에뮬레이터와 기본 프로그램을 한 화면에서 쓸 수 있는 웹 데스크톱입니다. 설치 없이 PC·태블릿·스마트폰(갤럭시/아이폰) 브라우저에서 바로 동작합니다.',row:[['nes','게임에뮬레이터'],['memo','메모지'],['files','파일관리자'],['calc','계산기'],['web','Sky Web'],['set','설정']]},
  {t:'직관적인 데스크톱 인터페이스',mock:1,d:'왼쪽 아래 시작 아이콘(색색의 점)을 누르면 프로그램 목록이 나타납니다. 실행한 프로그램은 작업표시줄에 아이콘으로 남고, 아이콘을 누르면 창을 최소화하거나 다시 열 수 있습니다. 오른쪽 끝 아이콘은 바탕화면 보기입니다.'},
  {t:'게임 에뮬레이터 실행하기',li:['시작 아이콘 → 왼쪽 목록에서 ‘게임에뮬레이터’ 선택','오른쪽에서 원하는 기종(NES, SNES, PlayStation, 마메게임 …) 선택','‘📂 게임 파일 불러오기’로 ROM(zip 포함)을 선택하거나 창에 끌어다 놓기','게임이 시작되면 자동으로 실행됩니다 (용량이 크면 로딩에 시간이 걸려요)']},
- {t:'게임 도구 사용하기',li:['💾 저장 / 📥 불러오기 : 게임 진행 상태 저장','🎮 버튼숨기기/버튼표시 : 화면 가상 버튼 숨김/표시 (터치 기기)','🖥 해상도 : 화면 크기와 성능 선택','⛶ 전체화면 / ▲ 메뉴숨김 : 게임 화면을 크게','키보드와 USB·블루투스 게임패드도 사용할 수 있습니다']},
+ {t:'게임 도구 사용하기',li:['💾 저장 / 📥 불러오기 : 게임 진행 상태 저장','🎮 조작 ON/OFF : 화면 가상 버튼 표시 (터치 기기)','🖥 해상도 : 화면 크기와 성능 선택','⛶ 전체화면 / ▲ 메뉴숨김 : 게임 화면을 크게','키보드와 USB·블루투스 게임패드도 사용할 수 있습니다']},
  {t:'윈도우 · MS-DOS 에뮬레이터',li:['Windows 1.0 ~ 98, MS-DOS 중에서 선택하면 이미지를 받은 뒤 자동 부팅합니다','화면을 클릭하면 마우스가 에뮬레이터로 잡히고, ESC 로 풀립니다','3.5 플로피·CD-ROM 이미지 파일을 불러올 수 있습니다','‘나가기’를 누르면 창이 닫힙니다']},
  {t:'기본 프로그램',li:['메모지 : 열기·저장이 되는 간단한 텍스트 편집기','파일관리자 : 윈도우 XP 형태의 가상 파일 시스템 (보여주기용)','계산기 : 사칙연산, 괄호, 제곱, 제곱근, 나머지','Sky Web : 이 사이트에서 지원하는 페이지로 이동하는 웹 브라우저']},
  {t:'설정과 테마',li:['설정 → 사용자·컴퓨터·OS 정보 확인','설정 → 테마선택 : 배경화면과 아이콘 묶음을 한 화면에서 바로 골라 적용','설정 → 테마선택 → ‘테마 추가’ : 배경화면과 아이콘을 하나씩 내 기기의 이미지로 바꿔 저장','‘이 기기에만 저장’은 토큰이 필요 없고, ‘GitHub 토큰’으로 저장하면 다른 폰·태블릿·PC 에서도 보입니다 (기본 테마는 삭제 불가)']},
@@ -832,216 +770,5 @@ loadRemote();
 openMenu();
 if(LS.g('sky.guide',false))setTimeout(()=>{closeMenu();appGuide()},300);
 </script>
-<!-- DEVSTATUS:START -->
-<script>
-(function(){
-'use strict';
-/* 장치 상태 바 + 절전 모드 */
-if(window.top!==window||window.__dsBar)return;
-window.__dsBar=1;
-var KEY='ds.saver';
-var isAndroid=/Android/i.test(navigator.userAgent||'');
-var S={bt:0,usb:0,otg:0,kb:0,ms:0,pad:0};
-var saver=false,autoSaver=false,batt=null,padIv=0;
-var origGP=navigator.getGamepads?navigator.getGamepads.bind(navigator):null;
-function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-
-var st=document.createElement('style');
-st.textContent=`
-#ds-bar{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:8px;padding:3px 10px;border-radius:12px;background:rgba(15,17,22,.8);color:#d8dde6;font:600 10.5px/1 system-ui,-apple-system,"Malgun Gothic",sans-serif;border:1px solid rgba(255,255,255,.14);-webkit-user-select:none;user-select:none;max-width:calc(100vw - 8px);white-space:nowrap;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-#ds-bar .it{display:flex;align-items:center;gap:3px;padding:3px 0}
-#ds-bar .it[data-act]{cursor:pointer}
-#ds-bar i{width:7px;height:7px;border-radius:50%;background:#6b7280;display:block;flex:none}
-#ds-bar .off{opacity:.55}
-#ds-bar .on i{background:#2bdc5b;box-shadow:0 0 5px 1px rgba(43,220,91,.85)}
-#ds-sv{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-sv-top,var(--ds-top,6px)));left:calc(env(safe-area-inset-left,0px) + 10px);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;height:36px;margin:0;padding:0 16px 0 13px;border-radius:99px;border:2px solid #ffd0d6;background:linear-gradient(135deg,#ff8a96,#e8495b 70%);color:#fff;text-shadow:0 1px 2px rgba(120,20,40,.5);font:400 14.5px/1 Jua,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;letter-spacing:.03em;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box;box-shadow:0 4px 0 #a8263d,0 8px 18px rgba(232,73,91,.4);transition:transform .15s,box-shadow .15s,filter .2s}
-#ds-sv:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 6px 0 #a8263d,0 12px 22px rgba(232,73,91,.45)}
-#ds-sv:active{transform:translateY(3px);box-shadow:0 1px 0 #a8263d}
-#ds-sv svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#ds-sv .st{font-size:12px;opacity:.9}
-#ds-sv.on{background:linear-gradient(135deg,#5fd3a0,#2f9e6e 70%);border-color:#c9f2de;text-shadow:0 1px 2px rgba(10,70,40,.5);box-shadow:0 4px 0 #1c6f4c,0 8px 18px rgba(47,158,110,.4)}
-#ds-sv.on:hover{box-shadow:0 6px 0 #1c6f4c,0 12px 22px rgba(47,158,110,.45)}
-#ds-sv.on:active{box-shadow:0 1px 0 #1c6f4c}
-#ds-sv:focus-visible{outline:3px solid #ffcf7d;outline-offset:3px}
-@media (max-width:560px){body{margin-top:42px}#ds-bar{top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px) + 9px);left:auto;right:4px;transform:none;max-width:calc(100vw - 134px);overflow-x:auto;scrollbar-width:none;gap:6px;padding:3px 8px}#ds-bar::-webkit-scrollbar{display:none}}
-html.ds-saver #ds-bar .on i{box-shadow:none}
-#ds-bar .bat{width:17px;height:9px;border:1px solid #9aa3b2;border-radius:2px;position:relative;display:block;padding:0;box-sizing:border-box}
-#ds-bar .bat::after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:3px;background:#9aa3b2;border-radius:0 1px 1px 0}
-#ds-bar .bat b{display:block;height:100%;width:0;background:#2bdc5b}
-#ds-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 32px);left:50%;transform:translateX(-50%);z-index:2147483001;display:none;background:rgba(15,17,22,.92);color:#fff;font:600 12px/1.3 system-ui,-apple-system,"Malgun Gothic",sans-serif;padding:7px 12px;border-radius:10px;max-width:90vw;text-align:center}
-html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}
-`;
-document.head.appendChild(st);
-
-var items=[['bt','BT','블루투스','pair'],['usb','USB','USB','wired'],['otg','OTG','OTG','wired'],['kb','⌨','키보드'],['ms','🖱','마우스'],['pad','🎮','게임패드']];
-var bar=document.createElement('div');
-bar.id='ds-bar';
-bar.innerHTML='<span class="it bw" title="배터리"><span class="bat"><b></b></span><span class="bp">--</span></span>'
- +items.map(function(a){return '<span class="it off" data-k="'+a[0]+'"'+(a[3]?' data-act="'+a[3]+'"':'')+'><i></i><span>'+a[1]+'</span></span>'}).join('');
-document.body.appendChild(bar);
-var svb=document.createElement('button');svb.type='button';svb.id='ds-sv';
-svb.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8.500 5-14 14-14 0 9-5.500 14-14 14z"/><path d="M5 19l7-7"/></svg><span>절전</span><span class="st">꺼짐</span>';
-document.body.appendChild(svb);
-var tt=document.createElement('div');tt.id='ds-toast';document.body.appendChild(tt);
-var sv=svb;
-function toast(m){tt.textContent=m;tt.style.display='block';clearTimeout(tt._t);tt._t=setTimeout(function(){tt.style.display='none'},2600)}
-
-function render(){
-  items.forEach(function(a){
-    var el=bar.querySelector('[data-k="'+a[0]+'"]'),on=!!S[a[0]];
-    el.classList.toggle('on',on);el.classList.toggle('off',!on);
-    el.title=a[2]+(on?' · 연결됨':' · 미연결')+(a[3]?' (탭하여 연결)':'');
-  });
-  sv.classList.toggle('on',saver);sv.setAttribute('aria-pressed',saver?'true':'false');sv.querySelector('.st').textContent=saver?'켜짐':'꺼짐';
-  sv.title='절전 모드 '+(saver?'켜짐':'꺼짐')+' (탭하여 전환)';
-}
-
-/* ---------- 배터리 ---------- */
-function paintBatt(){
-  var f=bar.querySelector('.bat b'),p=bar.querySelector('.bp'),w=bar.querySelector('.bw');
-  if(!batt){p.textContent='--';f.style.width='0';w.title='이 브라우저는 배터리 정보를 제공하지 않습니다';return}
-  var l=Math.round(batt.level*100);
-  f.style.width=l+'%';f.style.background=l<=20?'#ef4444':l<=50?'#f5b301':'#2bdc5b';
-  p.textContent=(batt.charging?'⚡':'')+l+'%';
-  w.title='배터리 '+l+'%'+(batt.charging?' · 충전 중':'');
-}
-function onBatt(){
-  paintBatt();
-  if(ls(KEY)||!batt)return; /* 사용자가 직접 정했으면 자동 전환 안 함 */
-  var low=batt.level<=0.2&&!batt.charging;
-  if(low&&!saver){autoSaver=true;setSaver(true);toast('배터리 20% 이하 · 절전 모드 켜짐')}
-  else if(!low&&autoSaver&&saver){autoSaver=false;setSaver(false)}
-}
-if(navigator.getBattery){
-  navigator.getBattery().then(function(b){
-    batt=b;['levelchange','chargingchange'].forEach(function(e){b.addEventListener(e,onBatt)});onBatt();
-  }).catch(function(){});
-}
-
-/* ---------- 게임패드 ---------- */
-function scanPads(){
-  var c=0;
-  try{var g=origGP?origGP():[];for(var i=0;i<g.length;i++)if(g[i]&&g[i].connected)c++}catch(e){}
-  var v=c>0?1:0;if(S.pad!==v){S.pad=v;render()}
-}
-addEventListener('gamepadconnected',scanPads);
-addEventListener('gamepaddisconnected',function(){setTimeout(scanPads,50)});
-
-/* 절전 모드: 게임패드가 없으면 getGamepads()를 호출해도 장치 조회를 하지 않음 */
-function patchGP(w){
-  try{
-    var n=w.navigator;if(!n||!n.getGamepads||n.__dsP)return;
-    var o=(w===window&&origGP)?origGP:n.getGamepads.bind(n);
-    n.__dsP=1;
-    Object.defineProperty(n,'getGamepads',{configurable:true,writable:true,value:function(){
-      return (saver&&!S.pad)?[null,null,null,null]:o();
-    }});
-  }catch(e){}
-}
-function patchAll(){
-  patchGP(window);
-  var f=document.querySelectorAll('iframe');
-  for(var i=0;i<f.length;i++){try{patchGP(f[i].contentWindow)}catch(e){}}
-}
-document.addEventListener('load',function(e){
-  var t=e.target;if(t&&t.tagName==='IFRAME'){try{patchGP(t.contentWindow)}catch(x){}}
-},true);
-
-/* 절전 모드: 화면에 상호작용 없는 장식 캔버스(눈, 배경효과 등) 숨김 */
-function hideDeco(on){
-  var c=document.querySelectorAll('canvas');
-  for(var i=0;i<c.length;i++){
-    var el=c[i];
-    if(on){
-      if(el.dataset.dsH)continue;
-      var cs=getComputedStyle(el);
-      if(cs.position==='fixed'&&cs.pointerEvents==='none'){el.dataset.dsH=el.style.display||'-';el.style.display='none'}
-    }else if(el.dataset.dsH){
-      el.style.display=el.dataset.dsH==='-'?'':el.dataset.dsH;delete el.dataset.dsH;
-    }
-  }
-}
-function padPoll(){
-  if(!saver&&!padIv&&origGP){padIv=setInterval(scanPads,2500)}
-  else if(saver&&padIv){clearInterval(padIv);padIv=0}
-}
-function setSaver(v){
-  saver=!!v;
-  document.documentElement.classList.toggle('ds-saver',saver);
-  patchAll();hideDeco(saver);padPoll();render();
-}
-
-/* ---------- 마우스 / 키보드 ---------- */
-var mq=window.matchMedia?matchMedia('(any-pointer:fine) and (any-hover:hover)'):null;
-function msUpd(){S.ms=(mq&&mq.matches)||S.msSeen?1:0;render()}
-if(mq){if(mq.addEventListener)mq.addEventListener('change',msUpd);else if(mq.addListener)mq.addListener(msUpd)}
-function msSeen(e){
-  if(e.pointerType==='mouse'&&e.isTrusted){S.msSeen=1;removeEventListener('pointermove',msSeen,true);msUpd()}
-}
-addEventListener('pointermove',msSeen,true);
-
-var kbT=0,kbLast=0;
-addEventListener('keydown',function(e){
-  if(!e.isTrusted||!e.code||e.key==='Unidentified')return; /* 화면 키보드 제외 */
-  if(!S.kb){S.kb=1;render()}
-  var t=Date.now();
-  if(t-kbLast>1500){kbLast=t;clearTimeout(kbT);kbT=setTimeout(function(){S.kb=0;render()},300000)}
-},true);
-
-/* ---------- USB / OTG / HID ---------- */
-function refreshWired(){
-  var n=0,p=[];
-  try{if(navigator.usb)p.push(navigator.usb.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
-  try{if(navigator.hid)p.push(navigator.hid.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
-  Promise.all(p).then(function(){S.usb=(!isAndroid&&n>0)?1:0;S.otg=(isAndroid&&n>0)?1:0;render()});
-}
-['usb','hid'].forEach(function(k){
-  try{if(navigator[k]){navigator[k].addEventListener('connect',refreshWired);navigator[k].addEventListener('disconnect',refreshWired)}}catch(e){}
-});
-async function wiredPair(){
-  try{
-    if(navigator.usb)await navigator.usb.requestDevice({filters:[]});
-    else if(navigator.hid)await navigator.hid.requestDevice({filters:[]});
-    else{toast('이 브라우저는 USB/OTG 연결을 지원하지 않습니다');return}
-  }catch(e){if(!e||e.name!=='NotFoundError')toast('USB/OTG 연결 실패')}
-  refreshWired();
-}
-
-/* ---------- 블루투스 ---------- */
-var btDevs=[];
-function btRefresh(){
-  var c=0;btDevs.forEach(function(d){if(d.gatt&&d.gatt.connected)c++});
-  S.bt=c>0?1:0;render();
-}
-function btAdd(d){if(btDevs.indexOf(d)<0){btDevs.push(d);d.addEventListener('gattserverdisconnected',btRefresh)}}
-if(navigator.bluetooth&&navigator.bluetooth.getDevices){
-  navigator.bluetooth.getDevices().then(function(l){l.forEach(btAdd);btRefresh()}).catch(function(){});
-}
-async function btPair(){
-  if(!navigator.bluetooth){toast('이 브라우저는 블루투스 연결을 지원하지 않습니다');return}
-  try{
-    var d=await navigator.bluetooth.requestDevice({acceptAllDevices:true});
-    btAdd(d);if(d.gatt)await d.gatt.connect();
-    btRefresh();toast((d.name||'블루투스 장치')+' 연결됨');
-  }catch(e){if(!e||e.name!=='NotFoundError')toast('블루투스 연결 실패')}
-}
-
-/* ---------- 클릭 ---------- */
-bar.addEventListener('click',function(e){
-  var t=e.target.closest?e.target.closest('[data-act]'):null;if(!t)return;
-  var a=t.getAttribute('data-act');
-  if(a==='sv'){var v=!saver;ls(KEY,v?'on':'off');autoSaver=false;setSaver(v);toast(v?'절전 모드 켜짐 · 연결된 장치만 사용':'절전 모드 꺼짐')}
-  else if(a==='pair')btPair();
-  else if(a==='wired')wiredPair();
-});
-
-svb.addEventListener('click',function(){var v=!saver;ls(KEY,v?'on':'off');autoSaver=false;setSaver(v);toast(v?'절전 모드 켜짐 · 연결된 장치만 사용':'절전 모드 꺼짐')});
-
-/* ---------- 시작 ---------- */
-msUpd();refreshWired();scanPads();
-setSaver(ls(KEY)==='on');
-})();
-</script>
-<!-- DEVSTATUS:END -->
 </body>
 </html>
