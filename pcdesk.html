@@ -90,10 +90,11 @@ function upload(k,done){const i=document.createElement('input');i.type='file';i.
 function dlBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()}
 /* ---------- 메인 ---------- */
 const main=()=>menu('[메인 메뉴]','여기서 원하는 메뉴의 단어를 선택하세요.',[['일상',()=>go(daily())],['게임',()=>go(games())]]);
-const daily=()=>menu('[일상]','',[['메모',()=>go(memoMenu())],['사진',()=>go(mediaMenu('photo'))],['음악',()=>go(mediaMenu('music'))],['영상',()=>listScreen('video',[['전체선택','all'],['일괄선택','inv'],['다운로드','dl'],['유튜브공유','share'],['영상올리기','up'],['삭제','del']]))]]);
+const daily=()=>menu('[일상]','',[['메모',()=>go(memoMenu())],['사진',()=>go(mediaMenu('photo'))],['음악',()=>go(mediaMenu('music'))],['영상',()=>listScreen('video',[['전체선택','all'],['일괄선택','inv'],['다운로드','dl'],['유튜브공유','share'],['영상올리기','up'],['삭제','del']])]]);
 /* ---------- 메모 ---------- */
 const memos=()=>jget('memos',[]);
-const memoMenu=()=>menu('[메모]','',[['글쓰기',()=>editor({id:Date.now(),t:'',body:''})],['수정',()=>pick('수정할 메모',m=>editor(m))],['삭제',()=>pick('삭제할 메모',m=>{if(confirm(m.t+' 삭제?')){LS.memos=JSON.stringify(memos().filter(x=>x.id!=m.id));back();back();go(memoMenu());go(top())}})],['저장',()=>{const a=memos();if(!a.length)return alert('저장된 메모가 없습니다.');dlBlob(new Blob([a.map(m=>'## '+m.t+'\n'+m.body).join('\n\n----\n\n')],{type:'text/plain'}),'memo.txt')}]]);
+const delM=m=>{if(confirm((m.t||'제목없음')+' 삭제?')){LS.memos=JSON.stringify(memos().filter(x=>x.id!=m.id));stack.pop();pick('삭제할 메모',delM)}};
+const memoMenu=()=>menu('[메모]','',[['글쓰기',()=>editor({id:Date.now(),t:'',body:''})],['수정',()=>pick('수정할 메모',m=>editor(m))],['삭제',()=>pick('삭제할 메모',delM)],['저장',()=>{const a=memos();if(!a.length)return alert('저장된 메모가 없습니다.');dlBlob(new Blob([a.map(m=>'## '+m.t+'\n'+m.body).join('\n\n----\n\n')],{type:'text/plain'}),'memo.txt')}]]);
 function pick(t,fn){const a=memos();go({title:t,items:a.length?a.map(m=>({h:m.t||'제목없음',a:()=>fn(m)})):[{h:'(메모가 없습니다)'}]})}
 function editor(m){go({title:'EDIT',tip:'Ctrl+S 저장 / Esc 나가기',draw(b){
  b.innerHTML=`<div class=dos><div class=m><a>파일(F)</a><a>편집(E)</a><a>검색(S)</a><a>옵션(O)</a><a>도움말(H)</a><a id=sv style="margin-left:auto">[저장]</a><a id=ex>[나가기]</a></div><div class=t>${m.t||'제목없음'}</div><textarea id=ta spellcheck=false></textarea><div class=s id=st>F1=도움말  Ctrl+S=저장  Esc=나가기</div></div>`;
