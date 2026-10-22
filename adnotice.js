@@ -11,7 +11,7 @@ var page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
 var theme=/desktop/.test(page)?'sky':/mobile/.test(page)?'glass':'warm';
 
 var css='\
-.adn-bg{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,10,26,.62);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);opacity:0;transition:opacity .25s}\
+.adn-bg{position:fixed;inset:0;z-index:2147483002;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,10,26,.62);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);opacity:0;transition:opacity .25s}\
 .adn-bg.on{opacity:1}\
 .adn-box{position:relative;width:min(400px,100%);padding:30px 26px 22px;text-align:center;border-radius:22px;transform:translateY(14px) scale(.96);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);font-family:var(--adn-font)}\
 .adn-bg.on .adn-box{transform:none}\
