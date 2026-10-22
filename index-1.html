@@ -300,6 +300,7 @@ body:has(#emu.show) #topnav,body:has(#pc.show) #topnav{display:none}
     <span class="t" id="eTitle"></span>
     <button id="bLoad">📂 게임</button>
     <button id="bSave" disabled>💾 저장</button>
+    <button id="bCap" disabled title="지금 게임 화면을 사진(PNG)으로 저장합니다">📷 캡처</button>
     <button id="bRest" disabled>📥 불러오기</button>
     <button id="bCtl" disabled>🎮 버튼숨기기</button>
     <button id="bCore" style="display:none" title="마메게임 엔진(코어) 변경">🧩 코어</button>
@@ -426,7 +427,7 @@ function openEmu(c){
  $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'');
  $('#romIn').multiple=false;$('#bCore').style.display=MG.is(c)?'':'none';MG.mount(c);
  $('#drop').classList.remove('hidden');
- ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
+ ['bSave','bCap','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
  fr.src='about:blank';
  emu.classList.add('show');setBarHidden(false);
  history.pushState({emu:1},'');
@@ -501,7 +502,7 @@ function startGame(file,ci=0){
     w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     w.EJS_onGameStart=()=>{
-      started=true;clearTimeout(startGame.t);['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
+      started=true;clearTimeout(startGame.t);['bSave','bCap','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
       loadProgress(100,'게임 시작 완료');
       setTimeout(loadHide,500);
       toast('게임 시작! 🎮');
@@ -533,6 +534,31 @@ $('#bSave').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
   document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
  }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
+};
+/* 📷 캡처 : 지금 게임 화면을 PNG 사진으로 저장 (예: NINTENDO64SUPERMARIO64_10221530.PNG) */
+$('#bCap').onclick=async()=>{
+ try{
+  const w=fr.contentWindow,d=fr.contentDocument;
+  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+  const name=`${cur.fn}${g}_${stamp()}.PNG`;
+  const save=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('📷 캡처 저장됨: '+name)};
+  /* 1순위: 에뮬레이터 내장 스크린샷 */
+  try{
+   const r=await w.EJS_emulator.gameManager.screenshot();
+   const b=r instanceof Blob?r:(r&&r.byteLength>200?new Blob([r],{type:'image/png'}):null);
+   if(b){save(b);return}
+  }catch(e){}
+  /* 2순위: 화면 캔버스를 복사해서 저장 */
+  const cv=[...d.querySelectorAll('canvas')].filter(c=>c.width>0&&c.height>0&&c.offsetWidth>0).sort((a,b)=>b.width*b.height-a.width*a.height)[0];
+  if(!cv)throw new Error('no canvas');
+  w.requestAnimationFrame(()=>{
+   try{
+    const t=document.createElement('canvas');t.width=cv.width;t.height=cv.height;
+    t.getContext('2d').drawImage(cv,0,0);
+    t.toBlob(b=>b?save(b):toast('캡처 실패: 게임이 시작된 후 다시 시도하세요'),'image/png');
+   }catch(e){toast('캡처 실패: 게임이 시작된 후 다시 시도하세요')}
+  });
+ }catch(err){toast('캡처 실패: 게임이 시작된 후 다시 시도하세요')}
 };
 $('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
 $('#gsvIn').onchange=async e=>{

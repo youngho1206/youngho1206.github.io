@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="noads.js"></script>
+<script src="adnotice.js" defer></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#05070f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -153,6 +154,22 @@ button{font-family:inherit;cursor:pointer}
 .fe{grid-column:1/-1;text-align:center;color:#999;padding:60px 0;font-size:14px}
 .pth{height:30px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:0 10px;min-width:120px;max-width:44vw;overflow:hidden;white-space:nowrap;font-size:14px;margin-left:4px}
 .pth svg{width:16px;height:16px;stroke:currentColor;flex:none}
+/* 게임에뮬레이터 탐색창 */
+.emm{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
+.emm .fc{flex:1;min-height:0}
+.eh{display:none;flex:none;align-items:center;gap:12px;padding:6px 14px 6px 48px;background:#f5f6f8;border-bottom:1px solid #e3e5ea;font-size:12.5px;color:#777}
+.eh.on{display:flex}
+.eh span:first-child{flex:1}.eh .ey{width:70px}.eh .et{width:120px}
+.fc.lv .fi .en{flex:1;min-width:0}
+.fc.lv .fi .ey{width:70px;color:#888;font-size:13px}
+.fc.lv .fi .et{width:120px;color:#888;font-size:13px}
+.fc.lv .fi .ii{width:26px;height:26px}
+.fi .ii{width:54px;height:54px;object-fit:contain}
+.emm .fi svg.ic{stroke:#3d5a8a;fill:rgba(74,144,226,.12);stroke-width:2}
+.fs button .ii{width:20px;height:20px;flex:none}
+.fs button svg.ic{stroke:#666;fill:none;stroke-width:2}
+.fs button.on svg.ic{stroke:#fff}
+.est{flex:none;height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#f3f4f6;border-top:1px solid #dfe1e6;font-size:12.5px;color:#666}
 /* 계산기 */
 .cl-{height:100%}
 .ca{height:100%;display:flex;flex-direction:column;background:#eef0f2}
@@ -432,7 +449,7 @@ function openMenu(){renderMenu();$('#menu').classList.add('on');$('#start').styl
 function closeMenu(){$('#menu').classList.remove('on');$('#start').style.borderBottomColor=''}
 $('#start').onclick=e=>{e.stopPropagation();$('#menu').classList.contains('on')?closeMenu():openMenu()};
 $('#menu').onclick=e=>{
- const cb=e.target.closest('[data-c]');if(cb){mcat=cb.dataset.c;LS.s('sky.mcat',mcat);renderMenu();return}
+ const cb=e.target.closest('[data-c]');if(cb){mcat=cb.dataset.c;LS.s('sky.mcat',mcat);if(mcat==='emu'){closeMenu();openEmuExplorer();return}renderMenu();return}
  const ab=e.target.closest('[data-a]');if(ab){if(ab.dataset.a==='ver')location.href='index.html?select=1';else{const d=document.documentElement;(document.fullscreenElement?document.exitFullscreen():(d.requestFullscreen||d.webkitRequestFullscreen||(()=>toast('이 브라우저는 전체화면을 지원하지 않아요')))).call(d)}return}
  const t=e.target.closest('.tile');if(!t)return;
  if(t.dataset.e)openEmuWin(t.dataset.e);else openApp(t.dataset.p);
@@ -443,6 +460,50 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#dlg').classList.contain
 function openEmuWin(id){
  const it=C.find(x=>x.id===id)||P.find(x=>x.id===id);if(!it)return;
  openWin({key:'emu-'+id,title:it.n,icon:shape(id),w:980,h:640,init(w){w.body.innerHTML=`<iframe allow="autoplay; gamepad; fullscreen; clipboard-read; clipboard-write" allowfullscreen src="emulator.html?embed=1&launch=${encodeURIComponent(id)}" title="${esc(it.n)}"></iframe>`}});
+}
+
+
+/* 게임에뮬레이터 탐색창 : 파일 탐색기처럼 기종을 보고 골라서 실행합니다 (더블클릭 / Enter, 폰·태블릿은 한 번 터치) */
+function openEmuExplorer(){
+ const ALL=EMU();
+ const CATS=[['all','전체 게임에뮬레이터','nes'],['c','게임기 · 아케이드','gb'],['p','윈도우 · DOS','win']];
+ const KIND=x=>x.t==='p'?(x.id==='dos'?'DOS':'Windows'):(x.id==='mamegame'?'아케이드':'게임기');
+ openWin({key:'emuexp',title:'게임에뮬레이터',icon:'nes',w:900,h:560,
+  left:`<button class="tbb" id="xb" title="뒤로">‹</button><button class="tbb" id="xf" title="앞으로">›</button><span class="pth" id="xp"></span>`,
+  right:`<button class="tbb" id="xq" title="검색">${SIC.pc.replace(/<rect.*<\/svg>/,'<circle cx="11" cy="11" r="6.500"/><path d="M16 16l5 5"/></svg>')}</button><button class="tbb" id="xv" title="보기 전환">☰</button>`,
+  init(w){
+   let cat='all',hist=['all'],hi=0,sel=null,lt=0,ltk='',list=false,filt='';
+   w.body.innerHTML=`<div class="fm"><div class="fs" id="xsb"></div><div class="emm"><div class="eh" id="xh"><span>이름</span><span class="ey">발매</span><span class="et">종류</span></div><div class="fc" id="xcn"></div><div class="est"><span id="xn"></span><span id="xs"></span></div></div></div>`;
+   const items=()=>ALL.filter(x=>(cat==='all'||x.t===cat)&&(!filt||(x.n+' '+x.id).toLowerCase().includes(filt)));
+   const draw=()=>{
+    const cn=CATS.find(c=>c[0]===cat);
+    w.setTitle(cn[1]);
+    $('#xp',w.el).innerHTML=`${SIC.home.replace('<svg','<svg class="ic"')}<span>${cat==='all'?'게임에뮬레이터':'게임에뮬레이터 / '+esc(cn[1])}</span>`;
+    $('#xsb',w.body).innerHTML=CATS.map(c=>`<button class="${c[0]===cat?'on':''}" data-c="${c[0]}">${svg(c[2])}<span>${c[1]}</span></button>`).join('');
+    const box=$('#xcn',w.body);box.className='fc'+(list?' lv':'');$('#xh',w.body).classList.toggle('on',list);
+    const it=items();
+    box.innerHTML=it.length?it.map(x=>`<div class="fi ${sel===x.id?'sel':''}" data-k="${x.id}" title="${esc(x.n)}">${svg(shape(x.id))}<span class="en">${esc(x.n)}${list?'':`<small>${x.s}</small>`}</span>${list?`<span class="ey">${x.s}</span><span class="et">${KIND(x)}</span>`:''}</div>`).join(''):'<div class="fe">검색 결과가 없어요</div>';
+    $('#xn',w.body).textContent=it.length+'개 항목'+(filt?' (검색: '+filt+')':'');
+    const cur=sel&&ALL.find(x=>x.id===sel);$('#xs',w.body).textContent=cur?cur.n+' 선택됨 · 더블클릭하면 실행':'';
+   };
+   const go=(c,push=true)=>{if(push){hist=hist.slice(0,hi+1);hist.push(c);hi=hist.length-1}cat=c;sel=null;filt='';draw()};
+   const run=id=>{openEmuWin(id)};
+   $('#xsb',w.body).onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.c)};
+   $('#xcn',w.body).onclick=e=>{
+    const it=e.target.closest('.fi');if(!it){sel=null;draw();return}
+    const k=it.dataset.k,now=Date.now();
+    if(mobile()||(ltk===k&&now-lt<450)){lt=0;run(k);return}
+    sel=k;ltk=k;lt=now;$$('.fi',w.body).forEach(f=>f.classList.toggle('sel',f===it));
+    const cur=ALL.find(x=>x.id===k);$('#xs',w.body).textContent=cur.n+' 선택됨 · 더블클릭하면 실행';
+   };
+   w.el.tabIndex=-1;
+   w.el.addEventListener('keydown',e=>{if(e.key==='Enter'&&sel&&!e.target.closest('input')){e.preventDefault();run(sel)}});
+   $('#xb',w.el).onclick=()=>{if(hi>0){hi--;go(hist[hi],false)}};
+   $('#xf',w.el).onclick=()=>{if(hi<hist.length-1){hi++;go(hist[hi],false)}};
+   $('#xv',w.el).onclick=e=>{list=!list;e.target.textContent=list?'▦':'☰';draw()};
+   $('#xq',w.el).onclick=async()=>{const q=await promptD('검색','찾을 게임기 이름',filt);if(q!=null){filt=q.trim().toLowerCase();draw()}};
+   draw();
+  }});
 }
 
 /* ===== 앱 ===== */
