@@ -13,7 +13,7 @@ html,body{margin:0;height:100%;background:#111;font:var(--fs)/1.3 "Malgun Gothic
 #view{flex:1;position:relative;min-height:0;background:var(--bg) center/cover}
 .pg{position:absolute;inset:0;display:none;overflow:auto;padding:10px}.pg.on{display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--is)*2),1fr));gap:12px 4px;padding:8px}
-.ic{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:#123;font-size:.86em;text-align:center;padding:4px;border-radius:var(--r)}
+.ic{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--tx,#123);font-size:.86em;text-align:center;padding:4px;border-radius:var(--r)}
 .ic:active{background:#fc83}
 .bd{width:var(--is);height:var(--is);border-radius:28%;display:grid;place-items:center;font-size:calc(var(--is)*.58);background:linear-gradient(160deg,var(--c1),var(--c2));box-shadow:inset 0 2px 2px #fff9,0 2px 3px #0006;position:relative;border:1px solid #0004}
 .bd:after{content:"";position:absolute;left:8%;right:8%;top:4%;height:42%;border-radius:40% 40% 60% 60%;background:linear-gradient(#fff8,#fff0)}
@@ -41,7 +41,17 @@ html,body{margin:0;height:100%;background:#111;font:var(--fs)/1.3 "Malgun Gothic
 #stage iframe{flex:1;border:0;width:100%;min-height:0;background:#000}
 #ebar{display:flex;gap:4px;padding:5px;background:linear-gradient(#e6edf8,#b9c8de);flex-wrap:wrap;justify-content:center}
 #hello{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;padding:20px;color:#123}
-#hello p{max-width:420px;line-height:1.6;font-weight:700}
+#hello p{max-width:420px;line-height:1.6;font-weight:700;margin:0}
+#hello{color:var(--tx,#123)}
+#hello .hi{width:calc(var(--is)*2.4);height:calc(var(--is)*2.4);object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 4px 3px #0004)}#hello .hi.sm{image-rendering:auto}
+#hello .hn{font-size:1.15em;font-weight:700;margin-top:-6px}#hello .hx{opacity:.7;font-size:.8em;margin-top:-10px}
+.eg{display:none;grid-template-columns:repeat(auto-fill,minmax(calc(var(--is)*2.7),1fr));gap:14px 10px;padding:14px;align-content:start}
+.ec{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 8px;border-radius:calc(var(--r)*1.6);cursor:pointer;color:var(--tx,#123);background:#ffffff42;border:1px solid #0001;text-align:center;transition:transform .12s}
+.ec:active{background:#fc83;transform:scale(.95)}
+.ec img{width:calc(var(--is)*1.9);height:calc(var(--is)*1.9);object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 3px 2px #0003)}.ec img.sm{image-rendering:auto}
+.ec b{font-size:.9em;margin-top:2px}.ec small{opacity:.7;font-size:.75em}
+.bd.im{background:none;box-shadow:none;border:0}.bd.im:after{display:none}.bd.im img{width:100%;height:100%;object-fit:contain}
+#sb .row,#sb b{color:var(--tx,#123)}
 .dlg{position:fixed;inset:0;background:#0007;display:none;place-items:center;z-index:80}.dlg.on{display:grid}
 .dlg>div{background:#fff;border:2px solid var(--tab2);border-radius:10px;width:min(420px,92vw);max-height:84%;overflow:auto;box-shadow:0 8px 30px #000a}
 .dlg h4{margin:0;padding:10px 14px;background:linear-gradient(#e6edf8,#b9c8de);color:#123}
@@ -76,10 +86,10 @@ var $=function(s,r){return(r||document).querySelector(s)},L=localStorage;
 function sv(k,v){try{L.setItem('tb_'+k,JSON.stringify(v))}catch(e){}}
 function ld(k,d){try{var v=L.getItem('tb_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}}
 function el(t,c,h,p){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;if(p)p.appendChild(e);return e}
-var S=Object.assign({lang:'ko',round:6,fs:14,is:44,ist:'',th:0,ac:'#f08a1c',icon:{}},ld('s',{}));
-var T={ko:{emu:'Emulator',prog:'프로그램',set:'설정',thm:'테마',start:'시작',open:'열기',hello:'Tablet PC Mode Emulator 입니다.<br>원하는 게임을 [열기]를 통해 불러와 실행해주세요.',load:'게임불러오기',save:'세이브파일',full:'전체화면',hide:'버튼숨기기',quit:'종료',home:'버전선택화면',calc:'계산기',video:'비디오',paint:'그림',note:'노트',rec:'녹음기',cal:'달력',world:'세계시간',music:'음악',clock:'시계',sys:'시스템정보',memo:'메모장',photo:'사진뷰어',files:'탐색기',map:'지도',ebook:'E-Book'},
-en:{emu:'Emulator',prog:'Programs',set:'Settings',thm:'Theme',start:'Start',open:'Open',hello:'Tablet PC Mode Emulator.<br>Press [Open] to load a game and play.',load:'Load game',save:'Save file',full:'Fullscreen',hide:'Hide pad',quit:'Exit',home:'Version select',calc:'Calculator',video:'Video',paint:'Paint',note:'Notes',rec:'Recorder',cal:'Calendar',world:'World time',music:'Music',clock:'Clock',sys:'System info',memo:'Notepad',photo:'Photo viewer',files:'Explorer',map:'Map',ebook:'E-Book'},
-ja:{emu:'エミュレータ',prog:'プログラム',set:'設定',thm:'テーマ',start:'スタート',open:'開く',hello:'Tablet PC Mode Emulator です。<br>[開く]でゲームを読み込んで実行してください。',load:'ゲーム読込',save:'セーブ',full:'全画面',hide:'ボタン非表示',quit:'終了',home:'バージョン選択',calc:'電卓',video:'ビデオ',paint:'ペイント',note:'ノート',rec:'録音機',cal:'カレンダー',world:'世界時計',music:'音楽',clock:'時計',sys:'システム情報',memo:'メモ帳',photo:'フォト',files:'エクスプローラ',map:'地図',ebook:'電子書籍'}};
+var S=Object.assign({lang:'ko',round:6,fs:14,is:44,ist:'',th:0,ac:'#f08a1c',icon:{},eicon:{},estyle:'pixel'},ld('s',{}));
+var T={ko:{emu:'Emulator',prog:'프로그램',set:'설정',thm:'테마',start:'시작',open:'열기',hello:'Tablet PC Mode Emulator 입니다.<br>원하는 게임을 [열기]를 통해 불러와 실행해주세요.',back:'기종선택',pickhint:'실행할 기종을 선택하세요',load:'게임불러오기',save:'세이브파일',full:'전체화면',hide:'버튼숨기기',quit:'종료',home:'버전선택화면',calc:'계산기',video:'비디오',paint:'그림',note:'노트',rec:'녹음기',cal:'달력',world:'세계시간',music:'음악',clock:'시계',sys:'시스템정보',memo:'메모장',photo:'사진뷰어',files:'탐색기',map:'지도',ebook:'E-Book'},
+en:{emu:'Emulator',prog:'Programs',set:'Settings',thm:'Theme',start:'Start',open:'Open',hello:'Tablet PC Mode Emulator.<br>Press [Open] to load a game and play.',back:'Systems',pickhint:'Choose a system',load:'Load game',save:'Save file',full:'Fullscreen',hide:'Hide pad',quit:'Exit',home:'Version select',calc:'Calculator',video:'Video',paint:'Paint',note:'Notes',rec:'Recorder',cal:'Calendar',world:'World time',music:'Music',clock:'Clock',sys:'System info',memo:'Notepad',photo:'Photo viewer',files:'Explorer',map:'Map',ebook:'E-Book'},
+ja:{emu:'エミュレータ',prog:'プログラム',set:'設定',thm:'テーマ',start:'スタート',open:'開く',hello:'Tablet PC Mode Emulator です。<br>[開く]でゲームを読み込んで実行してください。',back:'機種選択',pickhint:'機種を選んでください',load:'ゲーム読込',save:'セーブ',full:'全画面',hide:'ボタン非表示',quit:'終了',home:'バージョン選択',calc:'電卓',video:'ビデオ',paint:'ペイント',note:'ノート',rec:'録音機',cal:'カレンダー',world:'世界時計',music:'音楽',clock:'時計',sys:'システム情報',memo:'メモ帳',photo:'フォト',files:'エクスプローラ',map:'地図',ebook:'電子書籍'}};
 function t(k){return(T[S.lang]||T.ko)[k]||k}
 var TH=[['i-Station 블루','#8fa3bf','#5d7597','#5aa0e8','#1c4f9c','#f08a1c','#ffffff'],['다크','#555','#222','#444','#111','#4ac','#1d2430'],['핑크','#e79ab5','#b04c75','#f08cb0','#a8325f','#ffb020','#fff3f7'],['그린','#8dbf9a','#3f7a54','#6cc88a','#1f6b3d','#e8a21c','#f1fff4'],['오렌지','#e8b27a','#b0662a','#f5a85a','#b4570f','#2a7de1','#fff8ee'],['클래식 그레이','#c3c3c3','#808080','#b8b8b8','#6a6a6a','#d22','#e8e8e8']];
 var APPS={calc:['🧮','#9aa','#456'],video:['🎬','#4a8be8','#12469a'],paint:['🎨','#ffc04d','#d6701a'],note:['📒','#ffe27a','#d19a1a'],rec:['🎙️','#ff7b7b','#b81f1f'],cal:['📅','#fff','#9ab'],world:['🌏','#5fd0e8','#1a73a8'],music:['🎵','#5aa0ff','#1a3fa8'],clock:['⏰','#ffd27a','#e07b1a'],sys:['💻','#8bc','#357'],memo:['📝','#fff6a8','#c9b02a'],photo:['🖼️','#7fd68a','#26823a'],files:['🔍','#ffd27a','#c9871a'],map:['🗺️','#ff9a6b','#d23a1a'],ebook:['📖','#7bd','#2a6a9a']};
@@ -87,14 +97,19 @@ var wins={},order=[];
 /* ---------- 기본 구조 ---------- */
 var tabs=$('#tabs'),view=$('#view'),pgs={},cur='emu',TK=['emu','prog','set','thm'],TI={emu:'🕹️',prog:'🗂️',set:'⚙️',thm:'🎨'};
 TK.forEach(function(k){var b=el('button','tb','<span>'+TI[k]+'</span><span data-k="'+k+'"></span>',tabs);b.id='tb_'+k;b.onclick=function(){go(k)};pgs[k]=el('div','pg',null,view)});
-function go(k){cur=k;TK.forEach(function(x){$('#tb_'+x).classList.toggle('on',x===k);pgs[x].classList.toggle('on',x===k)});hideWins();closeAll()}
+function go(k){cur=k;TK.forEach(function(x){$('#tb_'+x).classList.toggle('on',x===k);pgs[x].classList.toggle('on',x===k)});hideWins();closeAll();if(typeof showEmu==='function')showEmu()}
 function applyS(){var r=document.documentElement.style,th=TH[S.th]||TH[0];
- [['--tab',th[1]],['--tab2',th[2]],['--tk1',th[3]],['--tk2',th[4]],['--ac',S.ac||th[5]],['--bg',th[6]],['--fs',S.fs+'px'],['--is',S.is+'px'],['--r',S.round+'px']].forEach(function(a){r.setProperty(a[0],a[1])});
+ var bg=th[6].replace('#','');if(bg.length===3)bg=bg.replace(/./g,'$&$&');var lum=(parseInt(bg.substr(0,2),16)*299+parseInt(bg.substr(2,2),16)*587+parseInt(bg.substr(4,2),16)*114)/1000;
+ [['--tx',lum<128?'#e8eef8':'#123'],['--tab',th[1]],['--tab2',th[2]],['--tk1',th[3]],['--tk2',th[4]],['--ac',S.ac||th[5]],['--bg',th[6]],['--fs',S.fs+'px'],['--is',S.is+'px'],['--r',S.round+'px']].forEach(function(a){r.setProperty(a[0],a[1])});
  document.documentElement.lang=S.lang;
  document.querySelectorAll('[data-k]').forEach(function(e){e.textContent=t(e.dataset.k)});
  view.className=S.ist;buildAll();sv('s',S)}
 /* ---------- 아이콘 / 프로그램 탭 ---------- */
-function icon(k){var a=APPS[k],e=S.icon[k]||a[0];return '<div class="bd" style="--c1:'+a[1]+';--c2:'+a[2]+'">'+e+'</div>'}
+function icon(k){var a=APPS[k],e=S.icon[k]||a[0];if(e.indexOf('data:')===0)return '<div class="bd im"><img src="'+e+'" alt=""></div>';return '<div class="bd" style="--c1:'+a[1]+';--c2:'+a[2]+'">'+e+'</div>'}
+/* 기종 아이콘: 직접 올린 PNG > 선택한 스타일(픽셀/카툰) */
+function eimg(c){if(S.eicon[c.id])return[S.eicon[c.id],'sm'];if(S.estyle==='cartoon')return['tabicons/cartoon/'+(IMG[c.id]||c.id)+'.png','sm'];return['tabicons/pixel/'+c.id+'.png','']}
+function eimgTag(c,cls){var m=eimg(c);return '<img class="'+(cls||'')+' '+m[1]+'" src="'+m[0]+'" alt="" draggable="false">'}
+function loadPng(cb){var f=$('#fi');f.accept='image/png,image/*';f.multiple=false;f.value='';f.onchange=function(){var x=f.files[0];if(!x)return;var u=URL.createObjectURL(x),im=new Image();im.onload=function(){var cv=document.createElement('canvas'),r=Math.min(1,256/Math.max(im.width,im.height));cv.width=Math.max(1,Math.round(im.width*r));cv.height=Math.max(1,Math.round(im.height*r));var g=cv.getContext('2d');g.imageSmoothingEnabled=r<1;g.drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(u);cb(cv.toDataURL('image/png'))};im.onerror=function(){alert('이미지를 읽지 못했습니다. PNG 파일을 선택해 주세요.')};im.src=u};f.click()}
 function buildProg(){var g=pgs.prog;g.innerHTML='';var gr=el('div','grid',null,g);
  Object.keys(APPS).forEach(function(k){var d=el('div','ic',icon(k)+'<span>'+t(k)+'</span>',gr);d.onclick=function(){openApp(k)}})}
 /* ---------- 창(프로그램) ---------- */
@@ -139,24 +154,34 @@ $('#tDev').onclick=function(ev){ev.stopPropagation();var p=$('#pDev');function d
  $('#bUsb',p).onclick=function(){var api=navigator.hid;if(api)api.requestDevice({filters:[]}).then(function(d){$('#dm',p).textContent=d.length?'연결됨: '+d[0].productName:'선택 없음'}).catch(function(e){$('#dm',p).textContent=e.message});else $('#dm',p).textContent='USB/OTG 장치는 기기에 꽂으면 자동 인식됩니다. (웹 HID 미지원 브라우저)'}}
  draw();tog(p);addEventListener('gamepadconnected',draw)};
 /* ---------- Emulator ---------- */
-var pe=pgs.emu,hello=el('div',null,null,pe),stage=el('div',null,null,view),fr,cs=null,gname='',started=false;
+var pe=pgs.emu,grid=el('div','eg',null,pe),hello=el('div',null,null,pe),stage=el('div',null,null,view),fr,cs=null,gname='',started=false,mode='grid';
 hello.id='hello';stage.id='stage';pe.style.padding=0;
 function emuWin(){return fr.contentWindow}
+/* mode: grid(기종 아이콘) → hello(열기 화면) → play(게임 실행) */
+function showEmu(){var onEmu=cur==='emu';grid.style.display=onEmu&&mode==='grid'?'grid':'none';hello.style.display=onEmu&&mode==='hello'?'flex':'none';stage.classList.toggle('on',onEmu&&mode==='play')}
 function dlg(title,items,foot){var d=$('#dlg'),b=$('#dlgb');b.innerHTML='<h4>'+title+'</h4>';items.forEach(function(i){var o=el('div','o2','<b>'+i[0]+'</b><small>'+(i[1]||'')+'</small>',b);o.onclick=function(){d.classList.remove('on');i[2]()}});var c=el('div','o2','<b>닫기</b>',b);c.onclick=function(){d.classList.remove('on')};d.classList.add('on')}
-function buildEmu(){hello.innerHTML='<div style="font-size:48px">🕹️</div><p>'+t('hello')+'</p>';var b=el('button','btn o',t('open'),hello);b.style.padding='10px 34px';b.onclick=pick}
-function pick(){dlg('기종 선택',C.map(function(c){return[c.n,c.x,function(){cs=c;var f=$('#fi');f.accept='';f.multiple=false;f.value='';f.onchange=function(){if(f.files[0])launch(c,f.files[0])};f.click()}]}))}
+function buildEmu(){grid.innerHTML='';
+ C.forEach(function(c){var d=el('div','ec',eimgTag(c)+'<b>'+c.n+'</b><small>'+c.y+'</small>',grid);d.onclick=function(){chooseEmu(c)}});
+ if(cs&&mode==='hello')renderHello(); else hello.innerHTML='';
+ showEmu()}
+function chooseEmu(c){cs=c;mode='hello';renderHello();showEmu()}
+function renderHello(){var c=cs;hello.innerHTML=eimgTag(c,'hi')+'<div class=\"hn\">'+c.n+'</div><div class=\"hx\">'+c.x+'</div><p>'+t('hello')+'</p>';
+ var b=el('button','btn o',t('open'),hello);b.style.padding='10px 34px';b.onclick=function(){openFile(c)};
+ var k=el('button','btn','◀ '+t('back'),hello);k.onclick=backToGrid}
+function backToGrid(){cs=null;mode='grid';showEmu()}
+function openFile(c){if(!c){backToGrid();return}var f=$('#fi');f.accept='';f.multiple=false;f.value='';f.onchange=function(){if(f.files[0])launch(c,f.files[0])};f.click()}
 async function launch(c,f){try{if(MG.is(c)&&/\.zip$/i.test(f.name)&&MG.prepare)f=await MG.prepare(f)}catch(e){alert('롬 준비 실패: '+e.message);return}
- hideWins();go('emu');gname=f.name.replace(/\.[^.]+$/,'');stage.classList.add('on');hello.style.display='none';started=false;
+ cs=c;gname=f.name.replace(/\.[^.]+$/,'');mode='play';hideWins();go('emu');started=false;
  if(!fr){fr=el('iframe',null,null,stage);fr.allow='autoplay; gamepad; fullscreen';stage.insertBefore(fr,stage.firstChild)}
  fr.onload=function(){fr.onload=null;var w=fr.contentWindow;if(typeof w.startEmu!=='function'){alert('emuhost.html을 불러오지 못했습니다.');return}if(MG.is(c))try{MG.hook(w)}catch(e){}
   w.startEmu({bios:f.mgBios||[],file:f,core:c.core,name:gname,color:c.a,onStart:function(){started=true;applyVol()},onScriptError:function(){alert('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.')},onFail:function(m){if(/memory|Aborted|RangeError/i.test(m))alert('기기 메모리가 부족합니다.')}})};
  fr.src='emuhost.html?v='+Date.now()}
 function buildBar(){var b=$('#ebar')||el('div',null,null,stage);b.id='ebar';b.innerHTML='';
- [['load',pick],['save',saveMenu],['full',function(){fs(stage)}],['hide',function(){try{fr.contentDocument.body.classList.toggle('hidectl')}catch(e){}}],['quit',quit]].forEach(function(a){var x=el('button','btn','['+t(a[0])+']',b);x.onclick=a[1]})}
+ [['load',function(){openFile(cs)}],['save',saveMenu],['full',function(){fs(stage)}],['hide',function(){try{fr.contentDocument.body.classList.toggle('hidectl')}catch(e){}}],['back',quit]].forEach(function(a){var x=el('button','btn','['+t(a[0])+']',b);x.onclick=a[1]})}
 function stamp(){var n=new Date(),p=function(v){return('0'+v).slice(-2)};return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
 function saveMenu(){dlg('세이브파일',[['세이브파일 열기','저장된 게임의 세이브파일을 불러옵니다.',function(){var f=$('#fi');f.accept='.wes,.gsv';f.value='';f.onchange=async function(){try{emuWin().EJS_emulator.gameManager.loadState(new Uint8Array(await f.files[0].arrayBuffer()))}catch(e){alert('불러오기 실패: 같은 게임의 WES 파일인지 확인하세요')}};f.click()}],
  ['세이브저장','현재 게임내용을 세이브파일로 저장합니다. (.WES)',function(){try{var st=emuWin().EJS_emulator.gameManager.getState(),g=gname.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME',a=el('a');a.href=URL.createObjectURL(new Blob([st]));a.download=((cs&&cs.fn)||'')+g+'_'+stamp()+'.WES';a.click()}catch(e){alert('게임이 시작된 후 다시 시도하세요')}}]])}
-function quit(){if(fr)fr.src='about:blank';stage.classList.remove('on');hello.style.display='flex'}
+function quit(){if(fr)fr.src='about:blank';started=false;backToGrid()}
 /* ---------- 설정 / 테마 ---------- */
 function opt(lbl,id,vals,cur_,fn){var r=el('div','row','<b style="width:100px">'+lbl+'</b>',$('#sb'));var s=el('select',null,vals.map(function(v){return'<option value="'+v[0]+'"'+(String(v[0])===String(cur_)?' selected':'')+'>'+v[1]+'</option>'}).join(''),r);s.onchange=function(){fn(s.value)}}
 function buildSet(){var p=pgs.set;p.innerHTML='<div id="sb" style="display:flex;flex-direction:column;gap:10px;max-width:560px;color:#123"></div>';
@@ -164,10 +189,13 @@ function buildSet(){var p=pgs.set;p.innerHTML='<div id="sb" style="display:flex;
  opt('창 모양','r',[[0,'각지게'],[6,'보통'],[14,'둥글게']],S.round,function(v){S.round=+v;applyS()});
  opt('글자 크기','f',[[12,'작게'],[14,'보통'],[17,'크게'],[20,'아주 크게']],S.fs,function(v){S.fs=+v;applyS()});
  opt('아이콘 크기','i',[[36,'작게'],[44,'보통'],[56,'크게'],[70,'아주 크게']],S.is,function(v){S.is=+v;applyS()});
+ opt('기종 아이콘 스타일','e',[['pixel','픽셀(귀여운 2D)'],['cartoon','카툰(모바일 아이콘)']],S.estyle,function(v){S.estyle=v;applyS()});
  opt('기본 아이콘','s',[['','컬러(i-Station)'],['mono','단색'],['emo','투명(이모지)']],S.ist,function(v){S.ist=v;applyS()});
- var d=el('div',null,'<b>아이콘 바꾸기</b> (아이콘을 누르고 이모지를 입력)',$('#sb'));var g=el('div','grid',null,$('#sb'));
- Object.keys(APPS).forEach(function(k){var x=el('div','ic',icon(k)+'<span>'+t(k)+'</span>',g);x.onclick=function(){var e=prompt(t(k)+' 아이콘(이모지 1개, 비우면 기본값)',S.icon[k]||'');if(e===null)return;if(e.trim())S.icon[k]=e.trim();else delete S.icon[k];applyS()}});
- var r=el('button','btn','모든 설정 초기화',$('#sb'));r.onclick=function(){if(confirm('초기화할까요?')){S={lang:'ko',round:6,fs:14,is:44,ist:'',th:0,ac:'',icon:{}};applyS()}}}
+ var d0=el('div',null,'<b>기종 아이콘 바꾸기</b> (아이콘을 누르고 PNG 파일 선택)',$('#sb'));var g0=el('div','grid',null,$('#sb'));
+ C.forEach(function(c){var x=el('div','ic','<div style="width:calc(var(--is)*1.4);height:calc(var(--is)*1.4)">'+eimgTag(c,'')+'</div><span>'+c.n+'</span>',g0);x.querySelector('img').style.cssText='width:100%;height:100%;object-fit:contain';x.onclick=function(){dlg(c.n+' 아이콘',[['PNG 파일 불러오기','내 PNG 이미지로 바꿉니다. (정사각형 투명 PNG 권장)',function(){loadPng(function(u){S.eicon[c.id]=u;applyS()})}],['기본 아이콘으로 되돌리기','',function(){delete S.eicon[c.id];applyS()}]])}});
+ var d=el('div',null,'<b>프로그램 아이콘 바꾸기</b> (아이콘을 누르고 PNG 또는 이모지 선택)',$('#sb'));var g=el('div','grid',null,$('#sb'));
+ Object.keys(APPS).forEach(function(k){var x=el('div','ic',icon(k)+'<span>'+t(k)+'</span>',g);x.onclick=function(){dlg(t(k)+' 아이콘',[['PNG 파일 불러오기','내 PNG 이미지로 바꿉니다.',function(){loadPng(function(u){S.icon[k]=u;applyS()})}],['이모지 입력','이모지 1개를 입력합니다.',function(){var e=prompt(t(k)+' 아이콘(이모지 1개)','');if(e&&e.trim()){S.icon[k]=e.trim();applyS()}}],['기본 아이콘으로 되돌리기','',function(){delete S.icon[k];applyS()}]])}});
+ var r=el('button','btn','모든 설정 초기화',$('#sb'));r.onclick=function(){if(confirm('초기화할까요?')){S={lang:'ko',round:6,fs:14,is:44,ist:'',th:0,ac:'',icon:{},eicon:{},estyle:'pixel'};applyS()}}}
 function buildThm(){var p=pgs.thm;p.innerHTML='<div class="tt" style="padding:6px"></div><div class="row" style="padding:10px"><b>강조색</b><input type="color" value="'+(S.ac||'#f08a1c')+'"></div>';
  TH.forEach(function(h,i){var s=el('div','ic','<div class="sw" style="background:linear-gradient('+h[3]+','+h[4]+');outline:'+(i===S.th?'3px solid '+h[5]:'0')+'"></div><span>'+h[0]+'</span>',$('.tt',p));s.onclick=function(){S.th=i;S.ac='';applyS()}});
  $('input',p).oninput=function(){S.ac=this.value;document.documentElement.style.setProperty('--ac',S.ac);sv('s',S)}}
