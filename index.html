@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="noads.js"></script>
+<script src="saver.js"></script>
 <script src="adnotice.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1f4b">
@@ -753,6 +754,7 @@ svb.addEventListener('click',function(){var v=!saver;ls(KEY,v?'on':'off');autoSa
 /* ---------- 시작 ---------- */
 msUpd();refreshWired();scanPads();
 setSaver(ls(KEY)==='on');
+window.addEventListener('storage',function(e){if(e.key===KEY){autoSaver=false;setSaver(e.newValue==='on')}});
 })();
 </script>
 <!-- DEVSTATUS:END -->
