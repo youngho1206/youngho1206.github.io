@@ -1,12 +1,24 @@
 /* adnotice.js - 첫 접속 안내창 (광고 없음 안내)
    - index.html / desktop.html / mobile.html 에서 불러옵니다.
-   - '다음 접속시 안보기'를 체크하고 확인을 누르면 localStorage 'adnotice.hide' 에 기억하고 다시 나타나지 않습니다.
+   - '다음 접속시 안보기'를 체크하면 그 즉시 localStorage 'adnotice.hide' 와 쿠키에 기억하고 다시 나타나지 않습니다.
    - 체크하지 않아도 같은 접속(탭) 안에서는 화면을 옮겨도 한 번만 나타납니다.
    - 다시 보고 싶으면 주소 뒤에 ?notice=1 을 붙이세요. */
 (function(){'use strict';
-var KEY='adnotice.hide',SES='adnotice.shown';
+var KEY='adnotice.hide',SES='adnotice.shown',CK='adnotice_hide';
 var force=/[?&]notice=1/.test(location.search);
-try{if(!force&&(localStorage.getItem(KEY)==='1'||sessionStorage.getItem(SES)==='1'))return}catch(e){}
+/* 안보기 기억: localStorage + 쿠키(1년) 두 곳에 저장하고, 둘 중 하나라도 있으면 안보기로 처리합니다. */
+function isHidden(){
+  try{if(localStorage.getItem(KEY)==='1')return true}catch(e){}
+  try{if(document.cookie.split(';').some(function(c){return c.trim()===CK+'=1'}))return true}catch(e){}
+  return false;
+}
+function setHidden(v){
+  try{if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY)}catch(e){}
+  try{document.cookie=CK+'='+(v?'1; max-age=31536000':'; max-age=0')+'; path=/; SameSite=Lax'}catch(e){}
+  if(v){try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}
+}
+try{if(!force&&isHidden())return}catch(e){}
+try{if(!force&&sessionStorage.getItem(SES)==='1')return}catch(e){}
 var page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
 var theme=/desktop/.test(page)?'sky':/mobile/.test(page)?'glass':'warm';
 
@@ -54,7 +66,8 @@ function show(){
  try{sessionStorage.setItem(SES,'1')}catch(e){}
  var prev=document.activeElement,ck=bg.querySelector('#adn-ck'),ok=bg.querySelector('#adn-ok');
  function close(){
-  try{if(ck.checked)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY)}catch(e){}
+  setHidden(ck.checked);
+  W_off();
   document.removeEventListener('keydown',key,true);
   bg.classList.remove('on');setTimeout(function(){bg.remove();st.remove()},260);
   try{prev&&prev.focus&&prev.focus()}catch(e){}
@@ -63,6 +76,12 @@ function show(){
   if(e.key==='Escape'||e.key==='Enter'&&document.activeElement===ok){e.preventDefault();close()}
   else if(e.key==='Tab'){var f=[ck,ok],i=f.indexOf(document.activeElement);e.preventDefault();f[(i+(e.shiftKey?-1:1)+2)%2].focus()}
  }
+ /* 체크하는 순간 바로 저장 (확인 버튼을 안 누르고 화면을 넘기거나 앱을 닫아도 기억됨) */
+ function sync(){setHidden(ck.checked)}
+ ck.addEventListener('change',sync);ck.addEventListener('click',sync);
+ function onHide(){if(document.visibilityState==='hidden')sync()}
+ document.addEventListener('visibilitychange',onHide);window.addEventListener('pagehide',sync);
+ function W_off(){document.removeEventListener('visibilitychange',onHide);window.removeEventListener('pagehide',sync)}
  ok.addEventListener('click',close);
  document.addEventListener('keydown',key,true);
  requestAnimationFrame(function(){bg.classList.add('on');ok.focus()});

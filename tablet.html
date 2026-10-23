@@ -127,7 +127,7 @@ var menu=$('#menu');
 function buildMenu(){menu.innerHTML='';TK.forEach(function(k){var d=el('div',null,TI[k]+' '+t(k),menu);d.onclick=function(){go(k)}});
  Object.keys(APPS).forEach(function(k){var d=el('div',null,APPS[k][0]+' '+t(k),menu);d.onclick=function(){openApp(k)}});
  var f=el('div',null,'⛶ '+t('full'),menu);f.onclick=function(){fs(document.documentElement)};
- var h=el('div',null,'🏠 '+t('home'),menu);h.onclick=function(){location.href='index.html'}}
+ var h=el('div',null,'🏠 '+t('home'),menu);h.onclick=function(){location.href='index.html?select=1'}}
 function closeAll(){menu.classList.remove('on');$('#pDev').classList.remove('on');$('#pSnd').classList.remove('on')}
 function tog(e){var o=e.classList.contains('on');closeAll();if(!o)e.classList.add('on')}
 $('#st').onclick=function(ev){ev.stopPropagation();tog(menu)};
