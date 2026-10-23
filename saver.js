@@ -2,7 +2,7 @@
    - 첫 화면(index.html)의 [절전] 버튼이 localStorage 'ds.saver' 에 on/off 를 저장하면,
      이 파일을 불러온 모든 html 이 그 값을 읽어 같은 상태로 동작합니다.
    - 다른 탭·iframe 에서 값이 바뀌면 새로고침 없이 바로 따라갑니다. 끄면 원래대로 돌아옵니다.
-   - 켜짐: 애니메이션·전환·블러·그림자 효과 제거, 화면 위에 떠 있는 장식용 캔버스(눈·배경효과) 숨김. */
+   - 켜짐: 애니메이션은 끄는 대신 즉시 끝난 상태로 만들고(등장 효과로 숨겨진 아이콘이 보이도록), 전환·블러·그림자 효과 제거, 화면 위에 떠 있는 장식용 캔버스(눈·배경효과) 숨김. */
 (function(W,D){'use strict';
 if(W.__saverJs)return;W.__saverJs=1;
 var KEY='ds.saver',root=D.documentElement,on=false,mo=null,tm=0;
@@ -10,8 +10,8 @@ function ls(){try{return W.localStorage.getItem(KEY)}catch(e){return null}}
 
 /* 켜짐일 때 적용되는 CSS (이미 같은 규칙이 있어도 무해) */
 var st=D.createElement('style');st.id='saver-css';
-st.textContent='html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}'
- +'html.ds-saver .bg{display:none!important}';
+st.textContent='html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation-duration:.001s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}'
+ +'html.ds-saver h1{background-position:0 0!important}';
 (D.head||root).appendChild(st);
 
 /* 장식용 캔버스 숨김: 화면 고정(fixed) + 터치 안 받는(pointer-events:none) 캔버스만 대상 → 게임 화면은 건드리지 않음 */
