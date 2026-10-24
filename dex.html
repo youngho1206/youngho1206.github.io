@@ -534,7 +534,7 @@ function stampNow(){var n=new Date(),p=function(v){return String(v).padStart(2,'
 var EM_HOST='<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"><style>html,body{touch-action:pan-x pan-y;margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>';
 
 /* 구글 드라이브(앱 전용 폴더)에 세이브 저장 · 불러오기 */
-function gisLoad(){return new Promise(function(res,rej){if(window.google&&google.accounts&&google.accounts.oauth2)return res();var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=function(){res()};s.onerror=function(){rej(new Error('구글 로그인 스크립트를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'))};document.head.appendChild(s)})}
+function gisLoad(){return new Promise(function(res,rej){if(window.google&&google.accounts&&google.accounts.oauth2)return res();var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=function(){if(window.google&&google.accounts&&google.accounts.oauth2)res();else rej(new Error('구글 로그인 스크립트가 차단됐어요.\n(광고차단/앱 서비스워커 문제일 수 있어요) 페이지를 새로고침한 뒤 다시 시도해 주세요.'))};s.onerror=function(){rej(new Error('구글 로그인 스크립트를 불러오지 못했어요. 인터넷 연결을 확인하거나 새로고침 후 다시 시도해 주세요.'))};document.head.appendChild(s)})}
 function gAuth(){
  if(!CLOUD.googleClientId)return Promise.reject(new Error('NOID'));
  if(gTok&&gTok.exp>Date.now()+60000)return Promise.resolve(gTok.t);
