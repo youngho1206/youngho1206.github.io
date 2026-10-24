@@ -538,13 +538,24 @@ function gisLoad(){return new Promise(function(res,rej){if(window.google&&google
 function gAuth(){
  if(!CLOUD.googleClientId)return Promise.reject(new Error('NOID'));
  if(gTok&&gTok.exp>Date.now()+60000)return Promise.resolve(gTok.t);
- return gisLoad().then(function(){return new Promise(function(res,rej){
-  var cl=google.accounts.oauth2.initTokenClient({client_id:CLOUD.googleClientId,scope:'https://www.googleapis.com/auth/drive.appdata',
-   callback:function(r){if(r.error)return rej(new Error('구글 로그인에 실패했어요 ('+r.error+')'));gTok={t:r.access_token,exp:Date.now()+(r.expires_in||3600)*1000};res(gTok.t)},
-   error_callback:function(e){rej(new Error('구글 로그인 창이 닫혔거나 열리지 않았어요.'))}});
-  cl.requestAccessToken();
- })});
+ return new Promise(function(res,rej){
+  var done=false;
+  var tm=setTimeout(function(){if(!done){done=true;rej(new Error('구글 로그인 창이 열리지 않았어요.\n팝업 차단을 풀거나, 크롬/삼성인터넷 같은 일반 브라우저로 https://youngho1206.github.io 에 접속해서 다시 시도해 주세요.'))}},20000);
+  function ok(t){if(done)return;done=true;clearTimeout(tm);res(t)}
+  function bad(m){if(done)return;done=true;clearTimeout(tm);rej(new Error(m))}
+  function go(){
+   try{
+    var cl=google.accounts.oauth2.initTokenClient({client_id:CLOUD.googleClientId,scope:'https://www.googleapis.com/auth/drive.appdata',
+     callback:function(r){if(r.error)return bad('구글 로그인에 실패했어요 ('+r.error+')'+(r.error_description?'\n'+r.error_description:''));gTok={t:r.access_token,exp:Date.now()+(r.expires_in||3600)*1000};ok(gTok.t)},
+     error_callback:function(e){bad('구글 로그인 창을 열 수 없어요 ('+((e&&e.type)||'unknown')+')\n팝업이 차단됐거나 앱 내장 브라우저일 수 있어요. 일반 브라우저(크롬 등)에서 다시 시도해 주세요.')}});
+    cl.requestAccessToken();
+   }catch(err){bad('구글 로그인 오류: '+(err&&err.message||err))}
+  }
+  if(window.google&&google.accounts&&google.accounts.oauth2)go();
+  else gisLoad().then(go,function(e){bad(e.message)});
+ });
 }
+(function(){try{gisLoad().catch(function(){})}catch(e){}})();
 function gFind(tok,name){
  return fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q='+encodeURIComponent("name='"+name+"'"),{headers:{Authorization:'Bearer '+tok}})
   .then(function(r){if(!r.ok)throw new Error('구글 드라이브 오류 ('+r.status+')');return r.json()}).then(function(j){return j.files&&j.files[0]?j.files[0].id:null});
@@ -771,7 +782,7 @@ function buildEmu(w,body,a,id){
  function cloudSave(){
   if(!need())return;
   var key,fname;
-  S.keyP.then(function(k){key=k;fname='YH_'+c.id+'_'+k+'.SAVEDATA';return gAuth()}).then(function(tok){
+  var pAuth=gAuth();say('☁ 구글 로그인 확인 중…');S.keyP.then(function(k){key=k;fname='YH_'+c.id+'_'+k+'.SAVEDATA';return pAuth}).then(function(tok){
    say('☁ 구글 드라이브에 저장하는 중…');
    var data=packSave(S.gw.EJS_emulator.gameManager.getState(),metaNow(key));
    return gFind(tok,fname).then(function(fid){return gPut(tok,fname,data,fid)});
@@ -780,7 +791,7 @@ function buildEmu(w,body,a,id){
  function cloudLoad(){
   if(!need())return;
   var key,tk;
-  S.keyP.then(function(k){key=k;return gAuth()}).then(function(tok){
+  var pAuth=gAuth();say('☁ 구글 로그인 확인 중…');S.keyP.then(function(k){key=k;return pAuth}).then(function(tok){
    tk=tok;say('☁ 구글 드라이브에서 불러오는 중…');
    return gFind(tok,'YH_'+c.id+'_'+key+'.SAVEDATA');
   }).then(function(fid){
