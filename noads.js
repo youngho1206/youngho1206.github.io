@@ -6,7 +6,7 @@
 if(W.__noads)return;W.__noads=1;
 var SELF=location.hostname,
 AD=/doubleclick|googlesyndication|googleadservices|adservice\.google|googletagmanager|googletagservices|google-analytics|adsbygoogle|pagead|adsterra|propellerads|popads|popcash|exoclick|juicyads|trafficjunky|taboola|outbrain|mgid\.com|revcontent|criteo|adnxs|rubiconproject|pubmatic|amazon-adsystem|adform\.net|smartadserver|an\.yandex|yandexadexchange|daumcdn\.net\/kas|adfit|mobon|cauly|tenping|admob|applovin|unityads|chartboost|vungle|ironsrc|monetag|a-ads\.com|admaven|hilltopads|clickadu|richpops|onclickads|ezoic|adskeeper|zeropark|(^|[\/.])ads?[0-9]*\.|\/ads?\/|\/adserver/i,
-CDN=/(^|\.)(cdn\.jsdelivr\.net|unpkg\.com|cdnjs\.cloudflare\.com|cdn\.emulatorjs\.org|v8\.js-dos\.com|raw\.githubusercontent\.com|youtube\.com|ytimg\.com)$/i;
+CDN=/(^|\.)(accounts\.google\.com|apis\.google\.com|gstatic\.com|googleapis\.com|cdn\.jsdelivr\.net|unpkg\.com|cdnjs\.cloudflare\.com|cdn\.emulatorjs\.org|v8\.js-dos\.com|raw\.githubusercontent\.com|youtube\.com|ytimg\.com)$/i;
 function log(u){try{(W.__noadsLog=W.__noadsLog||[]).push(String(u).slice(0,200))}catch(e){}}
 function url(u){try{return new URL(u,location.href)}catch(e){return null}}
 function ad(u){return AD.test(String(u))}
@@ -24,7 +24,7 @@ function block(tag,u){if(!u)return false;var x=url(u);if(!x||!/^https?:$/.test(x
 var sa=Element.prototype.setAttribute;
 Element.prototype.setAttribute=function(n,v){if(/^src$/i.test(n)&&block(this.tagName,v)){log(v);return}return sa.apply(this,arguments)};
 var wo=W.open;
-W.open=function(u){var x=u&&url(u);if(x&&/^https?:$/.test(x.protocol)&&(ad(x.href)||(x.hostname!==SELF&&foreign(1)))){log(u);return null}return wo.apply(W,arguments)};
+W.open=function(u){var x=u&&url(u);if(x&&/^https?:$/.test(x.protocol)&&(ad(x.href)||(x.hostname!==SELF&&!CDN.test(x.hostname)&&foreign(1)))){log(u);return null}return wo.apply(W,arguments)};
 var ac=HTMLAnchorElement.prototype.click;
 HTMLAnchorElement.prototype.click=function(){var x=url(this.href);if(x&&/^https?:$/.test(x.protocol)&&x.hostname!==SELF&&(ad(x.href)||foreign(1))){log(this.href);return}return ac.apply(this,arguments)};
 var f=W.fetch;
