@@ -1,6 +1,7 @@
 # 영호의 게임에뮬레이터
 정적 사이트(PHP 없음) — GitHub Pages에 그대로 업로드하세요.
 - index.html : 사이트 전체 (콘솔 + 마메게임 EmulatorJS + DOS/Windows v86)
+- dex.html   : 바탕화면 모드 (DeX 스타일 · 앱 서랍(게임 에뮬레이터 2D 아이콘 · 기종 검색) · 소프트키 · 시작 메뉴 · 키 없이 쓰는 유튜브 게임 검색 브라우저)
 - mamegame.js: 마메게임 공통 코드 (게임 목록 · 네오지오 바이오스 자동 합치기 · 코어 자동 전환)
 - MAME/      : 마메게임 롬(zip) 폴더 (바이오스는 MAME/_bios/neogeo.zip)
 - os/        : DOS·Windows 이미지 폴더 (예: os/win31/win31.zip)

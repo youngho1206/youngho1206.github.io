@@ -1380,7 +1380,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 <script>
 /* 캐쉬지우기(업데이트 반영용) + 버전선택 화면으로 돌아가기 */
 (function(){
- var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','mobile.html','dex.html','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
@@ -1468,8 +1468,11 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  var q=new URLSearchParams(location.search),id=q.get('launch');
  if(!q.has('embed'))return;
  var st=document.createElement('style');
- st.textContent='.arc,#pagebg,#rp{display:none!important}#emu #bHome{display:none!important}body{background:#000!important}';
+ st.textContent='.arc,#pagebg,#rp{display:none!important}#emu #bHome{display:none!important}body{background:#000!important}html.embed-nores #resdlg{display:none!important}';
  document.head.appendChild(st);
+ /* 창으로 열릴 때는 해상도 선택창이 롬 선택을 가리지 않도록 처음 한 번은 숨깁니다(상단 '해상도' 버튼으로는 계속 열 수 있음) */
+ document.documentElement.classList.add('embed-nores');
+ setTimeout(function(){var d=document.getElementById('resdlg');if(d)d.classList.remove('on','warn');document.documentElement.classList.remove('embed-nores')},2500);
  addEventListener('load',function(){
   setTimeout(function(){
    try{

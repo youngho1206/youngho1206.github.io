@@ -352,7 +352,7 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
 
 /* ---------- 레트로 콘솔 아이콘(PNG, icons/ 폴더) ---------- */
 /* 모든 아이콘을 먼저 내려받아 한 번에 표시 (최대 5초 대기 후 진행) */
-const ICONS_READY=WT.ready.then(()=>Promise.race([
+const ICONS_READY=Promise.race([Promise.resolve(WT.ready).catch(()=>0),new Promise(r=>setTimeout(r,3000))]).then(()=>Promise.race([
  Promise.all(Object.values(IMG).map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=WT.src(n);if(i.decode)i.decode().then(r,r)}))),
  new Promise(r=>setTimeout(r,5000))]));
 function icon(c){
@@ -1193,6 +1193,14 @@ ICONS_READY.then(()=>{
  const p=P.find(x=>x.id===id);if(p)openPc(p);
 });
 </script>
+<script>
+/* dex.html 창 안에서 열릴 때(?embed=1): '← 홈' 은 기종 목록으로 가지 않고 창을 닫고 dex 의 앱 서랍으로 돌아갑니다 */
+(function(){
+ if(!/[?&]embed=/.test(location.search))return;
+ var b=document.getElementById('bHome');
+ if(b)b.onclick=function(e){e.preventDefault();e.stopPropagation();try{parent.postMessage('sky-home','*')}catch(x){}};
+})();
+</script>
 <script src="mobilemenu.js?v=1"></script>
 <script src="pcplus.js?v=2"></script>
 <script>
@@ -1214,7 +1222,7 @@ ICONS_READY.then(()=>{
 <script>
 /* 캐쉬지우기(업데이트 반영용) + 버전선택 화면으로 돌아가기 */
 (function(){
- var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','mobilemenu.js','mobilemenu.css','mobilepref.js','mobilebg/dreamsky.jpg','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',

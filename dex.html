@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<script src="noads.js"></script>
+<script src="saver.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#11120a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>영호의 게임 바탕화면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+:root{
+ --tb:calc(52px + env(safe-area-inset-bottom,0px));
+ --ink:#e9e7da;--mut:#a9a78f;--bar:rgba(24,25,19,.93);--acc:#b7dc72;
+ --kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#10110a;color:var(--ink);font-family:var(--kr);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid #8fc5ff;outline-offset:2px}
+#screen{position:fixed;inset:0;overflow:hidden}
+
+/* ───── 바탕화면 ───── */
+#wall{position:absolute;inset:0;background:
+ radial-gradient(58% 72% at 46% 44%,rgba(118,106,52,.52),rgba(70,64,32,.26) 46%,transparent 78%),#10110a}
+#wall:before{content:"";position:absolute;--r:max(66vh,38vw);width:calc(var(--r)*2);height:calc(var(--r)*2);left:34%;top:46%;margin:calc(var(--r)*-1) 0 0 calc(var(--r)*-1);border-radius:50%;
+ background:radial-gradient(circle closest-side,rgba(120,108,52,.20) 0,rgba(96,86,42,.12) 70%,rgba(110,100,50,.10) 93%,rgba(190,174,92,.21) 98.6%,rgba(190,174,92,0) 100%);filter:blur(1.2px)}
+@media (orientation:portrait){#wall:before{--r:72vw;left:22%}}
+/* 앱 서랍 */
+#drawer{position:absolute;left:0;right:0;top:0;bottom:var(--tb);z-index:40;display:none;flex-direction:column;background:rgba(4,4,3,.95);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+#drawer.on{display:flex;animation:fadein .16s ease-out}
+@keyframes fadein{from{opacity:0}}
+.dtop{flex:none;display:flex;justify-content:flex-end;padding:clamp(12px,4.5vh,40px) clamp(14px,12vw,240px) 0}
+.dsearch{width:min(300px,100%);height:36px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:18px;background:#34342f;border:1px solid transparent}
+.dsearch:focus-within{border-color:#8fc5ff;background:#3d3d37}
+.dsearch svg{width:15px;height:15px;flex:none;stroke:var(--mut);stroke-width:2;fill:none;stroke-linecap:round}
+.dsearch input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--ink);font:13.5px var(--kr);-webkit-user-select:text;user-select:text}
+.dsearch input::placeholder{color:#8b8975}
+.dstage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.dgrid{display:grid;align-content:center;justify-content:center}
+.da{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;padding:6px 2px;border:0;border-radius:12px;background:none;cursor:pointer}
+.da:hover,.da:focus-visible{background:rgba(255,255,255,.09)}
+.da:active{background:rgba(255,255,255,.16)}
+.da .l{max-width:100%;font-size:11.5px;line-height:1.25;text-align:center;color:#f1efe3;word-break:keep-all}
+.dnav{position:absolute;top:50%;width:40px;height:56px;margin-top:-28px;border:0;border-radius:10px;background:none;display:grid;place-items:center;cursor:pointer;color:#ddd}
+.dnav:hover{background:rgba(255,255,255,.08)}
+.dnav svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.dnav.p{left:clamp(6px,6vw,110px)}.dnav.n{right:clamp(6px,6vw,110px)}
+.dnav[hidden]{display:none}
+.ddots{flex:none;display:flex;justify-content:center;gap:12px;padding:6px 0 clamp(12px,3.5vh,26px);min-height:34px}
+.ddots button{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:#6c6b60;cursor:pointer}
+.ddots button.on{background:#fff}
+.dnone{color:var(--mut);font-size:14px}
+.tb2{width:34px;height:34px;padding:0;border:0;border-radius:8px;background:none;display:grid;place-items:center;color:#e6e4d6;cursor:pointer;flex:none}
+.tb2:hover{background:rgba(255,255,255,.1)}
+.tb2.on{background:rgba(255,255,255,.18)}
+.tb2 svg{width:20px;height:20px}
+.clk{white-space:nowrap}
+.mid0{position:relative;flex:none;display:flex;align-items:center;justify-content:center}
+.mid0{margin-left:4px}
+@media (max-width:640px){.mid0{margin-left:6px}.mid0 .mid{display:none}}
+.mid0 .tb2{width:44px;height:44px;border-radius:12px}
+.mid0 .mid{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:4px}
+@media (max-width:640px){#cdate{display:none}.dnav{display:none}.tray #tSearch{width:32px}}
+.ai.im{background:none!important;box-shadow:none;border-radius:0}
+.ai.im img{width:100%;height:100%;object-fit:contain;display:block}
+.ai{display:inline-grid;place-items:center;border-radius:27%;flex:none;box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+.ai svg{width:72%;height:72%;display:block}
+
+/* ───── 창 ───── */
+#wins{position:absolute;left:0;right:0;top:0;bottom:var(--tb);z-index:5;pointer-events:none}
+.win{position:absolute;pointer-events:auto;display:flex;flex-direction:column;min-width:300px;min-height:220px;background:#f2f2f2;border-radius:8px 8px 3px 3px;overflow:hidden;
+ box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.4);animation:pop .14s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.97)}}
+.win.min{display:none}
+.win.max{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+.tbar{height:36px;flex:none;display:flex;align-items:flex-end;background:#dedede;touch-action:none;cursor:default}
+.win:not(.act) .tbar{filter:brightness(.97)}
+.tabs{flex:1;min-width:0;display:flex;align-items:flex-end;height:100%}
+.tab{height:30px;margin-left:10px;padding:0 24px;display:flex;align-items:center;gap:7px;min-width:0;max-width:240px;background:#f2f2f2;color:#333;font-size:12px;
+ clip-path:polygon(0 100%,10px 0,calc(100% - 10px) 0,100% 100%)}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab svg{width:14px;height:14px;flex:none}
+.newtab{width:36px;height:21px;margin:0 0 4px 4px;border:0;padding:0;background:#cdcdcd;cursor:pointer;clip-path:polygon(0 100%,7px 0,calc(100% - 7px) 0,100% 100%)}
+.newtab:hover{background:#c0c0c0}
+.win.app .tbar{background:#2b2c24;color:var(--ink)}
+.ttl{display:flex;align-items:center;gap:8px;padding:0 0 0 10px;height:100%;min-width:0;font-size:13px;font-weight:500}
+.ttl span.t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xp{display:flex;align-items:center;gap:3px;height:100%;padding:0 6px 0 10px;flex:none}
+.xb{width:23px;height:23px;padding:0;border:1px solid #fff;border-radius:4px;display:grid;place-items:center;cursor:pointer;
+ background:linear-gradient(160deg,#7fa9f5 0%,#2d62d6 55%,#2552c0 100%);box-shadow:inset 0 0 2px rgba(255,255,255,.55),0 1px 2px rgba(0,0,0,.4)}
+.xb.x{background:linear-gradient(160deg,#f0a086 0%,#d8482a 55%,#c13a1c 100%)}
+.xb:hover{filter:brightness(1.13)}.xb:active{filter:brightness(.88)}
+.xb svg{width:12px;height:12px;stroke:#fff;stroke-width:2.2;fill:none;stroke-linecap:square;stroke-linejoin:miter}
+.wbody{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;background:#fff}
+.wbody iframe{flex:1;width:100%;border:0;background:#fff}
+.grip{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;z-index:9;touch-action:none;
+ background:linear-gradient(135deg,transparent 55%,rgba(0,0,0,.28) 55%,rgba(0,0,0,.28) 62%,transparent 62%,transparent 72%,rgba(0,0,0,.28) 72%,rgba(0,0,0,.28) 79%,transparent 79%)}
+body.drg iframe{pointer-events:none}
+body.drg{cursor:grabbing}
+@media (max-width:760px),(max-height:520px){
+ .win{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+ .xb.mx,.grip{display:none}
+ .tab{margin-left:6px}
+}
+
+/* ───── 작업표시줄 ───── */
+#tb{position:absolute;left:0;right:0;bottom:0;height:var(--tb);padding-bottom:env(safe-area-inset-bottom,0px);z-index:50;display:flex;align-items:center;
+ background:var(--bar);border-top:1px solid rgba(255,255,255,.07);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.keys{flex:1 1 0;display:flex;align-items:center;gap:2px;padding-left:10px}
+.sk{width:46px;height:44px;border:0;border-radius:12px;background:none;display:grid;place-items:center;cursor:pointer}
+.sk:hover{background:rgba(255,255,255,.1)}
+.sk:active,.sk.on{background:rgba(255,255,255,.18)}
+.sk svg{width:22px;height:22px;stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mid{display:flex;align-items:center;justify-content:center;gap:4px}
+.mb{position:relative;width:44px;height:44px;border:0;border-radius:12px;background:none;display:grid;place-items:center;cursor:pointer}
+.mb:hover{background:rgba(255,255,255,.1)}
+.mb.run:after{content:"";position:absolute;bottom:3px;left:50%;width:6px;height:3px;margin-left:-3px;border-radius:2px;background:#8c8a78;transition:width .15s,margin .15s}
+.mb.act:after{width:16px;margin-left:-8px;background:var(--acc)}
+.mb.mn .ai{opacity:.6}
+.tray{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-right:14px;color:#cfcdbd}
+.tray svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bat{min-width:28px;height:18px;padding:0 5px;border:0;border-radius:5px;background:#d8d6c6;color:#1b1c14;font:800 11px var(--kr);display:grid;place-items:center;line-height:1;cursor:pointer;flex:none}
+.bat:hover{filter:brightness(1.1)}
+.bat.sv{background:#f2c744;color:#2a2200}
+#svToast{position:absolute;left:50%;bottom:calc(var(--tb) + 14px);transform:translateX(-50%);z-index:70;max-width:min(92vw,420px);padding:10px 16px;border-radius:10px;background:#f2f0e2;color:#1b1c14;font-size:13px;line-height:1.45;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none}
+#svToast[hidden]{display:none}
+.pp{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:#000;cursor:pointer}
+.pp img{width:100%;height:100%;object-fit:cover;display:block;opacity:.85}
+.pp i{position:absolute;left:50%;top:50%;width:64px;height:44px;margin:-22px 0 0 -32px;border-radius:12px;background:#e5372b;display:grid;place-items:center}
+.pp i:after{content:"";border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent #fff;margin-left:3px}
+/* ───── 절전 모드 (배터리 표시를 누르면 켜짐 · saver.js 와 같은 'ds.saver' 값을 공유) ─────
+   글씨·이미지·배경은 그대로 보이고, 움직임·그림자·블러·전환 같은 효과와 장식 스크립트는 모두 끕니다. */
+html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation:none!important;transition:none!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;scroll-behavior:auto!important}
+html.ds-saver #wall:before{display:none}
+html.ds-saver #drawer{background:#050504}
+html.ds-saver #tb{background:#181913}
+html.ds-saver #start{background:#1e1f18}
+html.ds-saver .win{outline:1px solid rgba(0,0,0,.6)}
+html.ds-saver .xb{border-color:#fff}
+html.ds-saver .sp{border-top-color:#ddd}
+.clk{text-align:right;line-height:1.25;font-size:11.5px;color:var(--ink);padding-left:10px;border-left:1px solid rgba(255,255,255,.14)}
+.clk b{display:block;font-weight:500;font-size:12px}
+@media (max-width:640px){.tray .hide-s{display:none}.keys{padding-left:4px}.sk{width:42px}.tray{gap:8px;padding-right:10px}}
+
+/* ───── 시작 메뉴 ───── */
+#start{position:absolute;left:8px;bottom:calc(var(--tb) + 8px);z-index:60;width:min(620px,calc(100% - 16px));height:min(520px,calc(100% - var(--tb) - 20px));
+ display:none;grid-template-columns:270px 1fr;background:rgba(30,31,24,.97);border:1px solid rgba(255,255,255,.11);border-radius:10px;overflow:hidden;
+ box-shadow:0 20px 56px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+#start.on{display:grid;animation:up .14s ease-out}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.sl{display:flex;flex-direction:column;min-height:0;border-right:1px solid rgba(255,255,255,.07)}
+.sl h2{margin:0;padding:16px 18px 8px;font-size:13px;font-weight:700;color:var(--mut)}
+.sl ul{list-style:none;margin:0;padding:0 8px;flex:1;overflow:auto}
+.si{width:100%;display:flex;align-items:center;gap:12px;padding:8px 10px;border:0;border-radius:8px;background:none;cursor:pointer;text-align:left;font-size:14px}
+.si:hover,.si:focus-visible{background:rgba(255,255,255,.1)}
+.sq{margin:8px;display:flex;align-items:center;gap:8px;padding:0 12px;height:38px;border-radius:8px;background:rgba(255,255,255,.09);border:1px solid transparent}
+.sq:focus-within{border-color:#8fc5ff;background:rgba(255,255,255,.13)}
+.sq svg{width:16px;height:16px;stroke:var(--mut);stroke-width:2;fill:none;stroke-linecap:round}
+.sq input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--ink);font:14px var(--kr);-webkit-user-select:text;user-select:text}
+.sq input::placeholder{color:#8b8975}
+.empty{padding:20px 18px;font-size:13px;color:var(--mut)}
+.sr{padding:16px 16px 12px;overflow:auto;min-height:0}
+.sr h2{margin:0 0 12px 2px;font-size:13px;font-weight:700;color:var(--mut)}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tile{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;height:104px;padding:12px;border:0;border-radius:6px;cursor:pointer;color:#fff;text-align:left;font-size:13px;font-weight:500;
+ background:linear-gradient(150deg,var(--c1),var(--c2));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.tile:hover{filter:brightness(1.12)}
+.tile.w{grid-column:span 2;height:92px}
+.tile .ai{background:none;box-shadow:none;width:34px;height:34px}
+@media (max-width:600px){#start{grid-template-columns:1fr;width:min(340px,calc(100% - 16px))}.sr{display:none}.sl{border:0}}
+
+/* ───── 브라우저(유튜브) ───── */
+.bw{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;background:#f2f2f2;color:#222}
+.tool{height:42px;flex:none;display:flex;align-items:center;gap:2px;padding:0 8px;border-bottom:1px solid #d3d3d3;background:#f2f2f2}
+.nb{width:30px;height:30px;flex:none;border:0;border-radius:50%;background:none;display:grid;place-items:center;cursor:pointer;color:#5f6368}
+.nb:hover:not(:disabled){background:rgba(0,0,0,.09)}
+.nb:disabled{color:#c2c2c2;cursor:default}
+.nb svg,.addr svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.addr{flex:1;min-width:0;height:30px;margin:0 6px;padding:0 10px;display:flex;align-items:center;gap:8px;border:1px solid #cdcdcd;border-radius:6px;background:#fff;color:#777}
+.addr svg{width:14px;height:14px}
+.addr:focus-within{border-color:#4d8ff0;box-shadow:0 0 0 2px rgba(77,143,240,.25)}
+.addr input{flex:1;min-width:0;border:0;outline:0;background:none;font:13px var(--kr);color:#222;-webkit-user-select:text;user-select:text}
+.page{flex:1;min-height:0;overflow:auto;background:#fafafa;color:#222;-webkit-user-select:text;user-select:text}
+.yh{max-width:720px;margin:0 auto;padding:clamp(22px,8vh,72px) 20px 40px}
+.yh h1{margin:0;font-size:clamp(23px,4.4vw,30px);font-weight:800;letter-spacing:-.025em;line-height:1.25}
+.yh p.sub{margin:8px 0 0;color:#5f5f5f;font-size:14px;line-height:1.55}
+.ys{display:flex;margin:22px 0 14px;border:1px solid #c9c9c9;border-radius:999px;background:#fff;overflow:hidden}
+.ys:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.ys input{flex:1;min-width:0;height:46px;padding:0 18px;border:0;outline:0;background:none;font:16px var(--kr);color:#111}
+.ys button{padding:0 22px;border:0;border-left:1px solid #d6d6d6;background:#f3f3f3;font:700 14px var(--kr);color:#222;cursor:pointer}
+.ys button:hover{background:#e8e8e8}
+.cats{display:flex;flex-wrap:wrap;gap:8px}
+.cat{padding:7px 14px;border:1px solid #d4d4d4;border-radius:999px;background:#fff;color:#333;font:500 13px var(--kr);cursor:pointer}
+.cat:hover{background:#f0f0f0}
+.cat.on{background:#161616;border-color:#161616;color:#fff}
+.sec{margin:30px 0 10px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700}
+.sec button{border:0;background:none;color:#606060;font:12px var(--kr);cursor:pointer;text-decoration:underline}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 13px;border:0;border-radius:8px;background:#ececec;color:#222;font:13px var(--kr);cursor:pointer}
+.chip:hover{background:#e0e0e0}
+.rh{position:sticky;top:0;z-index:3;padding:10px 16px 10px;background:rgba(250,250,250,.96);border-bottom:1px solid #e4e4e4;display:flex;flex-direction:column;gap:9px}
+.rh .ys{margin:0;max-width:560px}
+.rh .ys input{height:38px;font-size:14px}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px 14px;padding:16px}
+.vc{display:block;align-self:start;padding:0;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.vt{aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#ddd}
+.vt img{width:100%;height:100%;object-fit:cover;display:block}
+.vc:hover .vt{box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.vn{margin:8px 2px 0;word-break:keep-all;font-size:14px;font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vm{margin:3px 2px 0;font-size:12px;color:#606060}
+.note{margin:20px 16px;padding:18px 20px;border-radius:12px;background:#fff;border:1px solid #e2e2e2;max-width:640px}
+.note b{display:block;font-size:15px;line-height:1.4}
+.note p{margin:8px 0 14px;color:#555;font-size:13px;line-height:1.6}
+.btn{display:inline-block;padding:9px 16px;border:0;border-radius:999px;background:#161616;color:#fff;font:700 13px var(--kr);cursor:pointer;text-decoration:none}
+.btn:hover{background:#333}
+.btn.ghost{background:#ececec;color:#222}
+.btn.ghost:hover{background:#e0e0e0}
+.open{margin:0 16px 24px;max-width:640px}
+.open h3{margin:0 0 10px;font-size:13px;font-weight:700;color:#444}
+.open .chips a{padding:8px 14px;border-radius:999px;background:#fff;border:1px solid #d4d4d4;color:#222;font:500 13px var(--kr);text-decoration:none}
+.open .chips a:hover{background:#f0f0f0}
+.ld{display:flex;align-items:center;gap:12px;padding:30px 20px;color:#555;font-size:14px}
+.sp{width:22px;height:22px;border:3px solid #ddd;border-top-color:#e5372b;border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.wv{max-width:980px;margin:0 auto;padding:16px}
+.pl{position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+.pl iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.wv h2{margin:14px 2px 2px;font-size:17px;line-height:1.4}
+.wv .by{margin:0 2px;color:#606060;font-size:13px}
+.wv .row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 2px 0}
+.pop{position:absolute;right:8px;top:44px;z-index:7;min-width:180px;padding:6px;border-radius:10px;background:#fff;border:1px solid #d6d6d6;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.pop button{display:block;width:100%;padding:9px 12px;border:0;border-radius:6px;background:none;text-align:left;font:13px var(--kr);cursor:pointer;color:#222}
+.pop button:hover{background:#efefef}
+.dlgbg{position:absolute;inset:0;z-index:8;display:grid;place-items:center;background:rgba(0,0,0,.38);padding:12px}
+.dlg{width:min(440px,100%);padding:20px;border-radius:14px;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.dlg h3{margin:0 0 6px;font-size:16px}
+.dlg p{margin:0 0 12px;color:#555;font-size:12.5px;line-height:1.6}
+.dlg input{width:100%;height:40px;padding:0 12px;border:1px solid #c9c9c9;border-radius:8px;font:14px var(--kr);outline:0;-webkit-user-select:text;user-select:text}
+.dlg input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:9;max-width:90%;padding:10px 16px;border-radius:8px;background:#222;color:#fff;font-size:13px;line-height:1.45;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ───── 게임 에뮬레이터 실행창 (dex 안에서 직접 실행) ───── */
+.emw{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;background:#0b0a0d;color:#fff;font-family:system-ui,-apple-system,"Malgun Gothic","Noto Sans KR",sans-serif}
+.emw.emps{position:fixed;inset:0;z-index:99999}
+.emb{display:flex;gap:6px;padding:6px 8px;background:#1d1c22;overflow-x:auto;flex:none;scrollbar-width:none}
+.emb::-webkit-scrollbar{display:none}
+.emb button,.emfm button{flex:none;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:7px 13px;font:600 12.5px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.emb button:hover,.emfm button:hover{background:rgba(255,255,255,.18)}
+.ems{flex:1;min-height:0;position:relative;background:#000}
+.wbody .emf{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.emd{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;background:radial-gradient(ellipse at 50% 40%,#6a4a9c 0,#3a2468 55%,#241446 100%)}
+.emd.hidden{display:none}
+.emd img{width:min(30vw,130px);height:auto;object-fit:contain}
+.emd h2{margin:0;font:700 22px system-ui,sans-serif}
+.emd p{margin:0;font-size:14px;opacity:.9;max-width:440px;line-height:1.6}
+.emd .ext{font-size:12px;opacity:.6;white-space:pre-line}
+.emd .go,.emdlg .bx .ok{border:0;border-radius:99px;padding:12px 30px;background:#fff;color:#4326c4;font:700 15px system-ui,sans-serif;cursor:pointer}
+.emd.over{outline:2px dashed rgba(255,255,255,.6);outline-offset:-14px}
+.eml{position:absolute;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(10,8,20,.82);text-align:center;padding:20px}
+.eml.on{display:flex}
+.eml .lt{font:700 17px system-ui,sans-serif}
+.eml .ll{font-size:12.5px;opacity:.75;max-width:420px}
+.eml .lb{width:min(300px,70%);height:6px;border-radius:9px;background:rgba(255,255,255,.18);overflow:hidden}
+.eml .lb i{display:block;height:100%;width:2%;background:#9d86ff;transition:width .3s}
+.eml button{margin-top:4px;border:0;border-radius:99px;padding:9px 24px;background:#fff;color:#4326c4;font:700 13.5px system-ui,sans-serif;cursor:pointer}
+.emfsb{display:none;position:absolute;top:8px;left:8px;z-index:30;border:1px solid rgba(255,255,255,.3);background:rgba(20,20,26,.78);color:#fff;border-radius:99px;padding:8px 16px;font:700 13px system-ui,sans-serif;cursor:pointer}
+.emw.emfull .emb{display:none}
+.emw.emfull .emfsb{display:block}
+.emfm{display:none;position:absolute;top:48px;left:8px;z-index:31;flex-direction:column;gap:6px;background:rgba(20,20,26,.96);border-radius:14px;padding:8px;min-width:170px}
+.emfm.on{display:flex}
+.emfm button{text-align:left;border-radius:10px}
+.emdlg{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55)}
+.emdlg.on{display:flex}
+.emdlg .bx{width:min(440px,92%);max-height:90%;overflow:auto;background:#26252c;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.emdlg .bx h3{margin:0 0 4px;font:700 17px system-ui,sans-serif}
+.emdlg .bx p{margin:0;font-size:14px;line-height:1.6;white-space:pre-line}
+.emdlg .bx button.op{text-align:left;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:11px 14px;font:500 13.5px/1.5 system-ui,sans-serif;cursor:pointer}
+.emdlg .bx button.op b{font-weight:700}
+.emdlg .bx button.op:hover{background:rgba(255,255,255,.17)}
+.emdlg .bx button.cl{border:0;background:none;color:#aaa;padding:8px;font:600 13px system-ui,sans-serif;cursor:pointer}
+.emt{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:50;background:rgba(0,0,0,.82);color:#fff;padding:9px 18px;border-radius:99px;font-size:13px;max-width:90%;text-align:center;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="screen">
+  <div id="wall"></div>
+  <div id="wins"></div>
+
+  <div id="start" role="dialog" aria-label="시작 메뉴">
+    <div class="sl">
+      <h2>모든 앱</h2>
+      <ul id="slist"></ul>
+      <div class="empty" id="sempty" hidden>검색 결과가 없어요.</div>
+      <label class="sq"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="sfind" type="text" placeholder="앱 이름으로 찾기" autocomplete="off" spellcheck="false" aria-label="앱 검색"></label>
+    </div>
+    <div class="sr">
+      <h2>고정됨</h2>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </div>
+
+  <div id="drawer" role="dialog" aria-label="앱 서랍">
+    <div class="dtop"><label class="dsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input id="dfind" type="text" placeholder="게임기종 검색 (예: 플스)" autocomplete="off" spellcheck="false" aria-label="게임기종 검색"></label></div>
+    <div class="dstage" id="dstage">
+      <button class="dnav p" id="dprev" type="button" aria-label="이전 쪽"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="dgrid" id="dgrid"></div>
+      <button class="dnav n" id="dnext" type="button" aria-label="다음 쪽"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="ddots" id="ddots"></div>
+  </div>
+
+  <nav id="tb" aria-label="작업표시줄">
+    <div class="keys">
+      <button class="sk" id="kMenu" type="button" aria-label="메뉴 (시작)" aria-expanded="false" title="메뉴"><svg viewBox="0 0 24 24"><path d="M6 5v14M12 5v14M18 5v14"/></svg></button>
+      <button class="sk" id="kHome" type="button" aria-label="홈 (바탕화면)" title="홈"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg></button>
+      <button class="sk" id="kBack" type="button" aria-label="뒤로" title="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    </div>
+    <div class="mid0">
+      <button class="tb2" id="tGrid" type="button" aria-label="앱 서랍" aria-expanded="false" title="앱 서랍"><svg viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><circle cx="6" cy="6" r="1.7"/><circle cx="12" cy="6" r="1.7"/><circle cx="18" cy="6" r="1.7"/><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/><circle cx="6" cy="18" r="1.7"/><circle cx="12" cy="18" r="1.7"/><circle cx="18" cy="18" r="1.7"/></g></svg></button>
+      <div class="mid" id="mid"></div>
+    </div>
+    <div class="tray">
+      <svg class="hide-s" viewBox="0 0 24 24" aria-label="와이파이"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.8 16a5 5 0 0 1 6.4 0"/><circle cx="12" cy="19" r=".9" fill="currentColor"/></svg>
+      <svg class="hide-s" viewBox="0 0 24 24" aria-label="소리"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
+      <button class="tb2" id="tSearch" type="button" aria-label="게임기종 검색" title="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+      <button class="bat" id="bat" type="button" aria-pressed="false" title="배터리 · 누르면 절전 모드"></button>
+      <div class="clk" aria-live="off"><b id="ctime"></b><span id="cdate"></span></div>
+    </div>
+  </nav>
+  <div id="svToast" role="status" hidden></div>
+</div>
+
+<script src="emudata.js?v=mg1"></script>
+<script src="mamegame.js?v=1"></script>
+<script src="loadgame.js?v=2"></script>
+<script>
+(function(){'use strict';
+var $=function(s,r){return(r||document).querySelector(s)};
+function h(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+var compact=function(){return matchMedia('(max-width:760px),(max-height:520px)').matches};
+var LS={
+ get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+ set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+ del:function(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+
+/* ───── 앱 목록 ───── */
+function gamepad(){return '<path d="M14 17h20a8 8 0 0 1 7.6 10.4l-1.6 5a4 4 0 0 1-6.6 1.6L29 30H19l-4.4 4a4 4 0 0 1-6.6-1.6l-1.6-5A8 8 0 0 1 14 17z" fill="#fff"/><path d="M17 21.5v6M14 24.5h6" stroke="#4326c4" stroke-width="2.4" stroke-linecap="round"/><circle cx="31" cy="22.5" r="1.9" fill="#4326c4"/><circle cx="35" cy="26.5" r="1.9" fill="#4326c4"/>'}
+function petals(){var s='';[0,60,120,180,240,300].forEach(function(a){s+='<circle cx="24" cy="14.8" r="6" transform="rotate('+a+' 24 24)" fill="#fff" fill-opacity=".88"/>'});return s+'<circle cx="24" cy="24" r="3.4" fill="#b82ad4"/>'}
+var APPS={
+ yt:{n:'유튜브',c:['#ff4b3e','#bd1220'],type:'browser',g:'<rect x="9" y="14" width="30" height="20" rx="6" fill="#fff"/><path d="M21 19.2v9.6l8.4-4.8z" fill="#d3202a"/>'},
+ emu:{n:'게임 에뮬레이터',c:['#7c5cff','#4326c4'],src:'emulator.html',g:gamepad()},
+ vid:{n:'게임 동영상',c:['#20bfae','#0b7388'],src:'videos.html',g:'<rect x="9" y="12" width="30" height="24" rx="4" fill="#fff"/><path d="M21 18.5v11l9-5.5z" fill="#0b7388"/>'},
+ gal:{n:'갤러리',c:['#ff5aa5','#b82ad4'],src:'gallery.html',g:petals()},
+ memo:{n:'메모',c:['#ffd24a','#e29a00'],src:'memo.html',g:'<rect x="12" y="9" width="24" height="30" rx="3.5" fill="#fff"/><path d="M17 17h14M17 23h14M17 29h8" stroke="#d48f00" stroke-width="2.4" stroke-linecap="round"/>'},
+ calc:{n:'계산기',c:['#6b7280','#343a44'],src:'calc.html',g:'<rect x="11" y="8" width="26" height="32" rx="4" fill="#fff"/><rect x="15" y="12" width="18" height="7" rx="1.5" fill="#3d424d"/><g fill="#3d424d"><circle cx="17.5" cy="26" r="2"/><circle cx="24" cy="26" r="2"/><circle cx="30.5" cy="26" r="2"/><circle cx="17.5" cy="33" r="2"/><circle cx="24" cy="33" r="2"/></g><circle cx="30.5" cy="33" r="2" fill="#f2a900"/>'}
+};
+/* 게임 에뮬레이터 기종 (icons/ 폴더의 사이트 제공 2D 아이콘) — 바탕화면 가운데에 표시됩니다 */
+var EMUS=[
+ ['nes','패미컴 / NES','nes'],['snes','슈퍼패미컴','snes'],['n64','닌텐도 64','nintendo64'],['gb','게임보이','gameboy'],['gbc','게임보이 컬러','gameboycolor'],['gba','게임보이 어드밴스','gameboyadvance'],
+ ['nds','닌텐도 DS','nintendods'],['vb','버추얼보이','virtualboy'],['md','메가드라이브','megadrive'],['sms','마스터 시스템','mastersystem'],['gg','게임기어','gamegear'],['pce','PC 엔진','pcengine'],
+ ['psx','플레이스테이션','playstation'],['atari2600','아타리 2600','atari2600'],['lynx','아타리 링스','lynx'],['ngp','네오지오 포켓','neogeopocket'],['mamegame','마메게임','mamegame'],['dos','MS-DOS','msdos'],
+ ['win10','윈도우 1.0','windows1'],['win20','윈도우 2.0','windows2'],['win30','윈도우 3.0','windows3'],['win31','윈도우 3.1','windows31'],['win95','윈도우 95','windows95'],['win98','윈도우 98','windows98']
+];
+EMUS.forEach(function(e){APPS['e_'+e[0]]={n:e[1],c:['#3a3b30','#22231b'],img:'icons/'+e[2]+'.png',src:/^win/.test(e[0])?'winemu.html?os='+e[0]:e[0]==='dos'?'dos.html':'mobile.html?embed=1'}; if(!/^(win|dos)/.test(e[0]))APPS['e_'+e[0]].pick=e[0]});   /* 윈도우 → winemu.html, MS-DOS → dos.html (사이트에 이미 있는 에뮬레이터)로 바로 실행 */
+var ORDER=['yt','emu','vid','gal','memo','calc'];
+var PINNED=['yt'];
+function icon(id,px){
+ var a=APPS[id],s=h('span','ai');
+ s.style.width=s.style.height=px+'px';
+ if(a.img){s.className='ai im';var im=h('img');im.src=a.img;im.alt='';im.draggable=false;s.append(im);return s}
+ s.style.background='linear-gradient(145deg,'+a.c[0]+','+a.c[1]+')';
+ s.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true">'+a.g+'</svg>';
+ return s;
+}
+
+/* ───── 바탕화면 아이콘 · 시작 메뉴 ───── */
+var wins={},zc=10,cascade=0;
+var layer=$('#wins'),start=$('#start'),kMenu=$('#kMenu'),mid=$('#mid');
+
+/* ───── 앱 서랍 ───── */
+var KW={nes:'패미컴 패미콤 닌텐도 엔이에스 famicom',snes:'슈퍼패미컴 슈패 슈퍼 패미컴 닌텐도 에스엔이에스 superfamicom',n64:'닌텐도64 닌텐도 64 엔64 nintendo64',gb:'게임보이 보이 닌텐도 gameboy',gbc:'게임보이컬러 컬러 닌텐도 gameboycolor',gba:'게임보이어드밴스 어드밴스 닌텐도 gameboyadvance',nds:'닌텐도ds 닌텐도 디에스 듀얼스크린 nintendods',vb:'버추얼보이 버추얼 가상 닌텐도 virtualboy',md:'메가드라이브 메가 드라이브 제네시스 세가 sega megadrive genesis',sms:'마스터시스템 마스터 시스템 세가 sega',gg:'게임기어 기어 세가 sega gamegear',pce:'피씨엔진 pc엔진 엔진 pcengine nec',psx:'플레이스테이션 플스 플레이 스테이션 소니 sony ps1 psx playstation',atari2600:'아타리 아타리2600 2600',lynx:'링스 링크스 아타리',ngp:'네오지오 네오지오포켓 포켓 snk neogeo',mamegame:'마메 마메게임 mame 오락실 아케이드 arcade 네오지오 철권 킹오브파이터즈 메탈슬러그 캡콤 capcom cps fbneo',dos:'도스 엠에스도스 msdos 마이크로소프트',win10:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우1',win20:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우2',win30:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3',win31:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우3.1',win95:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우95',win98:'윈도우 윈도우즈 윈도 windows 마이크로소프트 윈도우98'};
+var DR={el:$('#drawer'),grid:$('#dgrid'),find:$('#dfind'),dots:$('#ddots'),stage:$('#dstage'),page:0,pages:1,on:false};
+function drawerItems(){
+ var f=DR.find.value.trim().toLowerCase().replace(/\s+/g,''),all=[];
+ EMUS.forEach(function(e){all.push({id:'e_'+e[0],kw:e[1]+' '+(KW[e[0]]||'')+' '+e[0]})});
+ ORDER.forEach(function(id){all.push({id:id,kw:APPS[id].n})});
+ if(!f)return all;
+ return all.filter(function(x){return x.kw.toLowerCase().replace(/\s+/g,'').indexOf(f)>=0});
+}
+function drawerRender(){
+ var W=DR.stage.clientWidth,H=DR.stage.clientHeight,items=drawerItems();
+ var cols=W<560?4:W<900?6:8,rowH=W<560?96:112,rows=Math.max(1,Math.floor(H/rowH)),per=cols*rows;
+ DR.pages=Math.max(1,Math.ceil(items.length/per));
+ if(DR.page>=DR.pages)DR.page=DR.pages-1;if(DR.page<0)DR.page=0;
+ var g=DR.grid;g.replaceChildren();
+ g.style.gridTemplateColumns='repeat('+cols+',minmax(0,'+(W<560?'1fr':'104px')+'))';
+ g.style.gridAutoRows=rowH+'px';g.style.columnGap=(W<560?'2px':'clamp(8px,2vw,22px)');
+ g.style.width=W<560?'min(94vw,420px)':'auto';
+ if(!items.length){g.style.gridTemplateColumns='1fr';g.append(h('div','dnone','찾는 게임기종이 없어요. 다른 이름으로 검색해 보세요.'));}
+ items.slice(DR.page*per,DR.page*per+per).forEach(function(x){
+  var b=h('button','da');b.type='button';b.title=APPS[x.id].n;
+  b.append(icon(x.id,W<560?50:58),h('span','l',APPS[x.id].n));
+  b.onclick=function(){openApp(x.id)};
+  g.append(b);
+ });
+ DR.dots.replaceChildren();
+ if(DR.pages>1)for(var i=0;i<DR.pages;i++)(function(i){var d=h('button',i===DR.page?'on':'');d.type='button';d.setAttribute('aria-label',(i+1)+'쪽');d.onclick=function(){DR.page=i;drawerRender()};DR.dots.append(d)})(i);
+ $('#dprev').hidden=DR.page<=0;$('#dnext').hidden=DR.page>=DR.pages-1;
+}
+function openDrawer(focusFind){
+ closeStart();DR.on=true;DR.el.classList.add('on');$('#tGrid').classList.add('on');$('#tGrid').setAttribute('aria-expanded','true');
+ drawerRender();
+ if(focusFind)DR.find.focus();
+}
+function closeDrawer(){DR.on=false;DR.el.classList.remove('on');$('#tGrid').classList.remove('on');$('#tGrid').setAttribute('aria-expanded','false');DR.find.blur()}
+$('#tGrid').onclick=function(){DR.on?closeDrawer():openDrawer()};
+$('#tSearch').onclick=function(){if(!DR.on)openDrawer();DR.find.focus();DR.find.select()};
+DR.find.addEventListener('input',function(){DR.page=0;drawerRender()});
+DR.find.addEventListener('keydown',function(e){if(e.key==='Enter'){var f=$('.da',DR.grid);if(f)f.click()}});
+$('#dprev').onclick=function(){DR.page--;drawerRender()};
+$('#dnext').onclick=function(){DR.page++;drawerRender()};
+DR.el.addEventListener('click',function(e){if(e.target===DR.el||e.target===DR.stage||e.target===DR.grid||e.target.classList.contains('dtop')||e.target===DR.dots)closeDrawer()});
+(function(){var x0=null,t0=0;
+ DR.stage.addEventListener('pointerdown',function(e){x0=e.clientX;t0=Date.now()});
+ DR.stage.addEventListener('pointerup',function(e){if(x0==null)return;var d=e.clientX-x0;x0=null;if(Math.abs(d)>60&&Date.now()-t0<700){DR.page+=d<0?1:-1;drawerRender()}});
+})();
+document.addEventListener('keydown',function(e){
+ if(!DR.on||startOpen)return;
+ if(e.key==='Escape')closeDrawer();
+ else if(e.key==='ArrowRight'&&document.activeElement!==DR.find&&DR.page<DR.pages-1){DR.page++;drawerRender()}
+ else if(e.key==='ArrowLeft'&&document.activeElement!==DR.find&&DR.page>0){DR.page--;drawerRender()}
+});
+addEventListener('resize',function(){if(DR.on)drawerRender()});
+
+function buildStart(filter){
+ var ul=$('#slist');ul.replaceChildren();
+ var f=(filter||'').trim().toLowerCase(),n=0;
+ ORDER.forEach(function(id){
+  if(f&&APPS[id].n.toLowerCase().indexOf(f)<0)return;
+  n++;
+  var li=h('li'),b=h('button','si');b.type='button';
+  b.append(icon(id,32),h('span',null,APPS[id].n));
+  b.onclick=function(){openApp(id)};
+  li.append(b);ul.append(li);
+ });
+ $('#sempty').hidden=n>0;
+}
+buildStart();
+['yt','emu','vid','gal'].forEach(function(id,i){
+ var b=h('button','tile'+(i===0?' w':''));b.type='button';
+ b.style.setProperty('--c1',APPS[id].c[0]);b.style.setProperty('--c2',APPS[id].c[1]);
+ b.append(icon(id,34),h('span',null,APPS[id].n));
+ b.onclick=function(){openApp(id)};
+ $('#tiles').append(b);
+});
+var startOpen=false;
+function openStart(){if(DR.on)closeDrawer();startOpen=true;start.classList.add('on');kMenu.classList.add('on');kMenu.setAttribute('aria-expanded','true');$('#sfind').value='';buildStart();if(!compact())setTimeout(function(){$('#sfind').focus()},0)}
+function closeStart(){startOpen=false;start.classList.remove('on');kMenu.classList.remove('on');kMenu.setAttribute('aria-expanded','false')}
+$('#sfind').addEventListener('input',function(e){buildStart(e.target.value)});
+$('#sfind').addEventListener('keydown',function(e){if(e.key==='Enter'){var f=$('#slist .si');if(f)f.click()}});
+document.addEventListener('pointerdown',function(e){
+ if(startOpen&&!start.contains(e.target)&&!kMenu.contains(e.target))closeStart();
+},true);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&startOpen)closeStart()});
+
+/* ───── 소프트키 ───── */
+kMenu.onclick=function(){startOpen?closeStart():openStart()};
+$('#kHome').onclick=function(){var had=Object.keys(wins).length>0;closeStart();closeDrawer();Object.keys(wins).forEach(closeWin);if(had)openDrawer()};   /* 홈: 실행 중인 것을 모두 닫고 바탕화면 */
+$('#kBack').onclick=function(){                                                      /* 뒤로: 앱 안에서 한 단계 → 없으면 창 닫기 → 바탕화면 */
+ if(startOpen){closeStart();return}
+ if(DR.on){closeDrawer();return}
+ var w=topWin();if(!w)return;
+ if(w.onBack&&w.onBack())return;
+ closeWin(w.id);
+};
+
+/* ───── 창 관리 ───── */
+var XI={
+ min:'<svg viewBox="0 0 12 12"><path d="M2.5 9.5h6"/></svg>',
+ max:'<svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7"/><path d="M2.5 3.5h7"/></svg>',
+ x:'<svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg>'
+};
+function xbtn(cls,label,svg,fn){var b=h('button','xb '+cls);b.type='button';b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svg;b.addEventListener('pointerdown',function(e){e.stopPropagation()});b.onclick=function(e){e.stopPropagation();fn()};return b}
+
+function topWin(){
+ var best=null;
+ Object.keys(wins).forEach(function(k){var w=wins[k];if(w.el.classList.contains('min'))return;if(!best||+w.el.style.zIndex>+best.el.style.zIndex)best=w});
+ return best;
+}
+function focusWin(w){
+ if(!w)return;
+ w.el.classList.remove('min');
+ w.el.style.zIndex=++zc;
+ Object.keys(wins).forEach(function(k){wins[k].el.classList.toggle('act',wins[k]===w)});
+ renderMid();
+}
+function closeWin(id){
+ var w=wins[id];if(!w)return;
+ try{w.onClose&&w.onClose()}catch(e){}
+ var f=$('iframe',w.el);if(f)f.src='about:blank';   /* 소리·에뮬레이터 정지 */
+ w.el.remove();delete wins[id];
+ var t=topWin();if(t)focusWin(t);else renderMid();
+}
+function minWin(w){w.el.classList.add('min');w.el.classList.remove('act');var t=topWin();if(t)focusWin(t);else renderMid()}
+
+/* ───── 게임 에뮬레이터 실행창 (앱 서랍 기종 선택 → ROM 파일 열기 → 게임 실행) ───── */
+var CLOUD={googleClientId:'959083063404-pd21t33sq0tr3v4i6phbfidenspk09fj.apps.googleusercontent.com'};   /* ★ 구글 클라우드 저장을 쓰려면 구글 OAuth 클라이언트 ID 를 여기에 넣으세요 */
+var emSay=null,gTok=null;
+window.toast=function(m){if(emSay)emSay(m)};   /* mamegame.js 가 쓰는 알림 */
+function sysOf(id){for(var i=0;i<C.length;i++)if(C[i].id===id)return C[i];return null}
+var SV_MAGIC='YHSAVEDATA1';
+function packSave(state,meta){var m=new TextEncoder().encode(SV_MAGIC+JSON.stringify(meta)),o=new Uint8Array(4+m.length+state.length);new DataView(o.buffer).setUint32(0,m.length);o.set(m,4);o.set(state,4+m.length);return o}
+function unpackSave(buf){
+ var u=new Uint8Array(buf);if(u.length<8)return null;
+ var n=new DataView(u.buffer,u.byteOffset,u.byteLength).getUint32(0);if(n<=SV_MAGIC.length||4+n>u.length)return null;
+ var t=new TextDecoder().decode(u.subarray(4,4+n));if(t.indexOf(SV_MAGIC)!==0)return null;
+ try{return{meta:JSON.parse(t.slice(SV_MAGIC.length)),state:u.subarray(4+n)}}catch(e){return null}
+}
+function hashFile(file){
+ var b=file.slice?file:new Blob([file]);
+ return b.slice(0,65536).arrayBuffer().then(function(buf){var u=new Uint8Array(buf),x=2166136261;for(var i=0;i<u.length;i++){x^=u[i];x=Math.imul(x,16777619)>>>0}return b.size+'-'+x.toString(16)});
+}
+function dlBlob(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)}
+function stampNow(){var n=new Date(),p=function(v){return String(v).padStart(2,'0')};return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
+var EM_HOST='<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"><style>html,body{touch-action:pan-x pan-y;margin:0;height:100%;background:#000;overflow:hidden}#game{width:100%;height:100%}.hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}</style></head><body><div id="game"></div></body></html>';
+
+/* 구글 드라이브(앱 전용 폴더)에 세이브 저장 · 불러오기 */
+function gisLoad(){return new Promise(function(res,rej){if(window.google&&google.accounts&&google.accounts.oauth2)return res();var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=function(){res()};s.onerror=function(){rej(new Error('구글 로그인 스크립트를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'))};document.head.appendChild(s)})}
+function gAuth(){
+ if(!CLOUD.googleClientId)return Promise.reject(new Error('NOID'));
+ if(gTok&&gTok.exp>Date.now()+60000)return Promise.resolve(gTok.t);
+ return gisLoad().then(function(){return new Promise(function(res,rej){
+  var cl=google.accounts.oauth2.initTokenClient({client_id:CLOUD.googleClientId,scope:'https://www.googleapis.com/auth/drive.appdata',
+   callback:function(r){if(r.error)return rej(new Error('구글 로그인에 실패했어요 ('+r.error+')'));gTok={t:r.access_token,exp:Date.now()+(r.expires_in||3600)*1000};res(gTok.t)},
+   error_callback:function(e){rej(new Error('구글 로그인 창이 닫혔거나 열리지 않았어요.'))}});
+  cl.requestAccessToken();
+ })});
+}
+function gFind(tok,name){
+ return fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q='+encodeURIComponent("name='"+name+"'"),{headers:{Authorization:'Bearer '+tok}})
+  .then(function(r){if(!r.ok)throw new Error('구글 드라이브 오류 ('+r.status+')');return r.json()}).then(function(j){return j.files&&j.files[0]?j.files[0].id:null});
+}
+function gPut(tok,name,data,id){
+ var ok=function(r){if(!r.ok)throw new Error('구글 드라이브 저장 오류 ('+r.status+')');return r};
+ if(id)return fetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media',{method:'PATCH',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/octet-stream'},body:new Blob([data])}).then(ok);
+ var bd='yhb'+Date.now(),meta=JSON.stringify({name:name,parents:['appDataFolder']});
+ var body=new Blob(['--'+bd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+bd+'\r\nContent-Type: application/octet-stream\r\n\r\n',data,'\r\n--'+bd+'--']);
+ return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'multipart/related; boundary='+bd},body:body}).then(ok);
+}
+
+function buildEmu(w,body,a,id){
+ var c=sysOf(a.pick),hasLG=typeof LoadGame!=='undefined';
+ var S={seq:0,started:false,file:null,name:'',hide:false,keyP:null,gw:null,fr:null,watch:0,lt:0,manual:false,t0:0,est:15};
+ var wrap=h('div','emw'),bar=h('div','emb'),stage=h('div','ems');
+ body.append(wrap);wrap.append(bar,stage);
+
+ /* 알림 · 알림창 */
+ var tEl=null,tT=0;
+ function say(m){if(!tEl){tEl=h('div','emt');wrap.append(tEl)}tEl.textContent=m;tEl.style.display='';clearTimeout(tT);tT=setTimeout(function(){tEl.style.display='none'},3200)}
+ emSay=say;
+ var dlg=h('div','emdlg'),bx=h('div','bx');dlg.append(bx);wrap.append(dlg);
+ dlg.addEventListener('pointerdown',function(e){if(e.target===dlg)closeDlg()});
+ function closeDlg(){dlg.classList.remove('on')}
+ function showDlg(title,nodes){bx.replaceChildren();if(title)bx.append(h('h3',null,title));nodes.forEach(function(n){bx.append(n)});dlg.classList.add('on')}
+ function alertBox(msg,title){var ok=h('button','ok','확인');ok.type='button';ok.onclick=closeDlg;showDlg(title||'알림',[h('p',null,msg),ok])}
+
+ /* 상단 메뉴 */
+ function eb(label,fn){var b=h('button',null,label);b.type='button';b.addEventListener('pointerdown',function(e){e.stopPropagation()});b.onclick=function(e){e.stopPropagation();fn()};bar.append(b);return b}
+ eb('🎮 기종선택',goSelect);eb('🔄 다시시작',restart);eb('💾 세이브',openSave);
+ var bFs=eb('⛶ 전체화면',toggleFs),bCtl=eb('🎛 버튼숨김',toggleCtl);eb('📷 화면캡처',capture);
+
+ /* ROM 안내 화면 */
+ var drop=h('div','emd');
+ var inp=h('input');inp.type='file';inp.style.display='none';
+ if(a.img){var im=h('img');im.src=a.img;im.alt='';im.draggable=false;drop.append(im)}
+ var goBtn=h('button','go','파일 열기');goBtn.type='button';
+ drop.append(h('h2',null,a.n),h('p',null,'게임을 플레이 하시려면 ROM파일이 필요합니다.'),goBtn,h('p','ext','지원 형식: '+c.x+(MG.is(c)?'\n네오지오 바이오스(neogeo.zip)는 자동으로 적용됩니다.':'')),inp);
+ stage.append(drop);
+ goBtn.onclick=function(){inp.value='';inp.click()};
+ inp.onchange=function(){onPick(inp.files)};
+ ['dragover','dragenter'].forEach(function(v){drop.addEventListener(v,function(e){e.preventDefault();drop.classList.add('over')})});
+ ['dragleave','drop'].forEach(function(v){drop.addEventListener(v,function(e){e.preventDefault();drop.classList.remove('over')})});
+ drop.addEventListener('drop',function(e){onPick(e.dataTransfer.files)});
+
+ /* 불러오는 중 */
+ var ld=h('div','eml'),ldT=h('div','lt'),ldL=h('div','ll'),ldB=h('i'),ldBar=h('div','lb'),ldRe=h('button',null,'다시 시도');
+ ldBar.append(ldB);ldRe.type='button';ld.append(ldT,ldL,ldBar,ldRe);stage.append(ld);
+ ldRe.onclick=function(){if(S.file)start(S.file,0)};
+ function hideLoad(){clearInterval(S.lt);S.lt=0;ld.classList.remove('on');try{hasLG&&LoadGame.stop()}catch(e){}}
+ function showLoad(t,est){
+  clearInterval(S.lt);S.t0=performance.now();S.est=Math.max(3,est||15);S.manual=false;
+  ldT.textContent=t;ldL.textContent='준비 중…';ldB.style.width='2%';ld.classList.add('on');
+  S.lt=setInterval(function(){
+   if(S.manual)return;var s=(performance.now()-S.t0)/1000,r=Math.max(0,S.est-s);
+   ldL.textContent='경과 '+Math.round(s)+'초 · '+(r>=60?Math.ceil(r/60)+'분':'약 '+Math.ceil(r)+'초')+' 남음 · 인터넷/기기 성능에 따라 달라질 수 있습니다.';
+   ldB.style.width=Math.min(94,2+(s/S.est)*92)+'%';
+  },250);
+ }
+ function prog(p,l){S.manual=true;ldB.style.width=Math.max(0,Math.min(100,p))+'%';ldL.textContent=l}
+
+ /* 전체화면 + 전체화면 상단 '메뉴' */
+ var fsb=h('button','emfsb','☰ 메뉴'),fm=h('div','emfm');fsb.type='button';
+ wrap.append(fsb,fm);
+ function mi(label,fn){var b=h('button',null,label);b.type='button';b.onclick=function(e){e.stopPropagation();fm.classList.remove('on');fn()};fm.append(b);return b}
+ mi('🔄 다시 시작',restart);mi('💾 세이브',openSave);
+ var mCtl=mi('🎛 버튼숨기기',toggleCtl);mi('⛶ 전체화면 종료',exitFull);
+ fsb.onclick=function(e){e.stopPropagation();fm.classList.toggle('on')};
+ ['pointerdown','touchstart'].forEach(function(t){fsb.addEventListener(t,function(e){e.stopPropagation()},{passive:true});fm.addEventListener(t,function(e){e.stopPropagation()},{passive:true})});
+ function isFull(){return document.fullscreenElement===wrap||wrap.classList.contains('emps')}
+ function onFsChange(){var on=document.fullscreenElement===wrap;if(!on&&!wrap.classList.contains('emps'))wrap.classList.remove('emfull');else wrap.classList.add('emfull');fm.classList.remove('on');bFs.textContent=isFull()?'⛶ 전체화면 종료':'⛶ 전체화면'}
+ document.addEventListener('fullscreenchange',onFsChange);
+ function pseudo(on){wrap.classList.toggle('emps',on);wrap.classList.toggle('emfull',on);onFsChange()}
+ function toggleFs(){
+  if(isFull()){exitFull();return}
+  var rq=wrap.requestFullscreen||wrap.webkitRequestFullscreen;
+  if(rq){try{var p=rq.call(wrap);if(p&&p.catch)p.catch(function(){pseudo(true)})}catch(e){pseudo(true)}}else pseudo(true);
+ }
+ function exitFull(){
+  if(wrap.classList.contains('emps'))pseudo(false);
+  if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}}
+ }
+ var ro=null;
+ try{ro=new ResizeObserver(function(){try{S.fr&&S.fr.contentWindow.dispatchEvent(new Event('resize'))}catch(e){}});ro.observe(stage)}catch(e){}
+
+ /* 버튼 숨기기 / 표시 */
+ function applyCtl(){
+  try{S.gw.document.body.classList.toggle('hidectl',S.hide)}catch(e){}
+  bCtl.textContent=S.hide?'🎛 버튼표시':'🎛 버튼숨김';mCtl.textContent=S.hide?'🎛 버튼표시':'🎛 버튼숨기기';
+ }
+ function toggleCtl(){S.hide=!S.hide;applyCtl();say(S.hide?'조작 버튼을 숨겼어요':'조작 버튼을 표시해요')}
+
+ /* 기종선택: 게임을 끝내고 앱 서랍으로 */
+ function goSelect(){closeWin(id);openDrawer()}
+ w.onClose=function(){
+  S.seq++;clearTimeout(S.watch);clearInterval(S.lt);
+  document.removeEventListener('fullscreenchange',onFsChange);
+  if(document.fullscreenElement===wrap){try{document.exitFullscreen()}catch(e){}}
+  try{ro&&ro.disconnect()}catch(e){}
+  killFrame();if(emSay===say)emSay=null;
+ };
+
+ function killFrame(){clearTimeout(S.watch);if(S.fr){try{S.fr.src='about:blank'}catch(e){}S.fr.remove();S.fr=null}S.gw=null;S.started=false}
+ function need(){if(!S.started||!S.gw||!S.gw.EJS_emulator){say('먼저 게임을 시작해 주세요');return false}return true}
+
+ /* 파일 선택 */
+ function onPick(fs){
+  fs=[].slice.call(fs||[]);if(!fs.length)return;
+  if(!MG.is(c)){go(fs[0]);return}
+  var g=fs.filter(function(x){return MG.isRom(x.name)})[0];
+  if(!g){say('게임 롬(zip)을 선택해 주세요');return}
+  MG.prepare(g).then(go,function(e){say('롬 준비 실패: '+e.message)});
+ }
+ function go(file){
+  S.file=file;S.name=file.name.replace(/\.[^.]+$/,'');
+  S.keyP=hashFile(file).catch(function(){return (file.size||0)+'-'+S.name});
+  start(file,0);
+ }
+ function restart(){if(!S.file){say('먼저 ROM 파일을 열어 주세요');return}closeDlg();start(S.file,0)}
+
+ /* 게임 시작 */
+ function start(file,ci,lvl){
+  var seq=++S.seq;clearTimeout(S.watch);killFrame();
+  if(c.id==='psx'&&hasLG&&LoadGame.needUnzip(file)){
+   showLoad(a.n+' · 압축 푸는 중',40);drop.classList.add('hidden');
+   LoadGame.unzip(file,function(p,l){try{prog(p,l)}catch(e){}}).then(function(f){if(seq===S.seq)start(f,ci,lvl)},function(e){if(seq===S.seq){hideLoad();drop.classList.remove('hidden');alertBox('압축을 풀지 못했어요: '+(e&&e.message||e))}});
+   return;
+  }
+  if(c.id==='psx'&&hasLG){var bad=LoadGame.badFormat(file);if(bad){alertBox(bad,'파일 형식 안내');drop.classList.remove('hidden');return}}
+  var list=[c.core].concat(c.alt||[]),coreName=list[ci],hasNext=ci+1<list.length,isMame=MG.is(c),isPs=c.id==='psx';
+  var psxLvl=lvl==null?(hasLG&&isPs?LoadGame.autoLevel():0):lvl,lastErr='';
+  drop.classList.add('hidden');
+  showLoad(a.n+' · 파일 준비 중',Math.max(5,Math.min(300,file.size/1048576*0.35+4)));
+  try{if(hasLG&&LoadGame.has(c.id))LoadGame.start(stage)}catch(e){}
+  var giveUp=function(msg,title,force){
+   if(seq!==S.seq||(S.started&&!force))return;
+   S.seq++;hideLoad();killFrame();drop.classList.remove('hidden');alertBox(msg,title||'게임을 시작하지 못했어요');
+  };
+  var tryNext=function(){if(seq!==S.seq||S.started||!hasNext)return false;say('다른 코어로 다시 시도합니다…');start(file,ci+1,lvl);return true};
+  var psxFail=function(){if(seq!==S.seq||S.started)return;if(psxLvl<2){say('저사양 안전 모드로 다시 시도합니다…');start(file,ci,2);return}giveUp(hasLG?LoadGame.explain():'플레이스테이션 게임을 시작하지 못했어요.','불러오기 실패')};
+  var onFail=function(m){
+   if(seq!==S.seq||S.started)return;lastErr=m;
+   if(isPs&&/failed to (start|load|initialize)/i.test(m)){psxFail();return}
+   if(hasNext&&!/out of memory|RangeError/i.test(m)&&/abort|wasm|WebAssembly|runtime|unreachable|core/i.test(m)){if(tryNext())return}
+   if(/out of memory|memory|allocat|Aborted|RangeError|WebAssembly/i.test(m))giveUp('기기 메모리가 부족해 이 게임을 열 수 없어요. 다른 탭·앱을 닫고 다시 시도하거나 용량이 작은 게임을 선택해 보세요.\n('+m.slice(0,80)+')','메모리 부족');
+  };
+  var fr=S.fr=h('iframe','emf');fr.setAttribute('allow','autoplay; gamepad; fullscreen');fr.setAttribute('scrolling','no');fr.title=c.n;
+  stage.insertBefore(fr,drop);
+  S.watch=setTimeout(function(){if(tryNext())return;giveUp(isPs&&hasLG?LoadGame.TOO_LONG+'\n게임 파일이 플레이스테이션용인지 확인해 주세요.':'게임 시작이 너무 오래 걸립니다. 이 기종에 맞는 ROM 파일인지 확인하고 다시 시도해 보세요.'+(lastErr?'\n('+lastErr.slice(0,80)+')':''))},isPs?300000:(hasNext?180000:300000));
+  setTimeout(function(){
+   if(seq!==S.seq)return;
+   Promise.resolve(file.mgBios||[]).then(function(bios){
+    if(seq!==S.seq)return;
+    var d,gw;
+    try{d=fr.contentDocument;gw=fr.contentWindow;d.open();d.write(EM_HOST);d.close()}catch(e){giveUp('에뮬레이터 준비 실패: '+e.message);return}
+    S.gw=gw;
+    try{
+     if(isMame)MG.hook(gw);
+     gw.EJS_player='#game';gw.EJS_core=coreName;gw.EJS_gameName=S.name;
+     gw.EJS_gameUrl=new gw.File([file],file.name);
+     gw.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+     if(bios.length){gw.EJS_biosUrl=bios[0].url;var ef={};bios.forEach(function(b){ef[b.name]=b.url});gw.EJS_externalFiles=ef}
+     if(/desmume|melonds/.test(coreName)){gw.EJS_controlScheme='nds';gw.EJS_defaultOptions={'desmume_pointer_type':'touch','melonds_touch_mode':'Touch'}}
+     if(isPs&&hasLG)gw.EJS_defaultOptions=LoadGame.psxOptions(psxLvl);
+     gw.EJS_startOnLoaded=true;gw.EJS_color=c.a;gw.EJS_language='ko-KR';
+     gw.EJS_onGameStart=function(){
+      if(seq!==S.seq)return;
+      S.started=true;clearTimeout(S.watch);prog(100,'게임 시작 완료');setTimeout(hideLoad,500);applyCtl();say('게임 시작! 🎮');
+      if(!compact()&&!isFull()&&!w.el.classList.contains('max'))w.el.classList.add('max');   /* PC 에서는 큰 화면으로 */
+      setTimeout(function(){try{gw.dispatchEvent(new Event('resize'))}catch(e){}},200);
+      if(isMame)MG.watch(gw,function(){return seq===S.seq},hasNext,function(){say('게임이 안 열려서 다른 방식(코어)으로 다시 시도합니다…');start(file,ci+1)},function(m){giveUp(m,null,true)});
+     };
+     gw.addEventListener('error',function(e){onFail((e&&e.message)||'error')});
+     gw.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;onFail(String((r&&(r.message||r))||'rejection'))});
+     if(isPs&&hasLG)LoadGame.watchError(gw,function(){return seq===S.seq&&!S.started},psxFail);
+     d.addEventListener('pointerdown',function(){try{gw.focus()}catch(e){}},true);
+     if(typeof WebAssembly!=='object'){giveUp('이 브라우저는 WebAssembly 를 지원하지 않아요.');return}
+     var sc=d.createElement('script');sc.src=gw.EJS_pathtodata+'loader.js';
+     sc.onload=function(){if(seq===S.seq&&!S.started)prog(60,'에뮬레이터 엔진 다운로드 완료 · 게임 코어 준비 중…')};
+     sc.onerror=function(){giveUp('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.','연결 오류')};
+     d.body.appendChild(sc);
+    }catch(err){giveUp('에뮬레이터 준비 실패: '+err.message)}
+   });
+  },60);
+ }
+
+ /* 세이브 */
+ function openSave(){
+  if(!S.file||!S.started){say('게임을 시작한 뒤에 사용할 수 있어요');return}
+  function op(label,desc,fn){var b=h('button','op');b.type='button';b.append(h('b',null,label),document.createTextNode(' : '+desc));b.onclick=function(){closeDlg();fn()};return b}
+  var cl=h('button','cl','닫기');cl.type='button';cl.onclick=closeDlg;
+  showDlg('세이브',[
+   op('세이브파일 열기','저장된 게임세이브파일을 불러옵니다.',function(){svIn.value='';svIn.click()}),
+   op('세이브파일 저장','현재 진행중인 게임부분을 세이브파일로 저장합니다.',saveFile),
+   op('☁ 클라우드 저장','구글 계정(구글 드라이브)에 현재 게임 진행 상황을 저장합니다.',cloudSave),
+   op('☁ 클라우드 불러오기','구글 계정에 저장된 이 게임의 세이브를 불러옵니다.',cloudLoad),
+   cl]);
+ }
+ var svIn=h('input');svIn.type='file';svIn.accept='.SAVEDATA,.savedata';svIn.style.display='none';wrap.append(svIn);
+ svIn.onchange=function(){var f=svIn.files[0];if(!f)return;f.arrayBuffer().then(applySave,function(){alertBox('세이브파일을 읽지 못했어요.')})};
+ function metaNow(key){return{sys:c.id,key:key,game:S.name,t:Date.now()}}
+ function saveFile(){
+  if(!need())return;
+  S.keyP.then(function(key){
+   var st=S.gw.EJS_emulator.gameManager.getState();
+   var g=S.name.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+   var name=c.fn+g+'_'+stampNow()+'.SAVEDATA';
+   dlBlob(new Blob([packSave(st,metaNow(key))]),name);say('💾 저장됨: '+name);
+  }).catch(function(){alertBox('세이브 저장에 실패했어요. 게임이 시작된 뒤 다시 시도해 주세요.')});
+ }
+ function applySave(buf){
+  if(!need())return;
+  var p=unpackSave(buf);
+  S.keyP.then(function(key){
+   if(!p||p.meta.sys!==c.id||p.meta.key!==key){alertBox('이 파일은 해당 게임에 저장된 세이브파일이 아닙니다.');return}
+   try{S.gw.EJS_emulator.gameManager.loadState(p.state);say('📥 세이브를 불러왔어요')}catch(e){alertBox('세이브파일을 불러오지 못했어요.')}
+  });
+ }
+ function cloudErr(e){
+  if(e&&e.message==='NOID')alertBox('구글 클라우드 저장을 쓰려면 구글 클라이언트 ID 설정이 필요해요.\ndex.html 의 CLOUD.googleClientId 에 구글 OAuth 클라이언트 ID 를 넣어 주세요.','클라우드 설정 필요');
+  else alertBox((e&&e.message)||'클라우드 작업에 실패했어요.','클라우드 오류');
+ }
+ function cloudSave(){
+  if(!need())return;
+  var key,fname;
+  S.keyP.then(function(k){key=k;fname='YH_'+c.id+'_'+k+'.SAVEDATA';return gAuth()}).then(function(tok){
+   say('☁ 구글 드라이브에 저장하는 중…');
+   var data=packSave(S.gw.EJS_emulator.gameManager.getState(),metaNow(key));
+   return gFind(tok,fname).then(function(fid){return gPut(tok,fname,data,fid)});
+  }).then(function(){say('☁ 구글 드라이브에 저장했어요')},cloudErr);
+ }
+ function cloudLoad(){
+  if(!need())return;
+  var key,tk;
+  S.keyP.then(function(k){key=k;return gAuth()}).then(function(tok){
+   tk=tok;say('☁ 구글 드라이브에서 불러오는 중…');
+   return gFind(tok,'YH_'+c.id+'_'+key+'.SAVEDATA');
+  }).then(function(fid){
+   if(!fid){alertBox('클라우드에 이 게임의 세이브가 없어요.','클라우드');return}
+   return fetch('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media',{headers:{Authorization:'Bearer '+tk}}).then(function(r){if(!r.ok)throw new Error('구글 드라이브 오류 ('+r.status+')');return r.arrayBuffer()}).then(applySave);
+  }).catch(cloudErr);
+ }
+
+ /* 화면캡처 */
+ function capture(){
+  if(!need())return;
+  var E=S.gw.EJS_emulator,done=false,name=c.fn+'_'+(S.name.replace(/[^\w\-]/g,'').slice(0,20)||'GAME')+'_'+stampNow()+'.png';
+  function fin(b){if(done||!b)return;done=true;dlBlob(b,name);say('📷 화면캡처 저장: '+name)}
+  try{var r=E.screenshot&&E.screenshot(function(b){fin(b)},'canvas','png');if(r&&r.then)r.then(function(x){fin(x&&x.blob?x.blob:(x instanceof Blob?x:null))},function(){})}catch(e){}
+  setTimeout(function(){
+   if(done)return;
+   try{var u=E.gameManager.screenshot();if(u&&u.length){fin(new Blob([u],{type:'image/png'}));return}}catch(e){}
+   try{S.gw.document.querySelector('canvas').toBlob(function(b){fin(b)},'image/png')}catch(e){}
+   setTimeout(function(){if(!done)say('화면캡처에 실패했어요')},800);
+  },700);
+ }
+}
+
+function openApp(id){
+ closeStart();closeDrawer();
+ var w=wins[id];
+ if(w){focusWin(w);return}
+ if(/^e_/.test(id))Object.keys(wins).forEach(function(k){if(/^e_/.test(k))closeWin(k)});   /* 에뮬레이터는 한 번에 하나만 (이전 기종이 계속 돌며 폰이 느려지는 것 방지) */
+ var a=APPS[id],isB=a.type==='browser';
+ var el=h('section','win '+(isB?'br':'app'));
+ el.setAttribute('role','dialog');el.setAttribute('aria-label',a.n);
+ var bar=h('div','tbar'),tabs=h('div','tabs'),xp=h('div','xp');
+ w={id:id,el:el,onBack:null,setTab:function(){}};
+ if(isB){
+  var tab=h('div','tab');
+  tab.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="3" width="14" height="10" rx="3" fill="#e5372b"/><path d="M6.6 5.7v4.6l4-2.3z" fill="#fff"/></svg>';
+  var tt=h('span',null,'유튜브 게임 검색');tab.append(tt);
+  var nt=h('button','newtab');nt.type='button';nt.title='새 검색';nt.setAttribute('aria-label','새 검색');
+  nt.addEventListener('pointerdown',function(e){e.stopPropagation()});
+  nt.onclick=function(){w.newTab&&w.newTab()};
+  tabs.append(tab,nt);
+  w.setTab=function(t){tt.textContent=t};
+ }else{
+  var ttl=h('div','ttl');ttl.append(icon(id,20),h('span','t',a.n));tabs.append(ttl);
+ }
+ xp.append(
+  xbtn('mn','최소화',XI.min,function(){minWin(w)}),
+  xbtn('mx','최대화 / 이전 크기',XI.max,function(){toggleMax(w)}),
+  xbtn('x','닫기',XI.x,function(){closeWin(id)})
+ );
+ bar.append(tabs,xp);
+ var body=h('div','wbody');w.body=body;
+ el.append(bar,body);
+ var grip=h('div','grip');el.append(grip);
+
+ /* 위치 · 크기 */
+ var W=layer.clientWidth,H=layer.clientHeight;
+ var ww=Math.min(920,Math.round(W*.8)),hh=Math.min(600,Math.round(H*.82));
+ var off=(cascade++%5)*26;
+ el.style.width=ww+'px';el.style.height=hh+'px';
+ el.style.left=Math.max(0,Math.round((W-ww)/2)-40+off)+'px';
+ el.style.top=Math.max(0,Math.round((H-hh)/2)-14+off)+'px';
+ layer.append(el);wins[id]=w;
+
+ if(isB)buildBrowser(w);
+ else if(a.pick&&sysOf(a.pick))buildEmu(w,body,a,id);
+ else{
+  var f=h('iframe');f.title=a.n;f.src=a.src;f.setAttribute('allow','fullscreen; autoplay; gamepad');body.append(f);
+  /* 창 안의 '나가기' 가 첫 화면(index)으로 이동하면, 창 안에 또 열지 않고 그 창을 닫습니다 */
+  if(a.pick){   /* 클릭 즉시 기종 화면 덮개를 보여주고, mobile.html 의 openEmu / openPc 를 로딩되는 즉시 호출 */
+   var cv=h('div');cv.style.cssText='position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at 50% 40%,#6a4a9c 0,#3a2468 55%,#241446 100%);color:#fff;font:700 20px system-ui,sans-serif;text-align:center';
+   if(a.img){var ci=h('img');ci.src=a.img;ci.alt='';ci.draggable=false;ci.style.cssText='width:140px;height:140px;object-fit:contain';cv.append(ci)}
+   cv.append(h('div',null,a.n),h('div',null,'불러오는 중…'));cv.lastChild.style.cssText='font-size:13px;font-weight:400;opacity:.7';
+   var rb=h('button',null,'다시 시도');rb.type='button';
+   rb.style.cssText='margin-top:6px;padding:10px 26px;border:0;border-radius:99px;background:#fff;color:#4326c4;font:700 14px system-ui,sans-serif;cursor:pointer';
+   rb.addEventListener('pointerdown',function(e){e.stopPropagation()});
+   rb.onclick=function(e){e.stopPropagation();closeWin(id);setTimeout(function(){openApp(id)},60)};   /* 창을 닫고 같은 기종으로 에뮬레이터를 처음부터 다시 불러옴 */
+   cv.append(rb);
+   body.append(cv);
+   var dropCv=function(){if(cv.parentNode)cv.remove()};
+   setTimeout(dropCv,10000);   /* 안전장치: 10초가 지나면 덮개를 걷어 화면을 그대로 보여줌 */
+   var pt0=Date.now(),tries=0,piv=setInterval(function(){
+    if(wins[id]!==w||Date.now()-pt0>120000){clearInterval(piv);dropCv();return}
+    try{
+     var cw=f.contentWindow,d=f.contentDocument;
+     if(!d||!d.getElementById('emu')||!cw.eval)return;               /* 아직 mobile.html 이 로딩 중 */
+     if(!d.__hid){d.__hid=1;var hs=d.createElement('style');hs.textContent='body>header,body>.filters,body>main{display:none!important}';(d.head||d.documentElement).appendChild(hs)}   /* 기종 목록이 비쳐 보이지 않게 */
+     var shown=d.getElementById('emu').classList.contains('show')||d.getElementById('pc').classList.contains('show');
+     if(shown){clearInterval(piv);dropCv();return}
+     if(!/mobile\.html/.test(cw.location.pathname)){clearInterval(piv);setTimeout(dropCv,500);return}   /* dos·윈도우 페이지로 넘어감 */
+     tries++;
+     var ready=cw.eval("typeof openEmu==='function'&&typeof openPc==='function'&&typeof C!=='undefined'&&typeof P!=='undefined'&&typeof MG!=='undefined'");
+     if(ready&&tries<=120){
+      var did=cw.eval("(function(){var i='"+a.pick+"',c=C.find(function(x){return x.id===i});if(c){openEmu(c);return 1}var p=P.find(function(x){return x.id===i});if(p){openPc(p);return 1}return 0})()");
+      if(did)return;
+     }
+     var bt=d.querySelector('.app[data-id="'+a.pick+'"]');
+     if(bt&&tries%10===1)bt.click();
+    }catch(x){}
+   },30);
+   /* 게임 파일을 불러와 게임이 시작되면 → PC 화면에 맞는 크기(창 최대화)로 실행하고, 에뮬레이터 화면 크기를 다시 맞춥니다 (폰 화면은 이미 꽉 차 있으므로 그대로) */
+   var fitFrames=function(){
+    [80,350,900].forEach(function(ms){setTimeout(function(){
+     try{
+      var cw=f.contentWindow;cw.dispatchEvent(new Event('resize'));
+      var g=cw.document.getElementById('fr');if(g&&g.contentWindow)g.contentWindow.dispatchEvent(new Event('resize'));
+     }catch(x){}
+    },ms)});
+   };
+   var fitT=setInterval(function(){
+    if(wins[id]!==w){clearInterval(fitT);return}
+    try{
+     var cw=f.contentWindow,d=f.contentDocument;
+     if(!d||!cw||!/mobile\.html/.test(cw.location.pathname))return;
+     var dp=d.getElementById('drop'),em=d.getElementById('emu');
+     if(!dp||!em||!em.classList.contains('show'))return;
+     if(!dp.classList.contains('hidden')){w.fit=0;return}   /* 아직 '게임 파일 불러오기' 화면 */
+     if(w.fit)return;w.fit=1;                                  /* 파일을 골라 게임이 시작됨 (한 번만) */
+     if(!compact()){w.el.classList.add('max');fitFrames()}
+    }catch(x){}
+   },200);
+  }
+  f.addEventListener('load',function(){
+   if(wins[id]!==w)return;
+   try{if(/(^|\/)(index(-select|-1)?\.html|dex\.html)?$/.test(f.contentWindow.location.pathname))closeWin(id)}catch(e){}
+  });
+ }
+
+ /* 끌기 · 크기 조절 · 포커스 */
+ el.addEventListener('pointerdown',function(){if(topWin()!==w||!el.classList.contains('act'))focusWin(w)},true);
+ bar.addEventListener('pointerdown',function(e){dragWin(w,e)});
+ bar.addEventListener('dblclick',function(e){if(!e.target.closest('.xb')&&!e.target.closest('.newtab'))toggleMax(w)});
+ grip.addEventListener('pointerdown',function(e){sizeWin(w,e)});
+ focusWin(w);
+}
+function toggleMax(w){if(compact())return;w.el.classList.toggle('max')}
+
+function track(e,move){
+ document.body.classList.add('drg');
+ var mv=function(ev){move(ev)};
+ var up=function(){document.body.classList.remove('drg');removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
+ addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+}
+function dragWin(w,e){
+ if(e.button>0||compact()||w.el.classList.contains('max')||e.target.closest('.xb')||e.target.closest('.newtab'))return;
+ var r=w.el.getBoundingClientRect(),p=layer.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;
+ track(e,function(ev){
+  var x=ev.clientX-ox-p.left,y=ev.clientY-oy-p.top;
+  x=Math.min(Math.max(x,-r.width+90),p.width-90);y=Math.min(Math.max(y,0),p.height-40);
+  w.el.style.left=x+'px';w.el.style.top=y+'px';
+ });
+}
+function sizeWin(w,e){
+ if(compact()||w.el.classList.contains('max'))return;
+ e.preventDefault();e.stopPropagation();
+ var r=w.el.getBoundingClientRect(),p=layer.getBoundingClientRect(),sx=e.clientX,sy=e.clientY;
+ track(e,function(ev){
+  w.el.style.width=Math.min(Math.max(320,r.width+ev.clientX-sx),p.width-(r.left-p.left))+'px';
+  w.el.style.height=Math.min(Math.max(240,r.height+ev.clientY-sy),p.height-(r.top-p.top))+'px';
+ });
+}
+
+/* 창 안의 페이지(dos·윈도우 등)가 보내는 '닫기' 신호 */
+addEventListener('message',function(e){
+ var home=(e.data==='sky-home'||(e.data&&e.data.type==='sky-home')||e.data==='sky-close'||(e.data&&e.data.type==='sky-close'));
+ if(!home)return;
+ Object.keys(wins).forEach(function(k){var f=$('iframe',wins[k].el);if(f&&f.contentWindow===e.source)closeWin(k)});
+ if(home&&!Object.keys(wins).some(function(k){return !wins[k].el.classList.contains('min')}))openDrawer();
+});
+
+/* 작업표시줄 가운데: 고정 앱 + 실행 중인 앱 */
+function renderMid(){
+ mid.replaceChildren();
+ var ids=PINNED.slice();
+ Object.keys(wins).forEach(function(k){if(ids.indexOf(k)<0)ids.push(k)});
+ var top=topWin();
+ ids.forEach(function(id){
+  var w=wins[id],b=h('button','mb'+(w?' run':'')+(w&&w===top?' act':'')+(w&&w.el.classList.contains('min')?' mn':''));
+  b.type='button';b.title=APPS[id].n;b.setAttribute('aria-label',APPS[id].n);
+  b.append(icon(id,32));
+  b.onclick=function(){
+   closeStart();closeDrawer();
+   if(!w)openApp(id);
+   else if(w===top)minWin(w);
+   else focusWin(w);
+  };
+  mid.append(b);
+ });
+}
+renderMid();
+openDrawer();   /* dex.html 을 열면 처음에는 앱 서랍 화면 */
+/* 기종을 누르기 전에 mobile.html 과 스크립트를 미리 받아 둠 → 누르면 바로 뜸 */
+setTimeout(function(){try{
+ fetch('mobile.html?embed=1').then(function(r){return r.text()}).then(function(t){
+  var u=[],re=/<script[^>]+src="([^"]+)"/g,m;while((m=re.exec(t)))u.push(m[1]);
+  u.forEach(function(x){fetch(x).catch(function(){})});
+ }).catch(function(){});
+}catch(e){}},800);
+
+
+/* ───── 시계 · 배터리 ───── */
+function tick(){
+ var d=new Date(),H=d.getHours(),m=d.getMinutes();
+ $('#ctime').textContent=(H<12?'오전':'오후')+' '+(H%12||12)+':'+(m<10?'0':'')+m;
+ $('#cdate').textContent=(d.getMonth()+1)+'. '+d.getDate()+'. ('+'일월화수목금토'.charAt(d.getDay())+')';
+}
+tick();
+
+/* ───── 배터리 · 절전 모드 ───── */
+var SKEY='ds.saver',batLv=null,tickIv=0,toastT0=0;
+function saverOn(){try{return localStorage.getItem(SKEY)==='on'}catch(e){return false}}
+function setTick(){clearInterval(tickIv);tickIv=setInterval(tick,saverOn()?60000:10000)}   /* 절전: 시계 갱신을 1분에 한 번으로 */
+function batUI(){
+ var b=$('#bat'),on=saverOn();
+ b.textContent=batLv==null?'절전':String(batLv);
+ b.classList.toggle('sv',on);b.setAttribute('aria-pressed',on?'true':'false');
+ b.title='절전 모드 '+(on?'켜짐':'꺼짐')+' · 누르면 '+(on?'끕니다':'켭니다');
+ b.setAttribute('aria-label','배터리'+(batLv==null?'':' '+batLv+'%')+', 절전 모드 '+(on?'켜짐':'꺼짐'));
+}
+function svToast(msg){var t=$('#svToast');t.textContent=msg;t.hidden=false;clearTimeout(toastT0);toastT0=setTimeout(function(){t.hidden=true},3200)}
+function setSaver(v){
+ try{localStorage.setItem(SKEY,v?'on':'off')}catch(e){}
+ if(window.__saverApply)window.__saverApply(v);else document.documentElement.classList.toggle('ds-saver',v);
+ setTick();batUI();
+}
+$('#bat').onclick=function(){
+ var v=!saverOn();setSaver(v);
+ svToast(v?'절전 모드 켜짐 · 글씨와 이미지는 그대로 보이고, 움직이는 효과와 장식은 꺼요. 열려 있는 창에도 적용돼요.':'절전 모드 꺼짐 · 효과가 다시 켜졌어요.');
+};
+document.addEventListener('saverchange',function(){setTick();batUI()});   /* 다른 화면(첫 화면 등)에서 바꿔도 따라감 */
+setTick();batUI();
+if(navigator.getBattery)navigator.getBattery().then(function(b){var u=function(){batLv=Math.round(b.level*100);batUI()};u();b.addEventListener('levelchange',u)}).catch(function(){});
+
+/* ═════════════ 유튜브 브라우저 ═════════════ */
+var CATS=[
+ {id:'guide',n:'공략',s:'공략'},
+ {id:'music',n:'음악(OST)',s:'OST BGM'},
+ {id:'play',n:'플레이 영상',s:'플레이 영상'},
+ {id:'end',n:'엔딩',s:'엔딩'},
+ {id:'tip',n:'초보 팁',s:'초보 팁'}
+];
+var SUGG=['슈퍼 마리오','젤다의 전설','록맨','메탈슬러그','킹 오브 파이터즈','소닉','포켓몬스터','파이널 판타지 7','스트리트 파이터 2','크래시 밴디쿠'];
+var K_KEY='dex.yt.key',K_REC='dex.yt.recent';
+/* 키 없이 검색하는 무료 공개 검색 서버(Invidious · Piped). 하나가 안 되면 다음 서버로 자동 시도합니다. */
+var FREE=[
+ {t:'inv',u:'https://yewtu.be'},{t:'inv',u:'https://inv.nadeko.net'},{t:'inv',u:'https://invidious.nerdvpn.de'},{t:'inv',u:'https://invidious.privacyredirect.com'},
+ {t:'pip',u:'https://pipedapi.kavin.rocks'},{t:'pip',u:'https://api.piped.private.coffee'}
+];
+function catOf(id){return CATS.filter(function(c){return c.id===id})[0]||CATS[0]}
+function ytUrl(q,cat){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q+' '+catOf(cat).s)}
+function vidId(u){var m=String(u).match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([\w-]{11})/i);return m?m[1]:null}
+function decode(s){try{return new DOMParser().parseFromString(String(s||''),'text/html').documentElement.textContent}catch(e){return String(s||'')}}
+
+var SVG={
+ back:'<svg viewBox="0 0 24 24"><path d="M19 12H5M11 5l-7 7 7 7"/></svg>',
+ fwd:'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+ rel:'<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>',
+ kebab:'<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></svg>',
+ find:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>'
+};
+function nbtn(svg,label){var b=h('button','nb');b.type='button';b.innerHTML=svg;b.title=label;b.setAttribute('aria-label',label);return b}
+
+function buildBrowser(w){
+ var root=h('div','bw');w.body.append(root);
+ var tool=h('div','tool'),bBack=nbtn(SVG.back,'뒤로'),bFwd=nbtn(SVG.fwd,'앞으로'),bRel=nbtn(SVG.rel,'새로고침'),bMenu=nbtn(SVG.kebab,'메뉴');
+ var addr=h('label','addr');addr.innerHTML=SVG.find;
+ var inp=h('input');inp.type='text';inp.spellcheck=false;inp.autocomplete='off';inp.setAttribute('aria-label','주소 또는 게임 이름');addr.append(inp);
+ tool.append(bBack,bFwd,bRel,addr,bMenu);
+ var page=h('div','page');root.append(tool,page);
+
+ var S={hist:[{t:'home'}],i:0,cat:'guide'},menu=null,dlg=null,toastT=0;
+ var cur=function(){return S.hist[S.i]};
+
+ function go(e){S.hist=S.hist.slice(0,S.i+1);S.hist.push(e);S.i++;render()}
+ function back(){if(S.i>0){S.i--;render();return true}return false}
+ function fwd(){if(S.i<S.hist.length-1){S.i++;render()}}
+ function reload(){var e=cur();if(e.t==='results'){delete e.items;delete e.err}render()}
+ function home(){if(cur().t!=='home')go({t:'home'});else{render();}}
+ function toast(msg){
+  var t=$('.toast',root);if(t)t.remove();
+  t=h('div','toast',msg);t.setAttribute('role','status');root.append(t);
+  clearTimeout(toastT);toastT=setTimeout(function(){t.remove()},3200);
+ }
+ function recent(){return LS.get(K_REC,[])}
+ function addRecent(q){var r=recent().filter(function(x){return x!==q});r.unshift(q);LS.set(K_REC,r.slice(0,8))}
+ function search(q,cat){
+  q=(q||'').trim();
+  if(!q){toast('찾을 게임 이름을 입력해 주세요.');return}
+  if(cat)S.cat=cat;
+  addRecent(q);
+  go({t:'results',q:q,cat:S.cat});
+ }
+ function submitAddr(v){
+  v=v.trim();if(!v)return;
+  var id=vidId(v);
+  if(id){go({t:'watch',id:id,q:cur().q||'',cat:S.cat});return}
+  if(/^(https?:\/\/|www\.|youtube\.com)/i.test(v)){
+   try{
+    var u=new URL(/^https?:/i.test(v)?v:'https://'+v);
+    if(/(^|\.)youtube\.com$/i.test(u.hostname)){
+     var q=u.searchParams.get('search_query');
+     if(q){search(q,S.cat);return}
+     home();return;
+    }
+   }catch(e){}
+   toast('이 브라우저는 유튜브 전용이에요. 게임 이름을 입력해 보세요.');return;
+  }
+  search(v,S.cat);
+ }
+ function urlOf(e){
+  if(e.t==='home')return 'youtube.com';
+  if(e.t==='results')return 'youtube.com/results?search_query='+(e.q+' '+catOf(e.cat).s).replace(/ +/g,'+');
+  return 'youtube.com/watch?v='+e.id;
+ }
+
+ /* 검색 폼 + 분류 선택(공통) */
+ function searchForm(val,onCat,cls){
+  var f=h('form','ys');f.setAttribute('role','search');
+  var i=h('input');i.type='search';i.placeholder='게임 이름 (예: 록맨 2)';i.value=val||'';i.autocomplete='off';i.setAttribute('aria-label','게임 이름');
+  var b=h('button',null,'검색');b.type='submit';
+  f.append(i,b);
+  f.onsubmit=function(ev){ev.preventDefault();search(i.value,S.cat)};
+  f._i=i;return f;
+ }
+ function catRow(on,pick){
+  var r=h('div','cats');r.setAttribute('role','group');r.setAttribute('aria-label','찾을 내용');
+  CATS.forEach(function(c){
+   var b=h('button','cat'+(c.id===on?' on':''),c.n);b.type='button';b.setAttribute('aria-pressed',c.id===on);
+   b.onclick=function(){pick(c.id)};r.append(b);
+  });
+  return r;
+ }
+
+ /* 처음 화면 */
+ function viewHome(){
+  var box=h('div','yh');
+  box.append(h('h1',null,'어떤 게임을 찾으세요?'),h('p','sub','게임 이름을 입력하면 공략, 음악(OST), 플레이 영상을 찾아 드려요.'));
+  var f=searchForm('');box.append(f);
+  var row=null;
+  var pick=function(id){S.cat=id;var n=catRow(S.cat,pick);row.replaceWith(n);row=n};
+  row=catRow(S.cat,pick);
+  box.append(row);
+  var rec=recent();
+  if(rec.length){
+   var s=h('div','sec');s.append(h('span',null,'최근 검색'));
+   var cl=h('button',null,'지우기');cl.type='button';cl.onclick=function(){LS.del(K_REC);render()};s.append(cl);
+   var c=h('div','chips');rec.forEach(function(q){var b=h('button','chip',q);b.type='button';b.onclick=function(){search(q,S.cat)};c.append(b)});
+   box.append(s,c);
+  }
+  var s2=h('div','sec');s2.append(h('span',null,'추천 게임'));
+  var c2=h('div','chips');SUGG.forEach(function(q){var b=h('button','chip',q);b.type='button';b.onclick=function(){search(q,S.cat)};c2.append(b)});
+  box.append(s2,c2);
+  page.append(box);
+  if(!compact())f._i.focus();
+ }
+
+ /* 검색 결과 */
+ function viewResults(e){
+  S.cat=e.cat;
+  var head=h('div','rh');
+  head.append(searchForm(e.q),catRow(e.cat,function(id){if(id!==e.cat)go({t:'results',q:e.q,cat:id})}));
+  page.append(head);
+  var body=h('div');page.append(body);
+  if(e.items){body.append(grid(e.items));return}
+  if(e.err){body.append(errView(e));return}
+  var ld=h('div','ld');ld.append(h('div','sp'),h('span',null,'“'+e.q+'” '+catOf(e.cat).n+' 영상을 찾는 중…'));body.append(ld);
+  fetchResults(e).then(function(){
+   if(cur()!==e||!page.contains(body))return;
+   body.replaceChildren(e.err?errView(e):grid(e.items));
+  });
+ }
+ function openLinks(e){
+  var o=h('div','open');o.append(h('h3',null,'지금 바로 유튜브에서 찾기'));
+  var c=h('div','chips');
+  CATS.forEach(function(k){var a=h('a',null,k.n);a.href=ytUrl(e.q,k.id);a.target='_blank';a.rel='noopener';c.append(a)});
+  o.append(c);return o;
+ }
+ function errView(e){
+  var f=h('div'),n=h('div','note');
+  n.append(h('b',null,'검색 결과를 가져오지 못했어요'),h('p',null,e.err));
+  var b=h('button','btn ghost','검색 키 다시 설정');b.type='button';b.onclick=openKeyDlg;
+  if(e.keyIssue)n.append(b);
+  f.append(n,openLinks(e));return f;
+ }
+ function grid(items){
+  var g=h('div','rg');
+  items.forEach(function(it){
+   var b=h('button','vc');b.type='button';
+   var t=h('div','vt'),im=h('img');im.src=it.th;im.alt='';im.loading='lazy';im.onerror=function(){im.remove()};t.append(im);
+   b.append(t,h('div','vn',it.title),h('div','vm',it.ch+(it.date?' · '+it.date:'')));
+   b.onclick=function(){go({t:'watch',id:it.id,q:cur().q,cat:cur().cat,title:it.title,by:it.ch})};
+   g.append(b);
+  });
+  return g;
+ }
+ function fetchFree(e){
+  var q=e.q+' '+catOf(e.cat).s,ctl=[],done=false;
+  function one(sv){
+   var c=typeof AbortController==='function'?new AbortController():null;if(c)ctl.push(c);
+   var tm=setTimeout(function(){c&&c.abort()},7000);
+   var url=sv.t==='inv'?sv.u+'/api/v1/search?type=video&region=KR&q='+encodeURIComponent(q):sv.u+'/search?filter=videos&q='+encodeURIComponent(q);
+   return fetch(url,c?{signal:c.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok)throw 0;return r.json()}).then(function(j){
+    var arr=sv.t==='inv'?j:(j&&j.items);
+    if(!Array.isArray(arr))throw 0;
+    var out=arr.map(function(x){
+     var id=sv.t==='inv'?(x.type==='video'?x.videoId:null):vidId('https://youtube.com'+(x.url||''));
+     if(!id)return null;
+     var d=sv.t==='inv'?(x.published?new Date(x.published*1000).toISOString().slice(0,10):''):(x.uploaded>0?new Date(x.uploaded).toISOString().slice(0,10):'');
+     return{id:id,title:decode(x.title),ch:decode(sv.t==='inv'?x.author:x.uploaderName),th:'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg',date:d};
+    }).filter(Boolean).slice(0,15);
+    if(!out.length)throw 0;
+    return out;
+   }).catch(function(er){clearTimeout(tm);throw er||new Error('x')});
+  }
+  return new Promise(function(res,rej){
+   var left=FREE.length;
+   FREE.forEach(function(sv){
+    one(sv).then(function(out){if(done)return;done=true;ctl.forEach(function(c){try{c.abort()}catch(_){}});res(out)},function(){if(!done&&--left===0)rej()});
+   });
+  });
+ }
+ function fetchResults(e){
+  var key=LS.get(K_KEY,'');
+  if(!key){
+   return fetchFree(e).then(function(items){e.items=items},function(){e.err='무료 검색 서버가 지금 응답하지 않아요. 잠시 뒤 새로고침하거나, 아래 버튼으로 유튜브에서 바로 찾아보세요.'});
+  }
+  var url='https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=15&videoEmbeddable=true&regionCode=KR&relevanceLanguage=ko&q='+encodeURIComponent(e.q+' '+catOf(e.cat).s)+'&key='+encodeURIComponent(key);
+  return fetch(url).then(function(r){return r.json()}).then(function(j){
+   if(j.error){
+    var rs=(j.error.errors&&j.error.errors[0]&&j.error.errors[0].reason)||'',msg=String(j.error.message||'');
+    if(rs==='quotaExceeded')e.err='오늘 검색 한도를 모두 사용했어요. 내일 다시 시도하거나 아래 버튼으로 유튜브에서 직접 찾아보세요.';
+    else if(/API key not valid|keyInvalid/i.test(rs+msg)){e.err='등록된 검색 키가 올바르지 않아요. 키를 다시 확인해 주세요.';e.keyIssue=true}
+    else if(/accessNotConfigured|has not been used|disabled|forbidden|referer|blocked/i.test(rs+msg)){e.err='이 키로는 사용할 수 없어요. 구글 클라우드에서 “YouTube Data API v3”가 켜져 있는지, 키의 사이트 제한에 이 주소가 들어 있는지 확인해 주세요.';e.keyIssue=true}
+    else e.err='유튜브에서 오류가 왔어요: '+msg;
+    return;
+   }
+   e.items=(j.items||[]).filter(function(x){return x.id&&x.id.videoId}).map(function(x){
+    var s=x.snippet||{},th=s.thumbnails||{};
+    return{id:x.id.videoId,title:decode(s.title),ch:decode(s.channelTitle),th:(th.medium||th.default||{}).url||('https://i.ytimg.com/vi/'+x.id.videoId+'/mqdefault.jpg'),date:(s.publishedAt||'').slice(0,10)};
+   });
+   if(!e.items.length){e.err='검색 결과가 없어요. 게임 이름이나 띄어쓰기를 바꿔서 다시 찾아보세요.';delete e.items}
+  }).catch(function(){e.err='인터넷 연결을 확인한 뒤 새로고침해 주세요.'});
+ }
+
+ /* 영상 보기 */
+ function viewWatch(e){
+  var box=h('div','wv'),pl=h('div','pl');
+  if(saverOn()&&!e.play){
+   var pb=h('button','pp');pb.type='button';pb.setAttribute('aria-label','영상 재생');
+   var pi=h('img');pi.src='https://i.ytimg.com/vi/'+e.id+'/hqdefault.jpg';pi.alt='';pb.append(pi,h('i'));
+   pb.onclick=function(){e.play=true;render()};pl.append(pb);
+  }else{
+   var f=h('iframe');f.title='유튜브 영상';
+   f.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; fullscreen');f.allowFullscreen=true;
+   f.src='https://www.youtube-nocookie.com/embed/'+e.id+'?autoplay=1&rel=0&playsinline=1';
+   pl.append(f);
+  }
+  var ti=h('h2',null,e.title||'영상'),by=h('p','by',e.by||'');
+  box.append(pl,ti,by);
+  var row=h('div','row');
+  var a=h('a','btn ghost','유튜브에서 보기');a.href='https://www.youtube.com/watch?v='+e.id;a.target='_blank';a.rel='noopener';
+  row.append(a);
+  if(e.q){var more=h('button','btn ghost','“'+e.q+'” 다른 영상');more.type='button';more.onclick=function(){back()};row.append(more)}
+  box.append(row);
+  box.append(h('p','by',saverOn()&&!e.play?'절전 모드: 영상 화면을 누르면 그때 영상을 불러와요.':'재생이 안 되면 영상 주인이 다른 사이트 재생을 막은 거예요. “유튜브에서 보기”를 눌러 주세요.'));
+  page.append(box);
+  if(!e.title){
+   fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+e.id)).then(function(r){return r.json()}).then(function(j){
+    e.title=j.title;e.by=j.author_name;
+    if(cur()===e){ti.textContent=e.title||'영상';by.textContent=e.by||'';w.setTab(e.title||'유튜브 게임 검색')}
+   }).catch(function(){});
+  }
+ }
+
+ /* 메뉴 · 검색 키 설정 */
+ function closeMenu(){if(menu){menu.remove();menu=null}}
+ function toggleMenu(){
+  if(menu){closeMenu();return}
+  menu=h('div','pop');menu.setAttribute('role','menu');
+  [['검색 키 설정 (선택)',openKeyDlg],['최근 검색 지우기',function(){LS.del(K_REC);toast('최근 검색을 지웠어요.');if(cur().t==='home')render()}],['처음 화면',home]].forEach(function(it){
+   var b=h('button',null,it[0]);b.type='button';b.setAttribute('role','menuitem');b.onclick=function(){closeMenu();it[1]()};menu.append(b);
+  });
+  root.append(menu);
+ }
+ function closeDlg(){if(dlg){dlg.remove();dlg=null}}
+ function openKeyDlg(){
+  closeMenu();closeDlg();
+  dlg=h('div','dlgbg');
+  var d=h('div','dlg');d.setAttribute('role','dialog');d.setAttribute('aria-label','검색 키 설정');
+  d.append(h('h3',null,'유튜브 검색 키 (선택)'));
+  d.append(h('p',null,'키가 없어도 검색할 수 있어요. 키를 등록하면 유튜브 공식 검색을 쓰기 때문에 더 안정적이에요. 구글 클라우드에서 “YouTube Data API v3”를 켜고 만든 API 키를 붙여 넣으세요. 키는 이 기기의 브라우저에만 저장돼요.'));
+  var i=h('input');i.type='text';i.placeholder='AIza…';i.autocomplete='off';i.spellcheck=false;i.value=LS.get(K_KEY,'');i.setAttribute('aria-label','API 키');
+  d.append(i);
+  var r=h('div','row');
+  var del=h('button','btn ghost','키 삭제');del.type='button';del.onclick=function(){LS.del(K_KEY);closeDlg();toast('검색 키를 삭제했어요. 이제 키 없이 검색해요.');render()};
+  var no=h('button','btn ghost','닫기');no.type='button';no.onclick=closeDlg;
+  var ok=h('button','btn','저장');ok.type='button';
+  ok.onclick=function(){var v=i.value.trim();if(!v){toast('키를 입력해 주세요.');return}LS.set(K_KEY,v);closeDlg();S.hist.forEach(function(x){delete x.items;delete x.err;delete x.keyIssue});toast('검색 키를 저장했어요.');render()};
+  i.onkeydown=function(ev){if(ev.key==='Enter')ok.click()};
+  r.append(del,no,ok);d.append(r);dlg.append(d);
+  dlg.addEventListener('pointerdown',function(ev){if(ev.target===dlg)closeDlg()});
+  root.append(dlg);i.focus();
+ }
+
+ /* 화면 그리기 */
+ function render(){
+  var e=cur();
+  closeMenu();
+  bBack.disabled=S.i===0;bFwd.disabled=S.i>=S.hist.length-1;
+  inp.value=urlOf(e);
+  page.scrollTop=0;page.replaceChildren();
+  if(e.t==='home'){viewHome();w.setTab('유튜브 게임 검색')}
+  else if(e.t==='results'){viewResults(e);w.setTab(e.q+' · '+catOf(e.cat).n)}
+  else{viewWatch(e);w.setTab(e.title||'유튜브 영상')}
+ }
+
+ bBack.onclick=back;bFwd.onclick=fwd;bRel.onclick=reload;bMenu.onclick=function(ev){ev.stopPropagation();toggleMenu()};
+ inp.addEventListener('focus',function(){setTimeout(function(){inp.select()},0)});
+ inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){submitAddr(inp.value);inp.blur()}else if(ev.key==='Escape'){inp.value=urlOf(cur());inp.blur()}});
+ root.addEventListener('pointerdown',function(ev){if(menu&&!menu.contains(ev.target)&&ev.target!==bMenu&&!bMenu.contains(ev.target))closeMenu()});
+ w.newTab=function(){home();};
+ w.onBack=function(){if(dlg){closeDlg();return true}if(menu){closeMenu();return true}return back()};
+ render();
+}
+
+})();
+</script>
+</body>
+</html>

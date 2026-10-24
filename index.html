@@ -15,7 +15,7 @@
 <title>영호의 게임에뮬레이터</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
-var T={m:'mobile.html',d:'desktop.html',e:'emulator.html',t:'tablet.html',v:'videos.html',c:'classic.html'};
+var T={m:'mobile.html',d:'dex.html',e:'emulator.html',t:'tablet.html',v:'videos.html',c:'classic.html'};
 function go(k,keep){
  try{if(k==='m'||k==='d')sessionStorage.setItem('ver',k);if(keep===true)localStorage.setItem('ver',k);else if(keep===false)localStorage.removeItem('ver')}catch(e){}
  var p=new URLSearchParams(location.search);p.delete('select');var s=p.toString();
@@ -234,10 +234,10 @@ h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em
       <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="3"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
       <div class="tx"><b>PC 및 태블릿 모드</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
     </a>
-    <a class="card cp sm" id="cd" href="desktop.html" data-k="d">
-      <span class="tg">// DESKTOP</span><span class="rec">추천</span>
+    <a class="card cp sm" id="cd" href="dex.html" data-k="d">
+      <span class="tg">// DESKTOP · DEX</span><span class="rec">추천</span>
       <svg viewBox="0 0 64 64"><rect x="5" y="9" width="38" height="26" rx="2.5"/><path d="M18 43h12M24 35v8M14 49h20"/><rect x="42" y="24" width="17" height="30" rx="3.5"/><path d="M48 49h5"/></svg>
-      <div class="tx"><b>데스크탑 모드</b><span>넓은 화면에 최적화된 화면</span></div>
+      <div class="tx"><b>바탕화면 모드</b><span>소프트키 · 시작 메뉴 · 유튜브 게임 검색</span></div>
     </a>
     <a class="card cp sm r" id="cp" href="tablet.html" data-k="t">
       <span class="tg">// TABLET</span>
@@ -441,7 +441,7 @@ document.querySelectorAll('.card[data-k],#bClassic[data-k]').forEach(function(a)
 (function(){
  var btn=document.getElementById('bCache');if(!btn)return;
  var lab=document.getElementById('bCacheT'),busy=false;
- var FILES=['./','index.html','index-select.html','mobile.html','desktop.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dos.html','emuhost.html',
   'gallery.html','tablet.html','videos.html','videos/videos.json','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','cutegame.css','mamegame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
