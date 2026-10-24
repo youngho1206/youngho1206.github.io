@@ -151,7 +151,7 @@ html.ds-saver .sp{border-top-color:#ddd}
 
 /* ───── 시작 메뉴 ───── */
 #start{position:absolute;left:8px;bottom:calc(var(--tb) + 8px);z-index:60;width:min(620px,calc(100% - 16px));height:min(520px,calc(100% - var(--tb) - 20px));
- display:none;grid-template-columns:270px 1fr;background:rgba(30,31,24,.97);border:1px solid rgba(255,255,255,.11);border-radius:10px;overflow:hidden;
+ display:none;grid-template-columns:270px 1fr;grid-template-rows:minmax(0,1fr) auto;background:rgba(30,31,24,.97);border:1px solid rgba(255,255,255,.11);border-radius:10px;overflow:hidden;
  box-shadow:0 20px 56px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
 #start.on{display:grid;animation:up .14s ease-out}
 @keyframes up{from{opacity:0;transform:translateY(10px)}}
@@ -174,6 +174,18 @@ html.ds-saver .sp{border-top-color:#ddd}
 .tile:hover{filter:brightness(1.12)}
 .tile.w{grid-column:span 2;height:92px}
 .tile .ai{background:none;box-shadow:none;width:34px;height:34px}
+.sf{grid-column:1/-1;padding:6px 8px;border-top:1px solid rgba(255,255,255,.09)}
+.sf .si{font-weight:600}
+.sf .si svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#homeAsk{position:absolute;inset:0;z-index:200;display:grid;place-items:center;padding:14px;background:rgba(0,0,0,.5)}
+#homeAsk[hidden]{display:none}
+#homeAsk .hbox{width:min(360px,100%);padding:20px 18px 16px;border-radius:14px;background:#2a2b21;color:#f2f0e2;box-shadow:0 18px 50px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12)}
+#homeAsk p{margin:0 0 16px;font-size:14.5px;line-height:1.6;text-align:center;word-break:keep-all}
+#homeAsk .hrow{display:flex;gap:10px}
+#homeAsk .hrow button{flex:1;height:42px;border:0;border-radius:10px;font:700 14.5px var(--kr);cursor:pointer;background:rgba(255,255,255,.12);color:#f2f0e2}
+#homeAsk .hrow button:hover,#homeAsk .hrow button:focus-visible{background:rgba(255,255,255,.22)}
+#homeAsk .hrow #homeYes{background:#e8495b;color:#fff}
+#homeAsk .hrow #homeYes:hover,#homeAsk .hrow #homeYes:focus-visible{background:#f0596b}
 @media (max-width:600px){#start{grid-template-columns:1fr;width:min(340px,calc(100% - 16px))}.sr{display:none}.sl{border:0}}
 
 /* ───── 브라우저(유튜브) ───── */
@@ -305,6 +317,9 @@ html.ds-saver .sp{border-top-color:#ddd}
       <h2>고정됨</h2>
       <div class="tiles" id="tiles"></div>
     </div>
+    <div class="sf">
+      <button class="si" id="sHome" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg><span>홈으로..</span></button>
+    </div>
   </div>
 
   <div id="drawer" role="dialog" aria-label="앱 서랍">
@@ -336,6 +351,12 @@ html.ds-saver .sp{border-top-color:#ddd}
     </div>
   </nav>
   <div id="svToast" role="status" hidden></div>
+  <div id="homeAsk" role="alertdialog" aria-modal="true" aria-labelledby="homeMsg" hidden>
+    <div class="hbox">
+      <p id="homeMsg">현재 기능을 종료 후 처음화면으로 돌아갑니다.</p>
+      <div class="hrow"><button type="button" id="homeYes">네</button><button type="button" id="homeNo">아니오</button></div>
+    </div>
+  </div>
 </div>
 
 <script src="emudata.js?v=mg1"></script>
@@ -468,13 +489,29 @@ function closeStart(){startOpen=false;start.classList.remove('on');kMenu.classLi
 $('#sfind').addEventListener('input',function(e){buildStart(e.target.value)});
 $('#sfind').addEventListener('keydown',function(e){if(e.key==='Enter'){var f=$('#slist .si');if(f)f.click()}});
 document.addEventListener('pointerdown',function(e){
- if(startOpen&&!start.contains(e.target)&&!kMenu.contains(e.target))closeStart();
+ if(startOpen&&!start.contains(e.target)&&!kMenu.contains(e.target)&&!$('#homeAsk').contains(e.target))closeStart();
 },true);
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&startOpen)closeStart()});
 
 /* ───── 소프트키 ───── */
 kMenu.onclick=function(){startOpen?closeStart():openStart()};
 $('#kHome').onclick=function(){var had=Object.keys(wins).length>0;closeStart();closeDrawer();Object.keys(wins).forEach(closeWin);if(had)openDrawer()};   /* 홈: 실행 중인 것을 모두 닫고 바탕화면 */
+
+/* ───── 시작 메뉴 맨 아래 '홈으로..' : 확인 후 현재 기능을 모두 종료하고 처음 화면으로 ───── */
+(function(){
+ var ask=$('#homeAsk'),yes=$('#homeYes'),no=$('#homeNo');
+ function showAsk(){ask.hidden=false;setTimeout(function(){no.focus()},0)}
+ function hideAsk(){ask.hidden=true}
+ $('#sHome').onclick=showAsk;
+ no.onclick=hideAsk;                                   /* 아니오: 아무것도 바꾸지 않고 지금 상태 그대로 */
+ ask.addEventListener('pointerdown',function(e){if(e.target===ask)hideAsk()});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!ask.hidden){e.stopPropagation();hideAsk()}},true);
+ yes.onclick=function(){
+  hideAsk();closeStart();closeDrawer();
+  Object.keys(wins).forEach(closeWin);                 /* 열려 있는 창·에뮬레이터 모두 종료 */
+  location.href='index.html?select=1';                 /* select=1: 저장된 선택으로 바로 되돌아오지 않고 처음 화면을 보여줌 */
+ };
+})();
 $('#kBack').onclick=function(){                                                      /* 뒤로: 앱 안에서 한 단계 → 없으면 창 닫기 → 바탕화면 */
  if(startOpen){closeStart();return}
  if(DR.on){closeDrawer();return}
