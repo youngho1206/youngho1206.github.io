@@ -272,7 +272,7 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
 html.emuopen #rp{display:none}
 #rp{--ink:#2f6fb5;--ink2:#1f4e84;--glass:rgba(255,255,255,.30);--edge:rgba(255,255,255,.75);
  position:fixed;inset:0;z-index:1;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
- background:#9ccbf5 var(--rpbg,url(pcwall/gooroom_bg_13.jpg)) center/cover no-repeat fixed;
+ background:#9ccbf5 var(--rpbg,url(emuwall/retrogamingwallpaper.jpg)) center/cover no-repeat fixed;
  font-family:'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:var(--ink2);
  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #rp *{box-sizing:border-box}
@@ -1567,9 +1567,9 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  });
 
  /* 배경 */
- var BG_DEFAULT='pcwall/gooroom_bg_13.jpg';
+ var BG_DEFAULT='emuwall/retrogamingwallpaper.jpg';
  function setBg(u){$('#rp').style.setProperty('--rpbg','url("'+u+'")')}
- setBg(ls.get('rpBg',BG_DEFAULT));
+ setBg(ls.get('rpBg2',BG_DEFAULT));
 
  /* 팝업 */
  var pop=$('#rpm');
@@ -1590,17 +1590,17 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  $('#rVer').onclick=function(){location.href='index.html?select=1'};
 
  /* › 오른쪽: 캐쉬지우기(기존 js-cache 기능) · 배경선택 · 아이콘선택 */
- var BGS=[];
+ var BGS=[['emuwall/retrogamingwallpaper.jpg','emuwall/retrogamingwallpaper.jpg']];
  for(var i=1;i<=30;i++){if(i===8||i===9)continue;var n=('0'+i).slice(-2);BGS.push(['pcwall/gooroom_bg_'+n+'.jpg','pcwall/t/gooroom_bg_'+n+'.jpg'])}
  for(var j=1;j<=6;j++)BGS.push(['pcwall/gooroom_theme_bg_'+j+'.jpg','pcwall/t/gooroom_theme_bg_'+j+'.jpg']);
  for(var s=1;s<=14;s++){var m=('0'+s).slice(-2);BGS.push(['skywall/sky'+m+'.jpg','skywall/t/sky'+m+'.jpg'])}
  $('#rBg').onclick=function(){
-  var cur=ls.get('rpBg',BG_DEFAULT);
+  var cur=ls.get('rpBg2',BG_DEFAULT);
   open('배경선택','<div class="rp-bgs">'+BGS.map(function(b){return'<button type="button" data-u="'+b[0]+'" class="'+(b[0]===cur?'cur':'')+'"><img src="'+b[1]+'" loading="lazy" alt=""></button>'}).join('')+'</div>');
  };
  $('#rpmB').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;
-  if(b.dataset.u){ls.set('rpBg',b.dataset.u);setBg(b.dataset.u);$('#rpmB').querySelectorAll('.rp-bgs button').forEach(function(x){x.classList.toggle('cur',x===b)})}
+  if(b.dataset.u){ls.set('rpBg2',b.dataset.u);setBg(b.dataset.u);$('#rpmB').querySelectorAll('.rp-bgs button').forEach(function(x){x.classList.toggle('cur',x===b)})}
   if(b.dataset.ic){mode=b.dataset.ic;ls.set('rpIcon',mode);render();$('#rpmB').querySelectorAll('.rp-ics button').forEach(function(x){x.classList.toggle('cur',x===b)})}
  });
  $('#rIcon').onclick=function(){
