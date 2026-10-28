@@ -203,7 +203,9 @@ async function engineReady(e) {
 /* ---------- 파일 목록 ---------- */
 let entries = [], selected = null, current = null, folderName = '', cwd = '';
 const EXEC = ['engine', 'folder', 'bundle', 'dos', 'win32', 'disc'];
-const SYSTEMS = [['win','윈도우 95/98 (PC 에뮬레이터)'],['psx','플레이스테이션 1'],['segaCD','세가 CD'],['segaSaturn','세가 새턴'],['pce','PC 엔진 CD'],['3do','3DO'],['psp','PSP']];
+const SYSTEMS = [['win','윈도우 (PC 에뮬레이터)'],['psx','플레이스테이션 1'],['segaCD','세가 CD'],['segaSaturn','세가 새턴'],['pce','PC 엔진 CD'],['3do','3DO'],['psp','PSP']];
+const WINOS = [['win98','윈도우 98',64],['win95','윈도우 95',64],['win31','윈도우 3.1',16],['win30','윈도우 3.0',32]];
+let lastOs = 'win98';
 let biosFile = null, winImage = null, lastSys = 'win', flatView = true;
 const BADGE = { engine: '게임 엔진', bundle: 'js-dos 번들', dos: 'DOS', win32: 'Windows', disc: '디스크 이미지', folder: '폴더 전체', file: '파일', dir: '폴더' };
 const fmt = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : n + ' B';
@@ -251,7 +253,7 @@ function showList(warn) {
   overlay('<div class="lp"><div class="lh"><b id="lt"></b><span id="lc"></span></div>' +
     '<div class="lf"><input id="q" type="search" placeholder="파일 검색 (모든 폴더)"><label><input type="checkbox" id="flat" checked> 모든 파일 펼쳐보기</label><label><input type="checkbox" id="onlyexe"> 실행파일만 보기</label></div>' +
     '<div class="ll" id="ll" role="listbox"></div><p class="warn" id="warn"></p>' +
-    '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="bios" hidden>BIOS 선택</button><button class="sec" id="winimg" hidden>윈도우 이미지 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
+    '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="bios" hidden>BIOS 선택</button><select id="osSel" hidden>' + WINOS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="winimg" hidden>이미지 직접 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
     $('q').oninput = () => { $('ll').scrollTop = 0; renderList(); };
     $('onlyexe').onchange = renderList;
     $('flat').checked = flatView;
@@ -259,8 +261,10 @@ function showList(warn) {
     $('ovStart').onclick = start;
     $('sys').value = lastSys;
     $('sys').onchange = () => { lastSys = $('sys').value; updateSel(); };
+    $('osSel').value = lastOs;
+    $('osSel').onchange = () => { lastOs = $('osSel').value; };
     $('winimg').onclick = () => $('fWin').click();
-    if (winImage) $('winimg').textContent = '윈도우: ' + winImage.name;
+    if (winImage) $('winimg').textContent = '직접 선택: ' + winImage.name;
     $('bios').onclick = () => $('fBios').click();
     if (biosFile) $('bios').textContent = 'BIOS: ' + biosFile.name;
     renderList();
@@ -273,7 +277,7 @@ function updateSel() {
   $('ls').textContent = selected ? selected.path : '목록에서 실행파일을 선택하세요';
   const k = selected && selected.kind, disc = k === 'disc';
   const win = k === 'folder' || (k === 'win32' && selected.bits !== 64) || (disc && $('sys').value === 'win');
-  $('sys').hidden = !disc; $('bios').hidden = !disc || win; $('winimg').hidden = !win;
+  $('sys').hidden = !disc; $('bios').hidden = !disc || win; $('winimg').hidden = !win; $('osSel').hidden = !win;
   $('warn').textContent = '';
 }
 
@@ -541,7 +545,16 @@ function sectors2048(bin, hdr) {
   return new Blob(parts);
 }
 async function discToCd(en) {
-  if (/\.zip$/i.test(en.path)) throw new Error('윈도우 PC 모드에서는 zip을 쓸 수 없어요. ISO나 CUE/BIN을 선택하세요.');
+  if (/\.zip$/i.test(en.path)) {
+    // zip 안의 파일들을 풀어서 가상 CD(D:)로 만들어요
+    if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    msg('zip 푸는 중…');
+    const z = await JSZip.loadAsync(en.file);
+    const list = [], ents = Object.values(z.files).filter(x => !x.dir);
+    let i = 0;
+    for (const x of ents) { list.push({ path: x.name, file: await x.async('blob') }); msg('zip 푸는 중… ' + (++i) + '/' + ents.length); }
+    return buildIso(list, en.path.split('/').pop().replace(/\.[^.]+$/, '').slice(0, 16) || 'GAME');
+  }
   if (/\.cue$/i.test(en.path)) {
     const txt = await en.file.text();
     const dir = en.path.includes('/') ? en.path.slice(0, en.path.lastIndexOf('/') + 1) : '';
@@ -555,22 +568,67 @@ async function discToCd(en) {
   if (/\.bin$/i.test(en.path) && en.size % 2352 === 0 && en.size % 2048 !== 0) return sectors2048(en.file, 16);
   return en.file;
 }
+async function urlOk(u) { try { const r = await fetch(u, { headers: { Range: 'bytes=0-0' }, cache: 'no-store' }); return r.ok && !/html/i.test(r.headers.get('content-type') || ''); } catch { return false; } }
+async function firstOk(list) { for (const u of list) if (await urlOk(u)) return u; return list[list.length - 1]; }
+async function loadV86() {
+  if (window.__v86cfg) return window.__v86cfg;
+  const cdn = 'https://cdn.jsdelivr.net/npm/v86@0.5.458/build/', gh = 'https://cdn.jsdelivr.net/gh/copy/v86@master/bios/';
+  const libs = [];
+  for (const d of ['os/v86/', 'v86/']) if (await urlOk(d + 'libv86.js') && await urlOk(d + 'v86.wasm')) libs.push({ lib: d + 'libv86.js', wasm: d + 'v86.wasm' });
+  libs.push({ lib: cdn + 'libv86.js', wasm: cdn + 'v86.wasm' });
+  let B = null, err;
+  for (const c of libs) { try { await loadScript(c.lib); if (window.V86 || window.V86Starter) { B = c; break; } } catch (e) { err = e; } }
+  if (!B) throw new Error('v86 엔진을 불러오지 못했어요. ' + (err && err.message || ''));
+  B.bios = await firstOk(['os/v86/seabios.bin', 'v86/seabios.bin', gh + 'seabios.bin']);
+  B.vga = await firstOk(['os/v86/vgabios.bin', 'v86/vgabios.bin', gh + 'vgabios.bin']);
+  return window.__v86cfg = B;
+}
+// 사이트에 올려 둔 윈도우 이미지(os/<id>/<id>.img | .zip)를 자동으로 받아요
+async function getWinDisk(id) {
+  if (winImage) return winImage;
+  for (const ext of ['img', 'zip']) {
+    const u = 'os/' + id + '/' + id + '.' + ext;
+    if (!(await urlOk(u))) continue;
+    msg('윈도우 이미지 받는 중…');
+    const r = await fetch(u, { cache: 'no-cache' });
+    const total = +r.headers.get('content-length') || 0;
+    let buf;
+    if (r.body && r.body.getReader) {
+      const rd = r.body.getReader(), parts = []; let got = 0;
+      for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (total) { $('prog').value = got / total; msg('윈도우 이미지 받는 중… ' + Math.round(got / total * 100) + '%'); } }
+      const out = new Uint8Array(got); let p = 0; for (const x of parts) { out.set(x, p); p += x.length; }
+      buf = out.buffer;
+    } else buf = await r.arrayBuffer();
+    if (ext === 'zip') {
+      if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+      const z = await JSZip.loadAsync(buf);
+      const ent = Object.values(z.files).find(x => !x.dir && /\.(img|ima|vhd)$/i.test(x.name));
+      if (!ent) throw new Error(u + ' 안에 디스크 이미지(img)가 없어요.');
+      return await ent.async('arraybuffer');
+    }
+    return buf;
+  }
+  throw new Error('사이트에 윈도우 이미지가 없어요: os/' + id + '/' + id + '.img (또는 .zip). 이미지를 올리거나 “이미지 직접 선택”을 눌러 주세요.');
+}
 async function runWin(en) {
   try { window.emu?.destroy(); } catch {}
   window.emu = null;
+  const id = lastOs, os = WINOS.find(x => x[0] === id) || WINOS[0];
   let cd;
   if (en.kind === 'disc') cd = await discToCd(en);
   else { msg('폴더를 가상 CD로 만드는 중…'); cd = buildIso([...files.values()], folderName.slice(0, 16) || 'GAME'); }
-  if (!window.V86) await loadScript(V86CFG.lib);
+  const hd = await getWinDisk(id);
+  const lib = await loadV86();
   $('view').innerHTML = '<div id="scr" style="width:100%;height:100%"><div style="white-space:pre;font:14px/14px monospace;color:#ccc"></div><canvas style="display:none"></canvas></div>';
-  window.emu = new V86({
-    wasm_path: V86CFG.wasm,
-    memory_size: V86CFG.ramMB * 1024 * 1024,
-    vga_memory_size: 8 * 1024 * 1024,
+  const low = (navigator.deviceMemory && navigator.deviceMemory <= 4) || innerWidth < 700;
+  window.emu = new (window.V86 || window.V86Starter)({
+    wasm_path: lib.wasm,
+    memory_size: (low ? Math.min(os[2], 32) : os[2]) * 1048576,
+    vga_memory_size: 8 * 1048576,
     screen_container: $('scr'),
-    bios: { url: V86CFG.bios },
-    vga_bios: { url: V86CFG.vga },
-    hda: { buffer: winImage },
+    bios: { url: lib.bios },
+    vga_bios: { url: lib.vga },
+    hda: { buffer: hd },
     cdrom: { buffer: new File([cd], 'game.iso') },
     autostart: true
   });
@@ -617,7 +675,7 @@ async function launch(en) {
     else if (en.kind === 'disc') await runDisc(en);
     else await runWasm(ENGINES[en.key]);
     running = true;
-    msg(en.win ? '윈도우 실행 중 — 내 컴퓨터의 CD 드라이브에서 게임을 실행하세요' + (en.kind === 'win32' ? ' (' + en.path + ')' : '') : '실행 중: ' + en.path);
+    msg(en.win ? (WINOS.find(x => x[0] === lastOs) || WINOS[0])[1] + ' 실행 중 — 내 컴퓨터의 CD 드라이브에서 게임을 실행하세요' + (en.kind === 'win32' ? ' (' + en.path + ')' : '') : '실행 중: ' + en.path);
     $('mRestart').disabled = false; $('mFull').disabled = false; $('mShot').disabled = false;
   } catch (e) {
     log('실행하지 못했어요: ' + e.message);
@@ -636,7 +694,6 @@ function start() {
   if (en.kind === 'engine' && !en.ok) return warn('엔진 파일이 없어요: ' + ENGINES[en.key].base + ENGINES[en.key].entry);
   if (en.kind === 'disc') { en.core = $('sys').value; en.bios = biosFile; }
   en.win = en.kind === 'folder' || en.kind === 'win32' || (en.kind === 'disc' && en.core === 'win');
-  if (en.win && !winImage) return warn('먼저 “윈도우 이미지 선택”으로 윈도우가 설치된 디스크 이미지를 고르세요.');
   launch(en);
 }
 async function stopGame() {
@@ -686,7 +743,7 @@ idle();
 $('fWin').onchange = e => {
   winImage = e.target.files[0] || null;
   e.target.value = '';
-  if (winImage && $('winimg')) $('winimg').textContent = '윈도우: ' + winImage.name;
+  if (winImage && $('winimg')) $('winimg').textContent = '직접 선택: ' + winImage.name;
 };
 $('fBios').onchange = e => {
   biosFile = e.target.files[0] || null;
