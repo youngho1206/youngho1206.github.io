@@ -177,7 +177,7 @@ dialog{max-height:88vh;max-height:88dvh;overflow:auto}
   <p class="s">파일은 서버로 올라가지 않고 이 브라우저 안에서만 읽어요.</p>
   <button class="opt" id="oDir"><b>폴더 불러오기</b><span>게임이 들어 있는 폴더 전체를 선택해요. 폴더 구성으로 게임을 알아봐요.</span></button>
   <button class="opt" id="oExe"><b>실행파일만 불러오기</b><span>.exe .com .bat 파일, .jsdos 번들, 디스크 이미지를 선택해요. (.cue 와 .bin 처럼 여러 개를 한 번에 선택할 수 있어요)</span></button>
-  <button class="opt" id="oJson"><b>JSON 불러오기</b><span>JSON 파일을 열어 내부 파일 목록을 확인하고, 게임 번들(.jsdos/.zip)과 연결해 실행해요.</span></button>
+  <button class="opt" id="oJson"><b>JSON 불러오기</b><span>zip 형식의 JSON 파일은 압축을 열어 내부 파일을 고르고 게임 시작을 누르면 실행돼요. 일반 JSON은 게임 번들(.jsdos/.zip)과 연결해요.</span></button>
   <button class="close" id="oClose">닫기</button>
 </dialog>
 
@@ -285,6 +285,14 @@ $('fJson').onchange = async e => {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
+  // zip 형식(PK)이면 확장자가 json이어도 압축을 열어 내부 파일을 보여줘요
+  const head = new Uint8Array(await f.slice(0, 2).arrayBuffer());
+  if (head[0] === 0x50 && head[1] === 0x4b) {
+    await stopGame();
+    jsonInfo = null;
+    await openJsonBundle(f, f.name);
+    return;
+  }
   let data;
   try { data = JSON.parse(await f.text()); }
   catch (err) { log('JSON 읽기 실패: ' + err.message); msg('JSON 파일을 읽지 못했어요'); return; }
@@ -329,9 +337,13 @@ async function openJsonBundle(blob, name) {
     await Promise.all(jobs);
     if (!list.length) throw new Error('내부 파일이 없어요');
     const hints = jsonInfo ? jsonInfo.hints : new Set();
-    await setFiles(list, name.replace(/\.(jsdos|zip)$/i, ''));
+    await setFiles(list, name.replace(/\.(jsdos|zip|json)$/i, ''));
+    const hasConf = !!(z.file('.jsdos/dosbox.conf') || z.file('jsdos.json'));
+    if (hasConf) entries.unshift({ kind: 'bundle', path: name + ' (번들 그대로 실행)', file: blob, size: blob.size });
     const m = entries.find(x => (x.kind === 'dos' || x.kind === 'win32') && hints.has(x.path.split('/').pop().toLowerCase()));
-    if (m) { selected = m; showList(); }
+    if (m) selected = m;
+    else if (hasConf) selected = entries[0];
+    if (m || hasConf) showList();
   } catch (err) { log('번들 열기 실패: ' + err.message); msg('번들을 열지 못했어요'); }
 }
 
