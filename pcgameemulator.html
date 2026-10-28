@@ -204,7 +204,7 @@ async function engineReady(e) {
 let entries = [], selected = null, current = null, folderName = '', cwd = '';
 const EXEC = ['engine', 'folder', 'bundle', 'dos', 'win32', 'disc'];
 const SYSTEMS = [['win','윈도우 95/98 (PC 에뮬레이터)'],['psx','플레이스테이션 1'],['segaCD','세가 CD'],['segaSaturn','세가 새턴'],['pce','PC 엔진 CD'],['3do','3DO'],['psp','PSP']];
-let biosFile = null, winImage = null, lastSys = 'win';
+let biosFile = null, winImage = null, lastSys = 'win', flatView = true;
 const BADGE = { engine: '게임 엔진', bundle: 'js-dos 번들', dos: 'DOS', win32: 'Windows', disc: '디스크 이미지', folder: '폴더 전체', file: '파일', dir: '폴더' };
 const fmt = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : n + ' B';
 
@@ -249,11 +249,13 @@ async function buildList(folder, isFolder) {
 
 function showList(warn) {
   overlay('<div class="lp"><div class="lh"><b id="lt"></b><span id="lc"></span></div>' +
-    '<div class="lf"><input id="q" type="search" placeholder="파일 검색 (모든 폴더)"><label><input type="checkbox" id="onlyexe"> 실행파일만 보기</label></div>' +
+    '<div class="lf"><input id="q" type="search" placeholder="파일 검색 (모든 폴더)"><label><input type="checkbox" id="flat" checked> 모든 파일 펼쳐보기</label><label><input type="checkbox" id="onlyexe"> 실행파일만 보기</label></div>' +
     '<div class="ll" id="ll" role="listbox"></div><p class="warn" id="warn"></p>' +
     '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="bios" hidden>BIOS 선택</button><button class="sec" id="winimg" hidden>윈도우 이미지 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
     $('q').oninput = () => { $('ll').scrollTop = 0; renderList(); };
     $('onlyexe').onchange = renderList;
+    $('flat').checked = flatView;
+    $('flat').onchange = () => { flatView = $('flat').checked; cwd = ''; $('ll').scrollTop = 0; renderList(); };
     $('ovStart').onclick = start;
     $('sys').value = lastSys;
     $('sys').onchange = () => { lastSys = $('sys').value; updateSel(); };
@@ -280,8 +282,12 @@ function renderList() {
   const SP = ['engine', 'folder'];
   const okFile = e => !SP.includes(e.kind) && (!only || EXEC.includes(e.kind));
   const rows = [];
-  if (q) {
-    for (const e of entries) if (okFile(e) && e.path.toLowerCase().includes(q)) rows.push({ e, name: e.path });
+  if (q || flatView) {
+    if (!q) entries.filter(e => SP.includes(e.kind)).forEach(en => rows.push({ e: en, name: en.path }));
+    const fl = [];
+    for (const e of entries) if (okFile(e) && (!q || e.path.toLowerCase().includes(q))) fl.push({ e, name: e.path });
+    fl.sort((a, b) => (EXEC.includes(b.e.kind) - EXEC.includes(a.e.kind)) || a.name.localeCompare(b.name));
+    rows.push(...fl);
   } else {
     if (cwd) rows.push({ up: true, name: '.. 위 폴더' });
     const dirs = new Map(), fl = [];
@@ -296,7 +302,7 @@ function renderList() {
     fl.sort((a, b) => (EXEC.includes(b.e.kind) - EXEC.includes(a.e.kind)) || a.name.localeCompare(b.name));
     rows.push(...fl);
   }
-  $('lt').textContent = folderName + (cwd && !q ? ' / ' + cwd.slice(0, -1).split('/').join(' / ') : '');
+  $('lt').textContent = folderName + (cwd && !q && !flatView ? ' / ' + cwd.slice(0, -1).split('/').join(' / ') : '');
   $('lc').textContent = rows.filter(r => r.e).length + '개 파일';
   const ll = $('ll');
   ll.textContent = '';
@@ -312,7 +318,7 @@ function renderList() {
     return d;
   };
   if (!rows.length) { add('file', '표시할 파일이 없어요', ''); ll.lastChild.firstChild.remove(); }
-  for (const r of rows.slice(0, 500)) {
+  for (const r of rows.slice(0, 5000)) {
     if (r.up) {
       add('dir', r.name, '').onclick = () => { cwd = cwd.slice(0, -1).replace(/[^/]*$/, ''); ll.scrollTop = 0; renderList(); };
     } else if (r.dir) {
@@ -325,7 +331,7 @@ function renderList() {
       d.ondblclick = start;
     }
   }
-  if (rows.length > 500) { add('file', '목록이 길어서 500개까지만 보여요. 검색을 사용하세요.', ''); ll.lastChild.firstChild.remove(); }
+  if (rows.length > 5000) { add('file', '목록이 길어서 5000개까지만 보여요. 검색을 사용하세요.', ''); ll.lastChild.firstChild.remove(); }
 }
 
 /* ---------- 실행 ---------- */
