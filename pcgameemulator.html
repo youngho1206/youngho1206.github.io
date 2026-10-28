@@ -177,7 +177,7 @@ dialog{max-height:88vh;max-height:88dvh;overflow:auto}
   <p class="s">파일은 서버로 올라가지 않고 이 브라우저 안에서만 읽어요.</p>
   <button class="opt" id="oDir"><b>폴더 불러오기</b><span>게임이 들어 있는 폴더 전체를 선택해요. 폴더 구성으로 게임을 알아봐요.</span></button>
   <button class="opt" id="oExe"><b>실행파일만 불러오기</b><span>.exe .com .bat 파일, .jsdos 번들, 디스크 이미지를 선택해요. (.cue 와 .bin 처럼 여러 개를 한 번에 선택할 수 있어요)</span></button>
-  <button class="opt" id="oJson"><b>JSON 불러오기</b><span>Doszone 등의 JSON 파일을 열어 내부 파일 목록을 확인하고, 게임 번들(.jsdos/.zip)과 연결해 실행해요.</span></button>
+  <button class="opt" id="oJson"><b>JSON 불러오기</b><span>JSON 파일을 열어 내부 파일 목록을 확인하고, 게임 번들(.jsdos/.zip)과 연결해 실행해요.</span></button>
   <button class="close" id="oClose">닫기</button>
 </dialog>
 
@@ -267,7 +267,7 @@ $('fExe').onchange = async e => {
 };
 
 
-/* ---------- JSON 불러오기 (Doszone 등) ---------- */
+/* ---------- JSON 불러오기  ---------- */
 let jsonInfo = null;   // { name, paths:Set, hints:Set, url }
 function jsonWalk(v, info) {
   if (typeof v === 'string') {
