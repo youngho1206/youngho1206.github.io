@@ -610,6 +610,60 @@ async function getWinDisk(id) {
   }
   throw new Error('사이트에 윈도우 이미지가 없어요: os/' + id + '/' + id + '.img (또는 .zip). 이미지를 올리거나 “이미지 직접 선택”을 눌러 주세요.');
 }
+
+/* ---------- 자동 부팅: 바탕화면이 나올 때까지 필요한 키 입력을 자동으로 넣어요 (winemu.html 과 같은 방식) ----------
+   · 95/98: 멈춘 화면에서 Enter 를 주기적으로 입력 → 바탕화면(청록색)이 감지되면 중단
+   · 3.x : DOS 프롬프트가 보이면 WIN 입력
+   · 최대 150초, 직접 키보드/마우스를 조작하면 자동 입력은 바로 멈춰요 */
+const SC = {};
+'1234567890'.split('').forEach((c, i) => SC[c] = i + 2);
+'qwertyuiop'.split('').forEach((c, i) => SC[c] = 0x10 + i);
+'asdfghjkl'.split('').forEach((c, i) => SC[c] = 0x1E + i);
+'zxcvbnm'.split('').forEach((c, i) => SC[c] = 0x2C + i);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let abToken = 0, abUser = 0;
+const sendK = a => { try { window.emu && window.emu.keyboard_send_scancodes(a); } catch (e) { console.warn(e); } };
+const abKey = c => { sendK([c]); setTimeout(() => sendK([c | 0x80]), 70); };
+async function abType(str) {
+  for (const ch of str) { const k = SC[ch.toLowerCase()]; if (!k) continue; sendK([k]); await sleep(60); sendK([k | 0x80]); await sleep(90); }
+  abKey(0x1C);
+}
+function abTealRatio() {
+  try {
+    const cv = $('scr').querySelector('canvas');
+    if (!cv || cv.style.display === 'none' || cv.width < 200) return 0;
+    const cx = cv.getContext('2d'); if (!cx) return 0;
+    let hit = 0, n = 0;
+    for (let gy = 1; gy < 20; gy++) for (let gx = 1; gx < 20; gx++) {
+      const p = cx.getImageData(Math.floor(cv.width * gx / 20), Math.floor(cv.height * gy / 20), 1, 1).data; n++;
+      if (p[0] < 40 && Math.abs(p[1] - 128) < 40 && Math.abs(p[2] - 128) < 40) hit++;
+    }
+    return hit / n;
+  } catch (_) { return 0; }
+}
+async function autoBoot(id) {
+  const my = ++abToken; abUser = 0;
+  const is9x = id === 'win95' || id === 'win98';
+  const t0 = performance.now(); let teal = 0, typed = 0, quiet = 0;
+  msg('자동 부팅 중… 바탕화면까지 자동으로 진행해요');
+  await sleep(3000);
+  while (my === abToken && window.emu && performance.now() - t0 < 150000) {
+    if (abUser) { msg('수동 조작 중'); return; }
+    if (!window.emu.is_running()) { await sleep(500); continue; }
+    if (is9x) {
+      teal = abTealRatio() > 0.35 ? teal + 1 : 0;
+      if (teal >= 2) { msg('바탕화면 도착 — 내 컴퓨터의 CD 드라이브(D:)에서 게임을 실행하세요'); return; }
+      abKey(0x1C); await sleep(1800);
+    } else {
+      const t = $('scr').firstElementChild, txt = t ? (t.textContent || '') : '';
+      if (typed < 2 && /[A-Z]:\\[^\r\n]*>\s*$/i.test(txt.replace(/\s+$/, '') + ' ') && txt.trim().length > 0) { typed++; await abType('win'); await sleep(6000); continue; }
+      const cv = $('scr').querySelector('canvas');
+      if (cv && cv.style.display !== 'none' && cv.width > 1) { if (++quiet >= 6) { msg('윈도우 실행됨 — 내 컴퓨터의 CD 드라이브(D:)에서 게임을 실행하세요'); return; } } else quiet = 0;
+      abKey(0x01); await sleep(2200);
+    }
+  }
+}
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, e => { if (e.target && e.target.closest && e.target.closest('#view')) abUser = 1; }, true));
 async function runWin(en) {
   try { window.emu?.destroy(); } catch {}
   window.emu = null;
@@ -624,13 +678,33 @@ async function runWin(en) {
   window.emu = new (window.V86 || window.V86Starter)({
     wasm_path: lib.wasm,
     memory_size: (low ? Math.min(os[2], 32) : os[2]) * 1048576,
-    vga_memory_size: 8 * 1048576,
+    vga_memory_size: 32 * 1048576,   /* 트루컬러(32비트) 고해상도용 화면 메모리 */
     screen_container: $('scr'),
     bios: { url: lib.bios },
     vga_bios: { url: lib.vga },
     hda: { buffer: hd },
     cdrom: { buffer: new File([cd], 'game.iso') },
     autostart: true
+  });
+  window.emu.add_listener('emulator-started', () => { try { window.emu.mouse_set_status(true); } catch (_) {} autoBoot(id); });
+  setupMouseLock();
+}
+/* 화면을 클릭하면 에뮬레이터 마우스를 잡고(포인터 락), Esc 를 누르면 풀어요 */
+let mouseLockSet = false;
+function setupMouseLock() {
+  const v = $('view');
+  v.style.cursor = 'pointer';
+  v.onclick = () => {
+    if (!window.emu || document.pointerLockElement) return;
+    try { window.emu.lock_mouse(); }
+    catch (_) { try { window.emu.mouse_set_status(true); (v.querySelector('canvas') || v).requestPointerLock(); } catch (e) { msg('마우스를 잡지 못했어요: ' + e.message); } }
+  };
+  if (mouseLockSet) return;
+  mouseLockSet = true;
+  document.addEventListener('pointerlockchange', () => {
+    if (!window.emu || !current || !current.win) return;
+    if (document.pointerLockElement) { v.style.cursor = 'none'; msg('마우스를 잡았어요 — Esc 를 누르면 풀려요'); }
+    else { v.style.cursor = 'pointer'; msg('마우스를 풀었어요 — 화면을 클릭하면 다시 잡아요'); }
   });
 }
 
@@ -675,7 +749,7 @@ async function launch(en) {
     else if (en.kind === 'disc') await runDisc(en);
     else await runWasm(ENGINES[en.key]);
     running = true;
-    msg(en.win ? (WINOS.find(x => x[0] === lastOs) || WINOS[0])[1] + ' 실행 중 — 내 컴퓨터의 CD 드라이브에서 게임을 실행하세요' + (en.kind === 'win32' ? ' (' + en.path + ')' : '') : '실행 중: ' + en.path);
+    msg(en.win ? (WINOS.find(x => x[0] === lastOs) || WINOS[0])[1] + ' 실행 중 — 화면을 클릭하면 마우스를 잡고 Esc 로 풀어요 · 내 컴퓨터의 CD 드라이브에서 게임을 실행하세요' + (en.kind === 'win32' ? ' (' + en.path + ')' : '') : '실행 중: ' + en.path);
     $('mRestart').disabled = false; $('mFull').disabled = false; $('mShot').disabled = false;
   } catch (e) {
     log('실행하지 못했어요: ' + e.message);
