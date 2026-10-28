@@ -15,7 +15,7 @@
 <title>영호의 게임에뮬레이터</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
-var T={m:'mobile.html',d:'dex.html',e:'emulator.html',t:'tablet.html',v:'videos.html',c:'classic.html'};
+var T={m:'mobile.html',d:'dex.html',e:'emulator.html',t:'tablet.html',v:'videos.html',c:'classic.html',x:'multi/win10.html'};
 function go(k,keep){
  try{if(k==='m'||k==='d')sessionStorage.setItem('ver',k);if(keep===true)localStorage.setItem('ver',k);else if(keep===false)localStorage.removeItem('ver')}catch(e){}
  var p=new URLSearchParams(location.search);p.delete('select');var s=p.toString();
@@ -106,6 +106,7 @@ h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em
 #cd{--col:var(--green)}
 #cold{--col:var(--blue)}
 #cp{--col:var(--orange)}
+#cx{--col:#8a5ad6}
 .card:before{content:"";position:absolute;left:12%;right:12%;top:-15px;height:18px;pointer-events:none;border-radius:10px 10px 0 0;
  background:radial-gradient(circle 7px at 10% 11px,#fff 96%,transparent 100%),radial-gradient(circle 9px at 36% 12px,#fff 96%,transparent 100%),
   radial-gradient(circle 6px at 62% 11px,#fff 96%,transparent 100%),radial-gradient(circle 8px at 88% 12px,#fff 96%,transparent 100%),
@@ -232,6 +233,11 @@ h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em
       <span class="tg">// PC &amp; TABLET</span><span class="rec">추천</span>
       <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="3"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
       <div class="tx"><b>컴퓨터(PC)/태블릿으로 접속하기</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
+    </a>
+    <a class="card cp sm wide" id="cx" href="multi/win10.html" data-k="x">
+      <span class="tg">// MULTI</span>
+      <svg viewBox="0 0 64 64"><rect x="6" y="10" width="52" height="34" rx="3"/><path d="M22 54h20M32 44v10"/><rect x="12" y="16" width="10" height="10" rx="2"/><rect x="26" y="16" width="10" height="10" rx="2"/><rect x="40" y="16" width="10" height="10" rx="2"/></svg>
+      <div class="tx"><b>멀티기능으로 접속하기</b><span>윈도우10 스타일 화면 · 음악(MP3) 등 다양한 기능</span></div>
     </a>
     <a class="card cp sm wide" id="cv" href="videos.html" data-k="v">
       <span class="tg">// GAME VIDEO</span>
