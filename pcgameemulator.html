@@ -177,11 +177,14 @@ dialog{max-height:88vh;max-height:88dvh;overflow:auto}
   <p class="s">파일은 서버로 올라가지 않고 이 브라우저 안에서만 읽어요.</p>
   <button class="opt" id="oDir"><b>폴더 불러오기</b><span>게임이 들어 있는 폴더 전체를 선택해요. 폴더 구성으로 게임을 알아봐요.</span></button>
   <button class="opt" id="oExe"><b>실행파일만 불러오기</b><span>.exe .com .bat 파일, .jsdos 번들, 디스크 이미지를 선택해요. (.cue 와 .bin 처럼 여러 개를 한 번에 선택할 수 있어요)</span></button>
+  <button class="opt" id="oJson"><b>JSON 불러오기</b><span>Doszone 등의 JSON 파일을 열어 내부 파일 목록을 확인하고, 게임 번들(.jsdos/.zip)과 연결해 실행해요.</span></button>
   <button class="close" id="oClose">닫기</button>
 </dialog>
 
 <input type="file" id="fFolder" webkitdirectory hidden>
 <input type="file" id="fBios" hidden>
+<input type="file" id="fJson" accept=".json,application/json" hidden>
+<input type="file" id="fJsonZip" hidden>
 <input type="file" id="fWin" hidden>
 <input type="file" id="fExe" accept=".exe,.com,.bat,.jsdos,.iso,.cue,.bin,.img,.chd,.pbp,.zip" hidden>
 
@@ -262,6 +265,75 @@ $('fExe').onchange = async e => {
   files = new Map(list.map(f => [f.name.toLowerCase(), { path: f.name, file: f }]));
   await buildList(list[0].name);
 };
+
+
+/* ---------- JSON 불러오기 (Doszone 등) ---------- */
+let jsonInfo = null;   // { name, paths:Set, hints:Set, url }
+function jsonWalk(v, info) {
+  if (typeof v === 'string') {
+    if (/^https?:\/\/.+\.(jsdos|zip)(\?.*)?$/i.test(v)) info.url = info.url || v;
+    if (/[\\/]/.test(v) || /\.[a-z0-9]{1,5}$/i.test(v)) info.paths.add(v);
+    for (const m of v.matchAll(/[\w\-\\/. ]+\.(exe|com|bat)\b/gi)) info.hints.add(m[0].trim().split(/[\\/]/).pop().toLowerCase());
+  } else if (Array.isArray(v)) v.forEach(x => jsonWalk(x, info));
+  else if (v && typeof v === 'object') for (const k of Object.keys(v)) {
+    if (/[\\/]/.test(k) || /\.[a-z0-9]{1,5}$/i.test(k)) info.paths.add(k);
+    jsonWalk(v[k], info);
+  }
+}
+$('oJson').onclick = () => { dlg.close(); $('fJson').click(); };
+$('fJson').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  let data;
+  try { data = JSON.parse(await f.text()); }
+  catch (err) { log('JSON 읽기 실패: ' + err.message); msg('JSON 파일을 읽지 못했어요'); return; }
+  await stopGame();
+  const info = { name: f.name, paths: new Set(), hints: new Set(), url: null };
+  jsonWalk(data, info);
+  jsonInfo = info;
+  showJsonStep();
+};
+function showJsonStep(note) {
+  const i = jsonInfo;
+  const items = [...i.paths].slice(0, 300);
+  overlay('<div class="lp"><div class="lh"><div><b>' + esc(i.name) + '</b><span> JSON 내부 파일 ' + i.paths.size + '개</span></div></div>' +
+    '<div class="ll" style="max-height:34vh">' + (items.map(p => '<div class="it"><span class="bd file">파일</span><span class="nm">' + esc(p) + '</span></div>').join('') || '<div class="it"><span class="nm">파일 경로를 찾지 못했어요</span></div>') + '</div>' +
+    '<p class="warn">' + esc(note || (i.url ? '번들 주소가 들어 있어요. 아래 버튼으로 불러오거나 파일을 직접 선택하세요.' : '게임 데이터(.jsdos / .zip)를 선택하면 내부 파일을 열어 실행할 수 있어요.')) + '</p>' +
+    '<div class="lb"><button id="jUrl"' + (i.url ? '' : ' hidden') + '>번들 주소로 불러오기</button><button id="jZip">게임 파일 선택 (.jsdos/.zip)</button><button class="sec" id="jBack">닫기</button></div></div>', () => {
+    $('jUrl').onclick = async () => {
+      msg('번들 내려받는 중…');
+      try {
+        const r = await fetch(jsonInfo.url);
+        if (!r.ok) throw new Error(r.status);
+        await openJsonBundle(await r.blob(), jsonInfo.url.split('/').pop().split('?')[0]);
+      } catch (err) { log('다운로드 실패: ' + err.message); showJsonStep('다운로드에 실패했어요(CORS일 수 있어요). 게임 파일을 직접 선택해 주세요.'); }
+    };
+    $('jZip').onclick = () => $('fJsonZip').click();
+    $('jBack').onclick = () => { jsonInfo = null; idle(); };
+  }, true);
+}
+$('fJsonZip').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (f) await openJsonBundle(f, f.name);
+};
+async function openJsonBundle(blob, name) {
+  try {
+    msg('압축 푸는 중…');
+    if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const z = await JSZip.loadAsync(blob);
+    const list = [];
+    const jobs = [];
+    z.forEach((p, o) => { if (!o.dir && !p.startsWith('.jsdos/')) jobs.push(o.async('blob').then(b => list.push({ path: p, file: b }))); });
+    await Promise.all(jobs);
+    if (!list.length) throw new Error('내부 파일이 없어요');
+    const hints = jsonInfo ? jsonInfo.hints : new Set();
+    await setFiles(list, name.replace(/\.(jsdos|zip)$/i, ''));
+    const m = entries.find(x => (x.kind === 'dos' || x.kind === 'win32') && hints.has(x.path.split('/').pop().toLowerCase()));
+    if (m) { selected = m; showList(); }
+  } catch (err) { log('번들 열기 실패: ' + err.message); msg('번들을 열지 못했어요'); }
+}
 
 async function setFiles(list, folder) {
   await stopGame();
