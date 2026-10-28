@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>웹 게임 에뮬레이터</title>
+<style>
+:root{--bg:#e8ecf4;--ink:#1c2233;--mute:#6a7390;--card:#fff;--line:#d5dbe8;--accent:#5b5bd6;--accent-ink:#fff;--bezel:#22263a}
+@media (prefers-color-scheme:dark){:root{--bg:#141726;--ink:#e6e9f5;--mute:#8d96b5;--card:#1e2236;--line:#2d3350;--accent:#8b8bff;--accent-ink:#10122a;--bezel:#0b0d18}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;min-height:100vh;display:flex;justify-content:center;padding:20px 14px}
+.app{width:min(1000px,100%);display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 8px;flex-wrap:wrap}
+.brand{font-weight:800;letter-spacing:-.02em;padding:0 10px 0 6px;margin-right:4px;border-right:1px solid var(--line)}
+.bar button{font:inherit;color:var(--ink);background:none;border:0;border-radius:9px;padding:8px 14px;cursor:pointer;display:flex;gap:7px;align-items:center}
+.bar button:hover:not(:disabled){background:var(--bg)}
+.bar button.main{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.bar button.main:hover{background:var(--accent);filter:brightness(1.08)}
+.bar button:disabled{opacity:.4;cursor:default}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.spacer{flex:1}
+#title{color:var(--mute);padding-right:10px;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#screen{position:relative;background:#000;border:10px solid var(--bezel);border-radius:18px;aspect-ratio:16/10;overflow:hidden}
+#screen:fullscreen{border:0;border-radius:0;aspect-ratio:auto}
+#view{position:absolute;inset:0}
+#view canvas{width:100%;height:100%;display:block;object-fit:contain}
+#overlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;background:radial-gradient(120% 90% at 50% 0,#2b3157,#0b0d18);color:#e6e9f5}
+#overlay[hidden]{display:none}
+.ov{max-width:440px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.ov h2{margin:0;font-size:22px;letter-spacing:-.02em}
+.ov p{margin:0;color:#aab2d3}
+.ov button,.ov select{font:inherit;border-radius:10px;border:0;padding:10px 20px}
+.ov button{background:#8b8bff;color:#10122a;font-weight:700;cursor:pointer}
+.ov button:disabled{opacity:.45;cursor:default}
+.ov select{background:#1e2236;color:#e6e9f5;border:1px solid #3a4268;max-width:100%}
+.status{display:flex;gap:12px;align-items:center;color:var(--mute);font-size:13px;padding:0 6px}
+#msg{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+progress{width:160px;height:8px;accent-color:var(--accent)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px;color:var(--mute)}
+#log{margin:8px 0 4px;max-height:140px;overflow:auto;white-space:pre-wrap;font:12px/1.4 ui-monospace,monospace}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);padding:20px;width:min(480px,92vw)}
+dialog::backdrop{background:rgba(10,12,24,.55)}
+dialog h3{margin:0 0 4px;font-size:18px}
+dialog p.s{margin:0 0 14px;color:var(--mute)}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt b{display:block;font-size:15px}
+.opt span{color:var(--mute);font-size:13px}
+.close{font:inherit;background:none;border:0;color:var(--mute);cursor:pointer;padding:6px}
+.ov.wide{max-width:none;width:min(740px,100%);height:100%;align-items:stretch;text-align:left;gap:0}
+.lp{display:flex;flex-direction:column;gap:8px;height:100%;min-height:0}
+.lh{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.lh b{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lh span{color:#aab2d3;font-size:13px}
+.lf{display:flex;gap:12px;align-items:center;color:#aab2d3;white-space:nowrap}
+.lf input[type=search]{flex:1;min-width:0;font:inherit;background:#1e2236;color:#e6e9f5;border:1px solid #3a4268;border-radius:10px;padding:8px 12px}
+.ll{flex:1;min-height:0;overflow:auto;border:1px solid #3a4268;border-radius:12px;background:rgba(0,0,0,.25)}
+.it{display:flex;gap:10px;align-items:center;padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)}
+.it:hover{background:rgba(255,255,255,.06)}
+.it.sel{background:rgba(139,139,255,.28)}
+.it .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .sz{color:#8d96b5;font-size:12px;white-space:nowrap}
+.bd{font-size:11px;border-radius:6px;padding:2px 7px;background:#3a4268;color:#e6e9f5;white-space:nowrap}
+.bd.dos,.bd.engine,.bd.bundle{background:#2f6f4f}
+.bd.win32{background:#7a4a2a}
+.bd.dir{background:#4a5380}
+.lb{display:flex;gap:12px;align-items:center}
+#ls{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#aab2d3}
+.warn{margin:0;color:#ffcf8b;font-size:13px;min-height:1.3em}
+.ov button.sec{background:#2a3157;color:#e6e9f5;font-weight:400}
+.bd.disc{background:#2f6f4f}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar" role="menubar">
+    <span class="brand">웹 에뮬레이터</span>
+    <button class="main" id="mLoad">게임불러오기</button>
+    <button id="mRestart" disabled>다시시작</button>
+    <button id="mFull" disabled>전체화면</button>
+    <button id="mShot" disabled>화면캡처</button>
+    <span class="spacer"></span>
+    <span id="title">불러온 게임 없음</span>
+  </div>
+
+  <div id="screen">
+    <div id="view"></div>
+    <div id="overlay"><div class="ov" id="ovBox"></div></div>
+  </div>
+
+  <div class="status">
+    <span id="msg">준비됨</span>
+    <progress id="prog" value="0" max="1" hidden></progress>
+  </div>
+  <details><summary>실행 기록</summary><pre id="log"></pre></details>
+</div>
+
+<dialog id="dlg">
+  <h3>게임 불러오기</h3>
+  <p class="s">파일은 서버로 올라가지 않고 이 브라우저 안에서만 읽어요.</p>
+  <button class="opt" id="oDir"><b>폴더 불러오기</b><span>게임이 들어 있는 폴더 전체를 선택해요. 폴더 구성으로 게임을 알아봐요.</span></button>
+  <button class="opt" id="oExe"><b>실행파일만 불러오기</b><span>.exe .com .bat 파일 하나, 또는 .jsdos 번들을 선택해요.</span></button>
+  <button class="close" id="oClose">닫기</button>
+</dialog>
+
+<input type="file" id="fFolder" webkitdirectory hidden>
+<input type="file" id="fBios" hidden>
+<input type="file" id="fWin" hidden>
+<input type="file" id="fExe" accept=".exe,.com,.bat,.jsdos,.iso,.cue,.bin,.img,.chd,.pbp,.zip" hidden>
+
+<script>
+const $ = id => document.getElementById(id);
+const log = t => { $('log').textContent += t + '\n'; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const msg = t => { $('msg').textContent = t; };
+
+/* 엔진 등록: 폴더 구성으로 게임을 알아보고 맞는 WASM 엔진을 불러와요.
+   엔진 파일(.js/.wasm)은 직접 빌드해서 base 경로에 넣어 두세요. */
+const ENGINES = {
+  vc:   { name: 'GTA Vice City', base: 'engines/revc/', entry: 'revc.js' },
+  gta3: { name: 'GTA III',       base: 'engines/re3/',  entry: 're3.js'  }
+};
+
+let files = new Map();   // 소문자 경로 -> {path, file}
+let game = null;         // {type:'wasm'|'dos'|'bundle', name, ...}
+let running = false;
+
+/* ---------- 오버레이(대기 화면) ---------- */
+function overlay(html, setup, wide) {
+  $('ovBox').className = wide ? 'ov wide' : 'ov';
+  $('ovBox').innerHTML = html;
+  $('overlay').hidden = false;
+  setup && setup();
+}
+function idle() {
+  overlay('<h2>게임을 불러오세요</h2><p>위의 <b>게임불러오기</b>에서 폴더 또는 실행파일을 고를 수 있어요.</p><button id="ovLoad">게임불러오기</button>',
+    () => { $('ovLoad').onclick = openDialog; });
+}
+function notice(title, text) {
+  overlay('<h2>' + esc(title) + '</h2><p>' + text + '</p><button id="ovLoad">다른 게임 불러오기</button>',
+    () => { $('ovLoad').onclick = openDialog; });
+}
+
+/* ---------- 불러오기 ---------- */
+const dlg = $('dlg');
+function openDialog() { dlg.showModal(); }
+$('mLoad').onclick = openDialog;
+$('oClose').onclick = () => dlg.close();
+
+async function walk(handle, prefix, out) {
+  for await (const [name, h] of handle.entries()) {
+    if (h.kind === 'file') out.push({ path: prefix + name, file: await h.getFile() });
+    else await walk(h, prefix + name + '/', out);
+  }
+}
+$('oDir').onclick = async () => {
+  dlg.close();
+  if (window.showDirectoryPicker) {
+    try {
+      const dir = await showDirectoryPicker();
+      msg('폴더 읽는 중…');
+      const out = [];
+      await walk(dir, '', out);
+      setFiles(out, dir.name);
+    } catch (e) { if (e.name !== 'AbortError') { log('폴더를 읽지 못했어요: ' + e.message); msg('폴더를 읽지 못했어요'); } }
+  } else $('fFolder').click();
+};
+$('fFolder').onchange = e => {
+  const list = [...e.target.files];
+  if (!list.length) return;
+  const top = list[0].webkitRelativePath.split('/')[0];
+  setFiles(list.map(f => ({ path: f.webkitRelativePath.split('/').slice(1).join('/'), file: f })), top);
+  e.target.value = '';
+};
+$('oExe').onclick = () => { dlg.close(); $('fExe').click(); };
+$('fExe').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  await stopGame();
+  files = new Map([[f.name.toLowerCase(), { path: f.name, file: f }]]);
+  await buildList(f.name);
+};
+
+async function setFiles(list, folder) {
+  await stopGame();
+  files = new Map(list.map(f => [f.path.toLowerCase(), f]));
+  await buildList(folder, true);
+}
+
+// 윈도우(PE) 실행 파일인지 확인: DOS 에뮬레이터로는 돌릴 수 없어요
+async function isWin32(file) {
+  const b = new DataView(await file.slice(0, 1024).arrayBuffer());
+  if (b.byteLength < 64 || b.getUint16(0, true) !== 0x5a4d) return false;
+  const off = b.getUint32(0x3c, true);
+  return off + 4 <= b.byteLength && b.getUint32(off, true) === 0x00004550;
+}
+async function engineReady(e) {
+  try { return (await fetch(e.base + e.entry, { method: 'HEAD' })).ok; } catch { return false; }
+}
+
+/* ---------- 파일 목록 ---------- */
+let entries = [], selected = null, current = null, folderName = '', cwd = '';
+const EXEC = ['engine', 'folder', 'bundle', 'dos', 'win32', 'disc'];
+const SYSTEMS = [['win','윈도우 95/98 (PC 에뮬레이터)'],['psx','플레이스테이션 1'],['segaCD','세가 CD'],['segaSaturn','세가 새턴'],['pce','PC 엔진 CD'],['3do','3DO'],['psp','PSP']];
+let biosFile = null, winImage = null, lastSys = 'win';
+const BADGE = { engine: '게임 엔진', bundle: 'js-dos 번들', dos: 'DOS', win32: 'Windows', disc: '디스크 이미지', folder: '폴더 전체', file: '파일', dir: '폴더' };
+const fmt = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : n + ' B';
+
+// 실행 파일 종류: 0 = 윈도우 프로그램 아님, 32 / 64 = 윈도우(PE) 비트 수
+async function peBits(file) {
+  const b = new DataView(await file.slice(0, 1024).arrayBuffer());
+  if (b.byteLength < 64 || b.getUint16(0, true) !== 0x5a4d) return 0;
+  const off = b.getUint32(0x3c, true);
+  if (off + 6 > b.byteLength || b.getUint32(off, true) !== 0x4550) return 0;
+  return b.getUint16(off + 4, true) === 0x8664 ? 64 : 32;
+}
+
+async function buildList(folder, isFolder) {
+  folderName = folder; entries = []; selected = null; current = null; cwd = '';
+  $('title').textContent = folder;
+  $('mRestart').disabled = true; $('mFull').disabled = true; $('mShot').disabled = true;
+  msg('파일 목록 만드는 중…');
+  const has = p => files.has(p);
+  let key = null;
+  if (has('models/gta3.img') && has('data/gta_vc.dat')) key = 'vc';
+  else if (has('models/gta3.img') && has('data/gta3.dat')) key = 'gta3';
+  if (key) {
+    const e = ENGINES[key];
+    entries.push({ kind: 'engine', key, path: e.name + ' (엔진으로 실행)', size: 0, ok: await engineReady(e) });
+  }
+  if (isFolder) entries.push({ kind: 'folder', path: folder + ' 폴더 전체를 가상 CD로 연결 (윈도우 PC)', size: 0 });
+  for (const f of files.values()) {
+    const n = f.path, size = f.file.size;
+    if (/\.(iso|cue|bin|img|chd|pbp|mdf|zip)$/i.test(n)) entries.push({ kind: 'disc', path: n, file: f.file, size });
+    else if (/\.jsdos$/i.test(n)) entries.push({ kind: 'bundle', path: n, file: f.file, size });
+    else if (/\.(exe|com|bat)$/i.test(n)) {
+      const bits = await peBits(f.file);
+      entries.push({ kind: bits ? 'win32' : 'dos', bits, path: n, file: f.file, size });
+    } else entries.push({ kind: 'file', path: n, file: f.file, size });
+  }
+  const exes = entries.filter(e => EXEC.includes(e.kind) && e.kind !== 'folder');
+  if (key) selected = entries[0];
+  else if (exes.length === 1) selected = exes[0];
+  msg('불러왔어요 — 목록에서 실행파일을 고르고 게임 시작을 누르세요');
+  showList();
+}
+
+function showList(warn) {
+  overlay('<div class="lp"><div class="lh"><b id="lt"></b><span id="lc"></span></div>' +
+    '<div class="lf"><input id="q" type="search" placeholder="파일 검색 (모든 폴더)"><label><input type="checkbox" id="onlyexe"> 실행파일만 보기</label></div>' +
+    '<div class="ll" id="ll" role="listbox"></div><p class="warn" id="warn"></p>' +
+    '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="bios" hidden>BIOS 선택</button><button class="sec" id="winimg" hidden>윈도우 이미지 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
+    $('q').oninput = () => { $('ll').scrollTop = 0; renderList(); };
+    $('onlyexe').onchange = renderList;
+    $('ovStart').onclick = start;
+    $('sys').value = lastSys;
+    $('sys').onchange = () => { lastSys = $('sys').value; updateSel(); };
+    $('winimg').onclick = () => $('fWin').click();
+    if (winImage) $('winimg').textContent = '윈도우: ' + winImage.name;
+    $('bios').onclick = () => $('fBios').click();
+    if (biosFile) $('bios').textContent = 'BIOS: ' + biosFile.name;
+    renderList();
+    updateSel();
+    if (warn) $('warn').textContent = warn;
+  }, true);
+}
+function updateSel() {
+  $('ovStart').disabled = !selected;
+  $('ls').textContent = selected ? selected.path : '목록에서 실행파일을 선택하세요';
+  const k = selected && selected.kind, disc = k === 'disc';
+  const win = k === 'folder' || (k === 'win32' && selected.bits !== 64) || (disc && $('sys').value === 'win');
+  $('sys').hidden = !disc; $('bios').hidden = !disc || win; $('winimg').hidden = !win;
+  $('warn').textContent = '';
+}
+
+function renderList() {
+  const q = $('q').value.trim().toLowerCase(), only = $('onlyexe').checked;
+  const SP = ['engine', 'folder'];
+  const okFile = e => !SP.includes(e.kind) && (!only || EXEC.includes(e.kind));
+  const rows = [];
+  if (q) {
+    for (const e of entries) if (okFile(e) && e.path.toLowerCase().includes(q)) rows.push({ e, name: e.path });
+  } else {
+    if (cwd) rows.push({ up: true, name: '.. 위 폴더' });
+    const dirs = new Map(), fl = [];
+    for (const e of entries) {
+      if (SP.includes(e.kind) || !e.path.startsWith(cwd)) continue;
+      const rest = e.path.slice(cwd.length), i = rest.indexOf('/');
+      if (i < 0) { if (okFile(e)) fl.push({ e, name: rest }); }
+      else { const d = rest.slice(0, i); dirs.set(d, (dirs.get(d) || 0) + 1); }
+    }
+    [...dirs.keys()].sort((a, b) => a.localeCompare(b)).forEach(d => rows.push({ dir: d, n: dirs.get(d) }));
+    if (!cwd) { entries.filter(e => SP.includes(e.kind)).forEach(en => rows.push({ e: en, name: en.path })); }
+    fl.sort((a, b) => (EXEC.includes(b.e.kind) - EXEC.includes(a.e.kind)) || a.name.localeCompare(b.name));
+    rows.push(...fl);
+  }
+  $('lt').textContent = folderName + (cwd && !q ? ' / ' + cwd.slice(0, -1).split('/').join(' / ') : '');
+  $('lc').textContent = rows.filter(r => r.e).length + '개 파일';
+  const ll = $('ll');
+  ll.textContent = '';
+  const add = (kind, text, size, title) => {
+    const d = document.createElement('div');
+    d.className = 'it';
+    d.setAttribute('role', 'option');
+    const b = document.createElement('span'); b.className = 'bd ' + kind; b.textContent = kind === 'win32' && title ? title : BADGE[kind];
+    const n = document.createElement('span'); n.className = 'nm'; n.textContent = text; n.title = text;
+    const s = document.createElement('span'); s.className = 'sz'; s.textContent = size || '';
+    d.append(b, n, s);
+    ll.append(d);
+    return d;
+  };
+  if (!rows.length) { add('file', '표시할 파일이 없어요', ''); ll.lastChild.firstChild.remove(); }
+  for (const r of rows.slice(0, 500)) {
+    if (r.up) {
+      add('dir', r.name, '').onclick = () => { cwd = cwd.slice(0, -1).replace(/[^/]*$/, ''); ll.scrollTop = 0; renderList(); };
+    } else if (r.dir) {
+      add('dir', r.dir, r.n + '개').onclick = () => { cwd += r.dir + '/'; ll.scrollTop = 0; renderList(); };
+    } else {
+      const e = r.e;
+      const d = add(e.kind, r.name, e.size ? fmt(e.size) : '', e.bits === 64 ? 'Windows 64비트' : e.bits === 32 ? 'Windows 32비트' : '');
+      if (e === selected) d.classList.add('sel');
+      d.onclick = () => { selected = e; ll.querySelectorAll('.sel').forEach(x => x.classList.remove('sel')); d.classList.add('sel'); updateSel(); };
+      d.ondblclick = start;
+    }
+  }
+  if (rows.length > 500) { add('file', '목록이 길어서 500개까지만 보여요. 검색을 사용하세요.', ''); ll.lastChild.firstChild.remove(); }
+}
+
+/* ---------- 실행 ---------- */
+const loadScript = src => new Promise((ok, no) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = ok; s.onerror = () => no(new Error(src + ' 불러오기 실패'));
+  s.dataset.engine = '1';
+  document.head.append(s);
+});
+
+async function runDos(url) {
+  if (!window.Dos) {
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = 'https://v8.js-dos.com/latest/js-dos.css';
+    document.head.append(l);
+    await loadScript('https://v8.js-dos.com/latest/js-dos.js');
+  }
+  $('view').innerHTML = '';
+  window.dosInstance = Dos($('view'), { url });
+}
+async function buildDosBundle(f) {
+  if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  const zip = new JSZip();
+  for (const x of files.values()) zip.file(x.path, x.file);
+  const parts = f.path.split('/');
+  const name = parts.pop();
+  const conf = '[cpu]\ncycles=max\n[autoexec]\nmount c .\nc:\n' + (parts.length ? 'cd ' + parts.join('\\') + '\n' : '') + name + '\n';
+  zip.file('.jsdos/dosbox.conf', conf);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' }, m => { $('prog').value = m.percent / 100; });
+  return URL.createObjectURL(blob);
+}
+async function runWasm(e) {
+  const list = [...files.values()].filter(f => !/^movies\//i.test(f.path));
+  const total = list.reduce((s, f) => s + f.file.size, 0);
+  let read = 0;
+  const data = [];
+  for (const f of list) {
+    data.push([f.path, new Uint8Array(await f.file.arrayBuffer())]);
+    read += f.file.size;
+    $('prog').value = read / total;
+    msg('게임 파일 읽는 중… ' + Math.round(read / total * 100) + '%');
+  }
+  $('view').innerHTML = '<canvas id="cv" tabindex="0"></canvas>';
+  window.Module = {
+    canvas: $('cv'),
+    locateFile: p => e.base + p,
+    print: log, printErr: log,
+    preRun: [() => {
+      const F = Module.FS || window.FS;
+      for (const [p, b] of data) {
+        const i = p.lastIndexOf('/');
+        if (i > 0) F.mkdirTree('/game/' + p.slice(0, i));
+        F.writeFile('/game/' + p, b);
+      }
+      F.chdir('/game');
+    }]
+  };
+  await loadScript(e.base + e.entry);
+}
+
+/* ---------- 폴더 -> ISO(Joliet) 만들기: 윈도우에서 CD 드라이브로 보이게 해요 ---------- */
+function buildIso(list, label) {
+  const SEC = 2048;
+  const ceil = n => Math.ceil(n / SEC) * SEC;
+  const root = { name: '', dirs: new Map(), files: [] };
+  root.parent = root;
+  for (const f of list) {
+    const parts = f.path.split('/');
+    let d = root;
+    for (const p of parts.slice(0, -1)) {
+      if (!d.dirs.has(p)) d.dirs.set(p, { name: p, dirs: new Map(), files: [], parent: d });
+      d = d.dirs.get(p);
+    }
+    if (f.file.size >= 4294967296) throw new Error('4GB 이상 파일은 가상 CD로 만들 수 없어요: ' + f.path);
+    d.files.push({ name: parts[parts.length - 1], file: f.file, size: f.file.size });
+  }
+  const ucs2 = s => { const b = new Uint8Array(s.length * 2); for (let i = 0; i < s.length; i++) { b[2 * i] = s.charCodeAt(i) >> 8; b[2 * i + 1] = s.charCodeAt(i) & 255; } return b; };
+  const asc = s => Uint8Array.from(s, c => c.charCodeAt(0) & 127);
+  const san = s => s.toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+  const cmp = (a, b) => { const n = Math.min(a.length, b.length); for (let i = 0; i < n; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };
+
+  function prep(joliet) {
+    const dirs = [root], kidsOf = new Map(), id = new Map();
+    for (let i = 0; i < dirs.length; i++) {
+      const d = dirs[i], used = new Set(), kids = [];
+      const nameOf = (n, isDir) => {
+        if (joliet) return ucs2(n.slice(0, 64));
+        let base = n, ext = '';
+        const dot = isDir ? -1 : n.lastIndexOf('.');
+        if (dot > 0) { base = n.slice(0, dot); ext = n.slice(dot + 1); }
+        let b = san(base).slice(0, 8), e = san(ext).slice(0, 3), k = 0, full;
+        do { const bb = k ? b.slice(0, 6) + '~' + k : b; full = bb + (e ? '.' + e : ''); k++; } while (used.has(full));
+        used.add(full);
+        return asc(isDir ? full : full + ';1');
+      };
+      for (const n of d.dirs.values()) { id.set(n, nameOf(n.name, true)); kids.push({ n, dir: true }); }
+      for (const n of d.files) { id.set(n, nameOf(n.name, false)); kids.push({ n, dir: false }); }
+      kids.sort((a, b) => cmp(id.get(a.n), id.get(b.n)));
+      kidsOf.set(d, kids);
+      for (const k of kids) if (k.dir) dirs.push(k.n);
+    }
+    const t = { dirs, kidsOf, id, lba: new Map(), size: new Map(), num: new Map() };
+    dirs.forEach((d, i) => t.num.set(d, i + 1));
+    for (const d of dirs) {
+      let pos = 0;
+      const add = L => { if (pos % SEC + L > SEC) pos = ceil(pos); pos += L; };
+      add(34); add(34);
+      for (const k of kidsOf.get(d)) { const l = id.get(k.n).length; add(33 + l + (l % 2 ? 0 : 1)); }
+      t.size.set(d, ceil(pos));
+    }
+    t.ptSize = dirs.reduce((s, d) => s + 8 + (d === root ? 1 : id.get(d).length) + ((d === root ? 1 : id.get(d).length) % 2), 0);
+    return t;
+  }
+  const T = [prep(false), prep(true)];
+
+  let lba = 19;
+  for (const t of T) {
+    t.ptL = lba; lba += Math.ceil(t.ptSize / SEC);
+    t.ptM = lba; lba += Math.ceil(t.ptSize / SEC);
+    for (const d of t.dirs) { t.lba.set(d, lba); lba += t.size.get(d) / SEC; }
+  }
+  const dataStart = lba;
+  const fileLba = new Map();
+  const allFiles = [];
+  (function walk(d) { for (const f of d.files) { fileLba.set(f, lba); allFiles.push(f); lba += Math.ceil(f.size / SEC); } for (const c of d.dirs.values()) walk(c); })(root);
+  const total = lba;
+
+  const buf = new Uint8Array(dataStart * SEC), dv = new DataView(buf.buffer);
+  const b32 = (o, v) => { dv.setUint32(o, v, true); dv.setUint32(o + 4, v, false); };
+  const b16 = (o, v) => { dv.setUint16(o, v, true); dv.setUint16(o + 2, v, false); };
+  const now = new Date();
+  const date7 = o => { buf.set([now.getFullYear() - 1900, now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds(), 0], o); };
+  const rec = (o, l, size, isDir, idb) => {
+    const L = 33 + idb.length + (idb.length % 2 ? 0 : 1);
+    buf[o] = L; b32(o + 2, l); b32(o + 10, size); date7(o + 18);
+    buf[o + 25] = isDir ? 2 : 0; b16(o + 28, 1); buf[o + 32] = idb.length; buf.set(idb, o + 33);
+    return L;
+  };
+  for (const t of T) {
+    for (const d of t.dirs) {
+      const base = t.lba.get(d) * SEC;
+      let pos = 0;
+      const put = (l, size, isDir, idb) => {
+        const L = 33 + idb.length + (idb.length % 2 ? 0 : 1);
+        if (pos % SEC + L > SEC) pos = ceil(pos);
+        pos += rec(base + pos, l, size, isDir, idb);
+      };
+      put(t.lba.get(d), t.size.get(d), true, Uint8Array.of(0));
+      put(t.lba.get(d.parent), t.size.get(d.parent), true, Uint8Array.of(1));
+      for (const k of t.kidsOf.get(d)) {
+        if (k.dir) put(t.lba.get(k.n), t.size.get(k.n), true, t.id.get(k.n));
+        else put(fileLba.get(k.n), k.n.size, false, t.id.get(k.n));
+      }
+    }
+    for (const [loc, le] of [[t.ptL, true], [t.ptM, false]]) {
+      let o = loc * SEC;
+      for (const d of t.dirs) {
+        const idb = d === root ? Uint8Array.of(0) : t.id.get(d);
+        buf[o] = idb.length;
+        dv.setUint32(o + 2, t.lba.get(d), le);
+        dv.setUint16(o + 6, t.num.get(d.parent), le);
+        buf.set(idb, o + 8);
+        o += 8 + idb.length + (idb.length % 2);
+      }
+    }
+  }
+  const vol = (sec, joliet, t) => {
+    const o = sec * SEC;
+    buf[o] = joliet ? 2 : 1; buf.set(asc('CD001'), o + 1); buf[o + 6] = 1;
+    const fill = (off, len, s) => {
+      if (joliet) { for (let i = 0; i < len / 2; i++) { const c = i < s.length ? s.charCodeAt(i) : 32; buf[o + off + 2 * i] = c >> 8; buf[o + off + 2 * i + 1] = c & 255; } }
+      else for (let i = 0; i < len; i++) buf[o + off + i] = i < s.length ? s.charCodeAt(i) & 127 : 32;
+    };
+    fill(8, 32, ''); fill(40, 32, joliet ? label.slice(0, 16) : san(label).slice(0, 32));
+    if (joliet) buf.set([0x25, 0x2f, 0x45], o + 88);
+    b32(o + 80, total); b16(o + 120, 1); b16(o + 124, 1); b16(o + 128, SEC);
+    b32(o + 132, t.ptSize);
+    dv.setUint32(o + 140, t.ptL, true); dv.setUint32(o + 148, t.ptM, false);
+    rec(o + 156, t.lba.get(root), t.size.get(root), true, Uint8Array.of(0));
+    for (const off of [190, 318, 446, 574]) fill(off, 128, '');
+    for (const off of [702, 739, 776]) for (let i = 0; i < 37; i++) buf[o + off + i] = 32;
+    const p = n => String(n).padStart(2, '0');
+    const ds = now.getFullYear() + p(now.getMonth() + 1) + p(now.getDate()) + p(now.getHours()) + p(now.getMinutes()) + p(now.getSeconds()) + '00';
+    for (const off of [813, 830, 864]) { buf.set(asc(ds), o + off); }
+    buf.set(asc('0000000000000000'), o + 847);
+    buf[o + 881] = 1;
+  };
+  vol(16, false, T[0]); vol(17, true, T[1]);
+  buf[18 * SEC] = 255; buf.set(asc('CD001'), 18 * SEC + 1); buf[18 * SEC + 6] = 1;
+
+  const parts = [buf];
+  for (const f of allFiles) {
+    parts.push(f.file);
+    const pad = Math.ceil(f.size / SEC) * SEC - f.size;
+    if (pad) parts.push(new Uint8Array(pad));
+  }
+  return new Blob(parts, { type: 'application/x-iso9660-image' });
+}
+
+/* ---------- 윈도우 95/98 PC 에뮬레이터 (v86) ---------- */
+// winemu.html에서 쓰는 v86 파일 경로와 같게 맞춰 주세요
+const V86CFG = { lib: 'v86/libv86.js', wasm: 'v86/v86.wasm', bios: 'v86/seabios.bin', vga: 'v86/vgabios.bin', ramMB: 256 };
+
+function sectors2048(bin, hdr) {
+  const n = Math.floor(bin.size / 2352), parts = [];
+  for (let i = 0; i < n; i++) parts.push(bin.slice(i * 2352 + hdr, i * 2352 + hdr + 2048));
+  return new Blob(parts);
+}
+async function discToCd(en) {
+  if (/\.zip$/i.test(en.path)) throw new Error('윈도우 PC 모드에서는 zip을 쓸 수 없어요. ISO나 CUE/BIN을 선택하세요.');
+  if (/\.cue$/i.test(en.path)) {
+    const txt = await en.file.text();
+    const dir = en.path.includes('/') ? en.path.slice(0, en.path.lastIndexOf('/') + 1) : '';
+    const m = /FILE\s+"?([^"\r\n]+?)"?\s+BINARY/i.exec(txt);
+    if (!m) throw new Error('CUE 파일에서 BIN 파일을 찾지 못했어요.');
+    const f = files.get((dir + m[1]).toLowerCase());
+    if (!f) throw new Error('CUE가 가리키는 파일을 찾지 못했어요: ' + m[1]);
+    const mode = (/TRACK\s+\d+\s+(\S+)/i.exec(txt) || [])[1] || '';
+    return /2352/.test(mode) ? sectors2048(f.file, /MODE2/i.test(mode) ? 24 : 16) : f.file;
+  }
+  if (/\.bin$/i.test(en.path) && en.size % 2352 === 0 && en.size % 2048 !== 0) return sectors2048(en.file, 16);
+  return en.file;
+}
+async function runWin(en) {
+  try { window.emu?.destroy(); } catch {}
+  window.emu = null;
+  let cd;
+  if (en.kind === 'disc') cd = await discToCd(en);
+  else { msg('폴더를 가상 CD로 만드는 중…'); cd = buildIso([...files.values()], folderName.slice(0, 16) || 'GAME'); }
+  if (!window.V86) await loadScript(V86CFG.lib);
+  $('view').innerHTML = '<div id="scr" style="width:100%;height:100%"><div style="white-space:pre;font:14px/14px monospace;color:#ccc"></div><canvas style="display:none"></canvas></div>';
+  window.emu = new V86({
+    wasm_path: V86CFG.wasm,
+    memory_size: V86CFG.ramMB * 1024 * 1024,
+    vga_memory_size: 8 * 1024 * 1024,
+    screen_container: $('scr'),
+    bios: { url: V86CFG.bios },
+    vga_bios: { url: V86CFG.vga },
+    hda: { buffer: winImage },
+    cdrom: { buffer: new File([cd], 'game.iso') },
+    autostart: true
+  });
+}
+
+async function runDisc(en) {
+  if (window.EJS_emulator) throw new Error('다른 디스크를 실행하려면 페이지를 새로고침해 주세요.');
+  let url;
+  if (/\.cue$/i.test(en.path)) {
+    // CUE가 가리키는 BIN 파일들을 찾아 zip 하나로 묶어요
+    if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const txt = await en.file.text();
+    const dir = en.path.includes('/') ? en.path.slice(0, en.path.lastIndexOf('/') + 1) : '';
+    const names = [...txt.matchAll(/FILE\s+"?([^"\r\n]+?)"?\s+(?:BINARY|WAVE|MP3|MOTOROLA|AIFF)/gi)].map(m => m[1]);
+    const zip = new JSZip();
+    zip.file(en.path.split('/').pop(), txt);
+    for (const n of names) {
+      const f = files.get((dir + n).toLowerCase());
+      if (!f) throw new Error('CUE가 가리키는 파일을 찾지 못했어요: ' + n);
+      zip.file(n, f.file);
+    }
+    url = URL.createObjectURL(await zip.generateAsync({ type: 'blob', compression: 'STORE' }, m => { $('prog').value = m.percent / 100; }));
+  } else url = URL.createObjectURL(en.file);
+  $('view').innerHTML = '<div id="ejs" style="width:100%;height:100%"></div>';
+  window.EJS_player = '#ejs';
+  window.EJS_core = en.core;
+  window.EJS_gameUrl = url;
+  window.EJS_gameName = en.path.split('/').pop().replace(/\.[^.]+$/, '');
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_startOnLoaded = true;
+  if (en.bios) window.EJS_biosUrl = URL.createObjectURL(en.bios);
+  await loadScript(window.EJS_pathtodata + 'loader.js');
+}
+
+async function launch(en) {
+  current = en;
+  $('overlay').hidden = true;
+  $('prog').hidden = false; $('prog').value = 0;
+  msg('시작하는 중…');
+  try {
+    if (en.kind === 'bundle') await runDos(URL.createObjectURL(en.file));
+    else if (en.kind === 'dos') await runDos(await buildDosBundle(en));
+    else if (en.win) await runWin(en);
+    else if (en.kind === 'disc') await runDisc(en);
+    else await runWasm(ENGINES[en.key]);
+    running = true;
+    msg(en.win ? '윈도우 실행 중 — 내 컴퓨터의 CD 드라이브에서 게임을 실행하세요' + (en.kind === 'win32' ? ' (' + en.path + ')' : '') : '실행 중: ' + en.path);
+    $('mRestart').disabled = false; $('mFull').disabled = false; $('mShot').disabled = false;
+  } catch (e) {
+    log('실행하지 못했어요: ' + e.message);
+    msg('실행하지 못했어요');
+    showList('실행하지 못했어요: ' + e.message);
+  }
+  $('prog').hidden = true;
+}
+function start() {
+  const en = selected;
+  if (!en) return;
+  const warn = t => { $('warn').textContent = t; };
+  if (en.kind === 'win32' && en.bits === 64) return warn('64비트 윈도우 프로그램이에요. PC 에뮬레이터(v86)는 32비트 프로그램만 돌릴 수 있어서 실행할 수 없어요.');
+  if (en.kind === 'dir') return warn('폴더는 실행할 수 없어요.');
+  if (en.kind === 'file') return warn('실행파일이 아니에요. .exe .com .bat 파일을 선택하세요.');
+  if (en.kind === 'engine' && !en.ok) return warn('엔진 파일이 없어요: ' + ENGINES[en.key].base + ENGINES[en.key].entry);
+  if (en.kind === 'disc') { en.core = $('sys').value; en.bios = biosFile; }
+  en.win = en.kind === 'folder' || en.kind === 'win32' || (en.kind === 'disc' && en.core === 'win');
+  if (en.win && !winImage) return warn('먼저 “윈도우 이미지 선택”으로 윈도우가 설치된 디스크 이미지를 고르세요.');
+  launch(en);
+}
+async function stopGame() {
+  try { await window.dosInstance?.stop?.(); } catch {}
+  try { window.emu?.destroy(); } catch {}
+  window.emu = null;
+  window.dosInstance = null;
+  document.querySelectorAll('script[data-engine]').forEach(s => { if (/engines\//.test(s.src)) s.remove(); });
+  $('view').innerHTML = '';
+  running = false;
+}
+
+/* ---------- 메뉴 ---------- */
+$('mRestart').onclick = async () => {
+  if (!current) return;
+  if (current.win && window.emu) { emu.restart(); msg('윈도우를 다시 시작했어요'); return; }
+  if (current.kind === 'disc') {
+    try { EJS_emulator.gameManager.restart(); msg('다시 시작했어요'); }
+    catch { msg('다시 시작하려면 페이지를 새로고침하고 다시 불러오세요'); }
+    return;
+  }
+  await stopGame();
+  launch(current);
+};
+$('mFull').onclick = () => {
+  const s = $('screen');
+  document.fullscreenElement ? document.exitFullscreen() : s.requestFullscreen?.();
+};
+$('mShot').onclick = async () => {
+  const c = $('view').querySelector('canvas');
+  if (!c) { msg('캡처할 화면이 없어요'); return; }
+  await new Promise(r => requestAnimationFrame(r));
+  c.toBlob(b => {
+    if (!b) { msg('캡처하지 못했어요'); return; }
+    const a = document.createElement('a');
+    const d = new Date(), z = n => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(b);
+    a.download = 'capture_' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()) + z(d.getSeconds()) + '.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    msg('화면을 저장했어요 (검은 화면이면 게임 쪽 설정이 필요해요)');
+  }, 'image/png');
+};
+addEventListener('keydown', e => { if (e.key === 'F11') { e.preventDefault(); $('mFull').click(); } });
+
+idle();
+$('fWin').onchange = e => {
+  winImage = e.target.files[0] || null;
+  e.target.value = '';
+  if (winImage && $('winimg')) $('winimg').textContent = '윈도우: ' + winImage.name;
+};
+$('fBios').onchange = e => {
+  biosFile = e.target.files[0] || null;
+  e.target.value = '';
+  if (biosFile && $('bios')) $('bios').textContent = 'BIOS: ' + biosFile.name;
+};
+</script>
+</body>
+</html>
