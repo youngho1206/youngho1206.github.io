@@ -272,12 +272,15 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
 html.emuopen #rp{display:none}
 #rp{--ink:#2f6fb5;--ink2:#1f4e84;--glass:rgba(255,255,255,.30);--edge:rgba(255,255,255,.75);
  position:fixed;inset:0;z-index:1;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
- background:#9ccbf5 var(--rpbg,url(emuwall/retrogamingwallpaper.jpg)) center/cover no-repeat fixed;
+ --rpdef:url(emuwall/christmas_pc.jpg);
+ background:#14235e var(--rpbg,var(--rpdef)) center/cover no-repeat fixed;
  font-family:'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:var(--ink2);
  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #rp *{box-sizing:border-box}
 #rp button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .rp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 40px}
+/* 휴대폰·세로 화면: 세로 구도 배경으로 자동 교체 (화면 크기에 맞춤, iOS 의 fixed 배경 버그도 피함) */
+@media (max-width:700px) and (orientation:portrait),(max-aspect-ratio:3/4){#rp{--rpdef:url(emuwall/christmas_mobile.jpg);background-position:42% center;background-attachment:scroll}}
 /* 맨 위: 왼쪽( < ) 메뉴 · 가운데 제목 · 오른쪽( > ) 메뉴 */
 .rp-top{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"t t" "l r";align-items:center;gap:16px 10px;padding-top:6px}
 .rp-top .l{grid-area:l}.rp-top .r{grid-area:r}
@@ -311,7 +314,7 @@ html.emuopen #rp{display:none}
 .rp-it:active .rp-box{transform:scale(.96)}
 .rp-it:focus-visible{outline:none}
 .rp-it:focus-visible .rp-box{outline:2px solid #fff}
-.rp-nm{font-size:13.5px;font-weight:500;line-height:1.25;text-align:center;color:var(--ink2);text-shadow:0 1px 0 rgba(255,255,255,.7);word-break:keep-all;max-width:100%}
+.rp-nm{font-size:13.5px;font-weight:600;line-height:1.25;text-align:center;color:#fff;text-shadow:0 1px 3px rgba(6,14,58,.95),0 0 8px rgba(6,14,58,.75);background:rgba(12,24,78,.5);padding:2px 9px;border-radius:99px;word-break:keep-all;max-width:100%}
 .rp-ft{margin-top:44px;text-align:center;font-size:12px;color:rgba(255,255,255,.95);text-shadow:0 1px 5px rgba(50,110,190,.6);line-height:1.7}
 /* 팝업(공지·안내·배경선택·아이콘선택) */
 #rpm{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(40,90,150,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -1580,8 +1583,11 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  });
 
  /* 배경 */
- var BG_DEFAULT='emuwall/retrogamingwallpaper.jpg';
- function setBg(u){$('#rp').style.setProperty('--rpbg','url("'+u+'")')}
+ var BG_DEFAULT='emuwall/christmas_pc.jpg';
+ /* 예전 기본 배경을 그대로 쓰던 사람은 새 기본 배경으로 한 번만 옮겨 줍니다 (다른 배경을 직접 고른 사람은 그대로 유지) */
+ try{if(ls.get('rpBgMig3','')!=='1'){if(ls.get('rpBg2','')==='emuwall/retrogamingwallpaper.jpg')localStorage.removeItem('rpBg2');localStorage.setItem('rpBgMig3','1')}}catch(_){}
+ /* 기본 배경이면 CSS(--rpdef)가 PC용/휴대폰용을 알아서 고르게 하고, 그 외 배경만 직접 지정 */
+ function setBg(u){var r=$('#rp');if(u===BG_DEFAULT)r.style.removeProperty('--rpbg');else r.style.setProperty('--rpbg','url("'+u+'")')}
  setBg(ls.get('rpBg2',BG_DEFAULT));
 
  /* 팝업 */
@@ -1603,7 +1609,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  $('#rVer').onclick=function(){location.href='index.html?select=1'};
 
  /* › 오른쪽: 캐쉬지우기(기존 js-cache 기능) · 배경선택 · 아이콘선택 */
- var BGS=[['emuwall/retrogamingwallpaper.jpg','emuwall/retrogamingwallpaper.jpg']];
+ var BGS=[['emuwall/christmas_pc.jpg','emuwall/th_christmas.jpg'],['emuwall/retrogamingwallpaper.jpg','emuwall/retrogamingwallpaper.jpg']];
  for(var i=1;i<=30;i++){if(i===8||i===9)continue;var n=('0'+i).slice(-2);BGS.push(['pcwall/gooroom_bg_'+n+'.jpg','pcwall/t/gooroom_bg_'+n+'.jpg'])}
  for(var j=1;j<=6;j++)BGS.push(['pcwall/gooroom_theme_bg_'+j+'.jpg','pcwall/t/gooroom_theme_bg_'+j+'.jpg']);
  for(var s=1;s<=14;s++){var m=('0'+s).slice(-2);BGS.push(['skywall/sky'+m+'.jpg','skywall/t/sky'+m+'.jpg'])}

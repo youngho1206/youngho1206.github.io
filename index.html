@@ -43,8 +43,10 @@ html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
 body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:transparent}
 
 /* ───── 배경 : 눈 내리는 겨울밤 ───── */
-.scene{position:fixed;inset:0;z-index:0;pointer-events:none;background:#1b1f4b url(emuwall/retrogamingwallpaper.jpg) center/cover no-repeat}
-.scene:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(18,14,58,.3),rgba(18,14,58,.12) 40%,rgba(22,16,60,.5))}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;background:#1b1f4b url(emuwall/christmas_pc.jpg) center/cover no-repeat}
+/* 휴대폰·세로 화면: 세로 구도로 잘라 둔 배경 사용 (화면 크기에 맞춤) */
+@media (max-width:700px) and (orientation:portrait),(max-aspect-ratio:3/4){.scene{background-image:url(emuwall/christmas_mobile.jpg);background-position:42% center}}
+.scene:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,14,50,.38),rgba(10,14,50,.06) 38%,rgba(12,16,54,.34))}
 .lights{position:fixed;left:0;right:0;top:0;height:22px;z-index:3;pointer-events:none;
  background:
   radial-gradient(circle 4.5px at 10px 13px,#ff6b7a 96%,transparent 100%) 0 0/80px 22px repeat-x,
