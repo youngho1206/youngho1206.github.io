@@ -80,7 +80,7 @@ html,body{margin:0;height:100%;background:#111;font:var(--fs)/1.3 "Malgun Gothic
 <div id="menu"></div><div class="pop" id="pDev"></div><div class="pop" id="pSnd"></div>
 <div class="dlg" id="dlg"><div id="dlgb"></div></div>
 <input type="file" id="fi" hidden>
-<script src="emudata.js?v=mg1"></script><script src="mamegame.js?v=1"></script>
+<script src="emudata.js?v=mg1"></script><script src="mamegame.js?v=1"></script><script src="pcnotice.js?v=1"></script>
 <script>
 (function(){
 var $=function(s,r){return(r||document).querySelector(s)},L=localStorage;
@@ -165,7 +165,7 @@ function buildEmu(){grid.innerHTML='';
  C.forEach(function(c){var d=el('div','ec',eimgTag(c)+'<b>'+c.n+'</b><small>'+c.y+'</small>',grid);d.onclick=function(){chooseEmu(c)}});
  if(cs&&mode==='hello')renderHello(); else hello.innerHTML='';
  showEmu()}
-function chooseEmu(c){cs=c;mode='hello';renderHello();showEmu()}
+function chooseEmu(c){if(window.PCEMU&&PCEMU.soon(c))return;cs=c;mode='hello';renderHello();showEmu();if(window.PCEMU)PCEMU.notice(c)}
 function renderHello(){var c=cs;hello.innerHTML=eimgTag(c,'hi')+'<div class=\"hn\">'+c.n+'</div><div class=\"hx\">'+c.x+'</div><p>'+t('hello')+'</p>';
  var b=el('button','btn o',t('open'),hello);b.style.padding='10px 34px';b.onclick=function(){openFile(c)};
  var k=el('button','btn','◀ '+t('back'),hello);k.onclick=backToGrid}

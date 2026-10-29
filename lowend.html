@@ -408,7 +408,7 @@ let filter='전체';
 function render(){
  const eras=['전체','1980년대','1990년대','2000년대'];
  $('#tabs').innerHTML=eras.map(e=>`<button class="${e===filter?'on':''}" data-e="${e}">${e}</button>`).join('');
- $('#grid').innerHTML=C.filter(c=>filter==='전체'||era(c.y)===filter).map((c,i)=>
+ $('#grid').innerHTML=C.filter(c=>!c.pc&&!c.soon&&(filter==='전체'||era(c.y)===filter)).map((c,i)=>
   `<button class="app" data-id="${c.id}" style="--ac:${c.a||'#d4af6a'}"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small></button>`).join('');
 }
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){filter=b.dataset.e;render()}};
@@ -469,7 +469,7 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function openEmu(c){
  cur=c;gameName='';started=false;
  $('#eTitle').textContent=c.n;$('#dName').textContent=c.n;$('#dIcon').innerHTML=icon(c,'d');
- $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'');
+ $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'')+(c.hint?'\n'+c.hint:'');
  $('#romIn').multiple=false;$('#bCore').style.display=MG.is(c)?'':'none';MG.mount(c);
  $('#drop').classList.remove('hidden');
  ['bSave','bCap','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
@@ -1575,5 +1575,6 @@ window.addEventListener('storage',function(e){if(e.key===KEY){autoSaver=false;se
 })();
 </script>
 <!-- DEVSTATUS:END -->
+<script src="pcnotice.js?v=1"></script>
 </body>
 </html>

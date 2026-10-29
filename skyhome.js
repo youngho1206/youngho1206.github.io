@@ -137,7 +137,7 @@ function artHtml(x){
 /* =====================================================================
    4) 기종 목록 (분류 · 검색 · 목록보기)
    ===================================================================== */
-const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sms','md','gg'],atari:['atari2600','lynx'],etc:['psx','pce','ngp'],mamegame:['mamegame']};
+const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds','gc','wii'],sega:['sms','md','gg','segacd','saturn','s32x','dc'],atari:['atari2600','lynx','jaguar'],etc:['psx','ps2','3do','pce','ngp'],mamegame:['mamegame']};
 const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',kw:(window.S_KW&&S_KW[it.id])||''});
 const CATS=[
@@ -153,8 +153,8 @@ const CATS=[
 let cat='all',view='grid',query='';
 
 function cellHtml(x,i){
- const soon=x.t==='e'&&x.it.soon;
- const tag=x.t==='p'?'<span class="sk-tag">PC</span>':(soon?'<span class="sk-tag">준비중</span>':'');
+ const soon=(x.t==='e'||x.t==='c')&&x.it.soon;
+ const tag=x.t==='p'?'<span class="sk-tag">PC</span>':(soon?'<span class="sk-tag">준비중</span>':(x.t==='c'&&x.it.pc?'<span class="sk-tag">PC용</span>':''));
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
  return `<div class="sk-cell" style="--d:${Math.min(i,30)*24}ms"><button type="button" class="sk-tile${soon?' soon':''}" data-t="${x.t}" data-id="${x.id}" title="${esc(x.n)}">`+
   `<span class="sk-box">${tag}${artHtml(x)}</span><span class="sk-nm">${esc(x.n)}</span>${st}</button></div>`;

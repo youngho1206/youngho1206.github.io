@@ -9,31 +9,30 @@ const q=s=>document.querySelector(s);
 const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 /* ---------- 분류 ---------- */
-const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sms','md','gg'],atari:['atari2600','lynx'],etc:['psx','pce','ngp'],mamegame:['mamegame']};
+const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds','gc','wii'],sega:['sms','md','gg','segacd','saturn','s32x','dc'],atari:['atari2600','lynx','jaguar'],etc:['psx','ps2','3do','pce','ngp'],mamegame:['mamegame']};
 const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',a:it.a||'#38b6ff',b:it.b||'#0a1230',kw:(window.S_KW&&S_KW[it.id])||''});
-const pcg=()=>typeof PCG!=='undefined'?[mk(Object.assign({y:'',b:'#0a1230'},PCG),'g')]:[];
 const CATS=[
- {k:'all',n:'전체',items:()=>C.map(c=>mk(c,'c')).concat(P.map(p=>mk(p,'p')),pcg())},
+ {k:'all',n:'전체',items:()=>C.map(c=>mk(c,'c')).concat(P.map(p=>mk(p,'p')))},
  {k:'nintendo',n:'닌텐도',items:()=>pick(BRAND.nintendo).map(c=>mk(c,'c'))},
  {k:'sega',n:'세가',items:()=>pick(BRAND.sega).map(c=>mk(c,'c'))},
  {k:'atari',n:'아타리',items:()=>pick(BRAND.atari).map(c=>mk(c,'c'))},
  {k:'mamegame',n:'마메게임',items:()=>pick(BRAND.mamegame).map(c=>mk(c,'c'))},
  {k:'etc',n:'소니 · 기타',items:()=>pick(BRAND.etc).map(c=>mk(c,'c'))},
- {k:'pc',n:'윈도우 · DOS',items:()=>P.map(p=>mk(p,'p')).concat(pcg())},
+ {k:'pc',n:'윈도우 · DOS',items:()=>P.map(p=>mk(p,'p'))},
  {k:'tool',n:'기타기능',items:()=>ETC.map(e=>mk(Object.assign({y:'',b:'#0a1230'},e),'e'))}
 ];
 let cat='all',view='grid',query='';
 
 const PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 function art(x){
- if(x.t==='e'||x.t==='g')return etcIcon(x.it);
+ if(x.t==='e')return etcIcon(x.it);
  return icon(x.it);
 }
 function cardHtml(x,i){
- const soon=x.t==='e'&&x.it.soon;
- const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':'');
- const sub=(x.t==='e'||x.t==='g')?(x.it.l||''):(x.y?x.y+'년':'');
+ const soon=(x.t==='e'||x.t==='c')&&x.it.soon;
+ const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':(x.t==='c'&&x.it.pc?'<span class="rb" data-t="PC용"></span>':''));
+ const sub=x.t==='e'?(x.it.l||''):(x.y?x.y+'년':'');
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
  return `<div class="cell" style="animation-delay:${Math.min(i,30)*22}ms"><button type="button" class="card ${soon?'soon':''}" data-t="${x.t}" data-id="${x.id}" style="--ca:${x.a};--cb:${x.b}" title="${esc(x.n)}">
   <span class="no">${i+1}</span>${rb}<span class="art">${art(x)}</span>
@@ -73,7 +72,6 @@ q('#cards').onclick=e=>{
  const id=b.dataset.id,t=b.dataset.t;
  if(t==='c')openEmu(C.find(c=>c.id===id));
  else if(t==='p')openPc(P.find(c=>c.id===id));
- else if(t==='g')winOpen(PCG);
  else{
   const it=ETC.find(x=>x.id===id);if(!it)return;
   if(it.href){winOpen(it);return}

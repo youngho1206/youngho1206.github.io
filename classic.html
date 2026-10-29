@@ -427,7 +427,7 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function openEmu(c){
  cur=c;gameName='';started=false;
  $('#eTitle').textContent=c.n;$('#dName').textContent=c.n;$('#dIcon').innerHTML=icon(c,'d');
- $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'');
+ $('#dExt').textContent='지원 형식: '+c.x+(MG.is(c)?'\n'+MG.hint:'')+(c.hint?'\n'+c.hint:'');
  $('#romIn').multiple=false;$('#bCore').style.display=MG.is(c)?'':'none';MG.mount(c);
  $('#drop').classList.remove('hidden');
  ['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=true);
@@ -501,6 +501,7 @@ function startGame(file,ci=0,lvl){
  fr.src='about:blank';
  setTimeout(async()=>{
    let bios=file.mgBios||[];
+   if(!bios.length&&cur.bios&&window.PCEMU){try{bios=await PCEMU.findBios(cur.bios)}catch(e){}}
    try{
     const d=fr.contentDocument,w=fr.contentWindow;
     d.open();
@@ -515,6 +516,8 @@ function startGame(file,ci=0,lvl){
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     /* PS1 속도 개선: 다이나믹 리컴파일러(DRC) 켬 · 자동 프레임스킵 · 부팅로고/보간 끔 */
     if(cur.id==='psx'){w.EJS_defaultOptions=LoadGame.psxOptions(psxLvl)}
+    /* PC용 기종(세가CD·32X·3DO 등): PC 사양에 맞춘 코어 설정 */
+    if(cur.pc&&window.PCEMU){const po=PCEMU.opts(cur);if(po)w.EJS_defaultOptions=Object.assign({},w.EJS_defaultOptions||{},po)}
     w.EJS_onGameStart=()=>{
       started=true;clearTimeout(startGame.t);clearTimeout(startGame.w);try{LoadGame.stop()}catch(e){}['bSave','bRest','bCtl'].forEach(i=>$('#'+i).disabled=false);
       loadProgress(100,'게임 시작 완료');
@@ -1483,5 +1486,6 @@ ICONS_READY.then(()=>{
  });
 })();
 </script>
+<script src="pcnotice.js?v=1"></script>
 </body>
 </html>

@@ -388,7 +388,7 @@ var APPS={
 var EMUS=[
  ['nes','패미컴 / NES','nes'],['snes','슈퍼패미컴','snes'],['n64','닌텐도 64','nintendo64'],['gb','게임보이','gameboy'],['gbc','게임보이 컬러','gameboycolor'],['gba','게임보이 어드밴스','gameboyadvance'],
  ['nds','닌텐도 DS','nintendods'],['vb','버추얼보이','virtualboy'],['md','메가드라이브','megadrive'],['sms','마스터 시스템','mastersystem'],['gg','게임기어','gamegear'],['pce','PC 엔진','pcengine'],
- ['psx','플레이스테이션','playstation'],['atari2600','아타리 2600','atari2600'],['lynx','아타리 링스','lynx'],['ngp','네오지오 포켓','neogeopocket'],['mamegame','마메게임','mamegame'],['dos','MS-DOS','msdos'],
+ ['psx','플레이스테이션','playstation'],['saturn','세가 새턴','segasaturn'],['segacd','세가 CD','segacd'],['s32x','세가 32X','sega32x'],['3do','3DO','3do'],['jaguar','아타리 재규어','jaguar'],['dc','드림캐스트','dreamcast'],['ps2','플레이스테이션 2','playstation2'],['gc','게임큐브','gamecube'],['wii','Wii','nintendowii'],['atari2600','아타리 2600','atari2600'],['lynx','아타리 링스','lynx'],['ngp','네오지오 포켓','neogeopocket'],['mamegame','마메게임','mamegame'],['dos','MS-DOS','msdos'],
  ['win10','윈도우 1.0','windows1'],['win20','윈도우 2.0','windows2'],['win30','윈도우 3.0','windows3'],['win31','윈도우 3.1','windows31'],['win95','윈도우 95','windows95'],['win98','윈도우 98','windows98']
 ];
 EMUS.forEach(function(e){APPS['e_'+e[0]]={n:e[1],c:['#3a3b30','#22231b'],img:'icons/'+e[2]+'.png',src:/^win/.test(e[0])?'winemu.html?os='+e[0]:e[0]==='dos'?'dos.html':'mobile.html?embed=1'}; if(!/^(win|dos)/.test(e[0]))APPS['e_'+e[0]].pick=e[0]});   /* 윈도우 → winemu.html, MS-DOS → dos.html (사이트에 이미 있는 에뮬레이터)로 바로 실행 */
