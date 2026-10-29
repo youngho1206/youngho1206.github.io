@@ -76,6 +76,9 @@ body.menu-off #menu{background:none}
 .g b{flex:1}.g small{color:#999}.g:disabled{opacity:.4}.g.cur{border-color:var(--ac)}
 .g:active:not(:disabled){background:#2c2c30}
 #dbox select{width:100%;margin:0 0 8px;padding:12px;border-radius:10px;border:1px solid #2c2c2f;background:#1f1f22;color:#eee;font-size:15px}
+#msg select{max-width:92%;padding:12px;border-radius:10px;border:1px solid #2c2c2f;background:#1f1f22;color:#eee;font-size:15px}
+#dbox p.hint{margin:10px 2px 0;color:#888;font-size:12px}
+body.drag #app{outline:3px dashed var(--ac);outline-offset:-8px}
 .kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
 .kg button{padding:12px 4px;border-radius:10px;border:1px solid #333;background:#1f1f22;color:#eee;font-size:14px;font-weight:700}
 .kg button:active{background:var(--ac);color:#000}
@@ -115,6 +118,7 @@ body.pfs #menu{display:none}
     <button id="tg" title="메뉴 접기/펴기">☰</button>
     <div id="mb">
       <button id="b-load">📂 게임불러오기</button>
+      <button id="b-json">📋 JSON불러오기</button>
       <button id="b-re">🔄 게임다시시작</button>
       <button id="b-ctl">🎮 버튼숨기기</button>
       <button id="b-sopen">📥 세이브열기</button>
@@ -127,7 +131,9 @@ body.pfs #menu{display:none}
   <div id="dlg"><div id="dbox"></div></div>
   <div id="toast"></div>
 </div>
-<input type="file" id="pick" accept=".zip" style="display:none">
+<input type="file" id="pick" multiple style="display:none">
+<input type="file" id="pickdir" webkitdirectory multiple style="display:none">
+<input type="file" id="pickjson" accept=".json,.conf,application/json,text/plain" style="display:none">
 <input type="file" id="picksave" style="display:none">
 <input id="kb" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" aria-hidden="true" tabindex="-1">
 <script>
@@ -179,6 +185,11 @@ body.pfs #menu{display:none}
     const tx = (m, f) => open().then(d => new Promise((ok, no) => { const t = d.transaction('kv', m), r = f(t.objectStore('kv')); t.oncomplete = () => ok(r.result); t.onerror = () => no(t.error); }));
     return { get: k => tx('readonly', s => s.get(k)), set: (k, v) => tx('readwrite', s => s.put(v, k)) };
   })();
+
+  /* ---- JSON(도스박스 설정) 불러오기 상태: 탭을 새로고침/엔진 전환해도 유지 ---- */
+  let JC = null; try { JC = JSON.parse(sessionStorage.getItem('dosJC') || 'null'); } catch (e) {}
+  const setJC = c => { JC = c; try { sessionStorage.setItem('dosJC', JSON.stringify(c)); } catch (e) {} };
+  const clearJC = () => { JC = null; try { sessionStorage.removeItem('dosJC'); } catch (e) {} };
 
   /* ---- 엔진: 기본 js-dos v8 (v8.js-dos.com), 문제 있을 때만 v6(내 서버 assets/jsdos → CDN)로 전환 ---- */
   const qs = new URLSearchParams(location.search);
@@ -382,11 +393,13 @@ body.pfs #menu{display:none}
       '<button class="g' + (ENG === 'v6' ? ' cur' : '') + '" data-e="v6"><b>js-dos v6' + (ENG === 'v6' ? ' ✓' : '') + '</b><small>v8에서 안 될 때</small></button>' +
       (G && G.exes.length > 1 ? '<div style="margin:12px 0 6px;color:#aaa;font-size:13px">실행 파일 선택</div><select id="exe">' + G.exes.map(n => '<option' + (n === G.exe ? ' selected' : '') + ' value="' + esc(n) + '">▶ ' + esc(n) + '</option>').join('') + '</select>' : '') +
       (G ? '<button class="g" id="d-btn" style="margin-top:8px"><b>🎮 이 게임 버튼 설정</b><small>전체화면에서 보일 버튼</small></button>' : '') +
+      (JC ? '<button class="g" id="d-jc" style="margin-top:8px"><b>🧹 JSON 설정 해제</b><small>불러온 JSON 설정 지우기</small></button>' : '') +
       '<button class="g" id="d-log" style="margin-top:8px"><b>📋 로그 보기</b></button>' +
       '<button class="g" id="d-exit"><b>↩ 사이트로 나가기</b></button>');
     b.querySelectorAll('[data-e]').forEach(x => x.onclick = () => { const n = x.dataset.e; if (n === ENG) return closeDlg(); try { localStorage.setItem('dosEngine', n); } catch (e) {} nav({ engine: n }); });
     const s = $('exe'); if (s) s.onchange = () => nav({ exe: s.value });
     const bb = $('d-btn'); if (bb) bb.onclick = btnDlg;
+    const jb = $('d-jc'); if (jb) jb.onclick = () => { clearJC(); closeDlg(); toast('JSON 설정을 해제했어요 (게임다시시작하면 기본 설정)'); if (G) setLaunch().catch(() => {}); };
     $('d-log').onclick = () => { dlg('<h2>📋 로그</h2><pre>' + esc(logs.join('\n') || '(로그 없음)') + '</pre>'); };
     $('d-exit').onclick = () => { if(window.top!==window){try{parent.postMessage('sky-close','*')}catch(_){}return} if (history.length > 1 && document.referrer) history.back(); else location.href = 'index.html'; };
   };
@@ -394,8 +407,10 @@ body.pfs #menu{display:none}
   /* ---- 실행 파일 고르기 ---- */
   const BAD = /(setup|install|uninst|unins|config|setsound|sound|readme|help|convert|patch|dos4gw|pmode|cwsdpmi|bootdisk)/i;
   const rank = (names, base) => {
+    const dep = n => n.split('/').length;
     const sc = n => {
       const p = n.split('/'), file = p[p.length - 1], stem = file.replace(/\.[^.]+$/, '').toLowerCase();
+      if (/\.(iso|img|ima|bin)$/i.test(file)) return 90 + p.length;   /* 디스크 이미지: 일반 실행파일 뒤, setup 류 앞 */
       let v = p.length * 10;
       if (BAD.test(file)) v += 100;
       if (stem === base.toLowerCase()) v -= 50;
@@ -404,8 +419,40 @@ body.pfs #menu{display:none}
       if (/\.com$/i.test(file)) v += 2;
       return v;
     };
-    return names.filter(n => /\.(exe|com|bat)$/i.test(n)).sort((a, b) => sc(a) - sc(b));
+    const ex = names.filter(n => /\.(exe|com|bat)$/i.test(n));
+    const dk = names.filter(n => /\.(iso|img|ima)$/i.test(n));
+    const bn = ex.length || dk.length ? [] : names.filter(n => /\.bin$/i.test(n));   /* .bin 은 다른 후보가 없을 때만 */
+    return ex.concat(dk, bn).sort((a, b) => sc(a) - sc(b));
   };
+  /* 디스크 이미지 종류: iso / floppy(2.88MB 이하) / hdd */
+  async function diskKind(zip, n) {
+    const e = zip.files[n]; let sz = e && e._data && e._data.uncompressedSize;
+    if (typeof sz !== 'number') sz = (await e.async('uint8array')).length;
+    const x = n.split('.').pop().toLowerCase();
+    if (x === 'iso') return 'iso';
+    if (sz <= 2949120) return 'floppy';
+    return x === 'bin' ? 'iso' : 'hdd';
+  }
+  /* 실행 명령(autoexec)과 설정(conf) 결정: JSON 설정 > DOS/_conf > 번들(.jsdos) 설정 > 자동 */
+  async function setLaunch() {
+    const g = G, hasA = !!(JC && JC.autoexec), hasC = !!(JC && JC.conf);
+    let def = g.cfAuto;
+    if (!def) {
+      def = ['mount c .', 'c:']; const n = g.exe;
+      if (n) {
+        const k = /\.(iso|img|ima|bin)$/i.test(n) ? await diskKind(g.zip, n) : '';
+        if (k === 'iso') def = ['mount c .', 'imgmount d "' + n + '" -t iso', 'd:'];
+        else if (k === 'floppy') def = ['mount c .', 'imgmount a "' + n + '" -t floppy', 'boot -l a'];
+        else if (k) def = ['imgmount c "' + n + '" -t hdd', 'boot -l c'];
+        else { const p = n.split('/'), file = p.pop(); if (p.length) def.push('cd ' + p.join('\\')); def.push(file); }
+      }
+    }
+    const auto = hasA ? JC.autoexec.split(/\r?\n/).map(x => x.trim()).filter(Boolean) : def;
+    g.auto = auto;
+    if (hasC) g.conf = /\[autoexec\]/i.test(JC.conf) ? JC.conf : JC.conf.replace(/\s+$/, '') + '\n[autoexec]\n' + auto.join('\n') + '\n';
+    else if (!hasA && !g.cfAuto && g.bconf) g.conf = g.bconf;
+    else g.conf = null;
+  }
 
   /* DOS/_conf/<zip이름>.conf 의 [autoexec] 줄만 사용 */
   async function confAutoexec(base) {
@@ -453,7 +500,7 @@ body.pfs #menu{display:none}
           const sz = await JSZip.loadAsync(ov);
           for (const n of Object.keys(sz.files)) { if (sz.files[n].dir || n.indexOf('.jsdos/') === 0) continue; clean.file(n, sz.files[n].async('uint8array'), { createFolders: false, binary: true }); }
         }
-        clean.file('.jsdos/dosbox.conf', makeConf(G.auto), { createFolders: false });
+        clean.file('.jsdos/dosbox.conf', G.conf || makeConf(G.auto), { createFolders: false });
         url = G_URL = URL.createObjectURL(await clean.generateAsync({ type: 'blob', compression: 'STORE' }));
         /* kiosk:true → js-dos 기본 메뉴/사이드바 숨김 (메뉴는 위의 새 메뉴 사용) */
         PROPS = window.DOS_PROPS = Dos($('dos'), {
@@ -470,7 +517,7 @@ body.pfs #menu{display:none}
       const dos = Dos(canvas, { wdosboxUrl: BASE + 'wdosbox.js' });
       dos.ready((fs, run) => {
         fs.extract(url).then(() => {
-          fs.createFile('web.conf', makeConf(G.auto));
+          fs.createFile('web.conf', G.conf || makeConf(G.auto));
           canvas.focus();
           run(['-conf', 'web.conf']).then(ci => { CI = window.DOS_CI = ci; });
         }).catch(e => fail('압축 해제 실패', e));
@@ -483,7 +530,7 @@ body.pfs #menu{display:none}
   /* ---- 게임 실행 (기본 v8 / 선택 v6) ---- */
   async function play(buf, fname, title, blank, local) {
     try {
-      if (!/\.zip$/i.test(fname)) throw new Error('도스는 zip 파일만 지원해요');
+      if (!/\.(zip|jsdos)$/i.test(fname)) throw new Error('도스는 zip(.jsdos) 파일만 지원해요');
       const base = fname.replace(/\.[^.]+$/, '');
       document.title = title; closeDlg();
 
@@ -496,13 +543,12 @@ body.pfs #menu{display:none}
       const exes = rank(names, base), want = qs.get('exe');
       const exe = exes.includes(want) ? want : exes[0];
 
-      let auto = await confAutoexec(base);
-      if (!auto) {
-        if (!exe && !blank) throw new Error('zip 안에서 실행 파일(exe/com/bat)을 찾지 못했어요');
-        auto = ['mount c .', 'c:'];
-        if (exe) { const p = exe.split('/'), file = p.pop(); if (p.length) auto.push('cd ' + p.join('\\')); auto.push(file); }
-      }
-      G = { buf, base, title, names, zip, auto, exe, exes, local: !!local, k: null };
+      const auto = await confAutoexec(base);
+      let bconf = null;
+      if (local) { const bf = zip.file('.jsdos/dosbox.conf'); if (bf) bconf = await bf.async('string'); }   /* 완성된 .jsdos 번들은 자체 설정 사용 */
+      if (!auto && !exe && !blank && !local && !(JC && (JC.conf || JC.autoexec))) throw new Error('zip 안에서 실행 파일(exe/com/bat)을 찾지 못했어요');
+      G = { buf, base, title, names, zip, auto: null, conf: null, cfAuto: auto, bconf, exe, exes, local: !!local, k: null };
+      await setLaunch();
       if (!local && !blank) { try { const r = await fetch('DOS/list.json', { cache: 'no-store' }); if (r.ok) { const it = (await r.json()).find(g => g.f === fname); if (it && Array.isArray(it.k)) G.k = it.k; } } catch (e) {} }
 
       if (local) {   /* 엔진 전환 때 다시 불러올 수 있게 내 컴퓨터 zip 을 브라우저에 보관 */
@@ -510,8 +556,12 @@ body.pfs #menu{display:none}
         try { history.replaceState(null, '', '?local=1'); } catch (e) {}
       }
 
-      status('<div style="font-size:20px;font-weight:800">' + esc(title) + '</div><div style="color:#aaa">' + esc(exe || '(conf 지정)') + '</div><button class="pri" id="go">▶ 시작</button>');
+      const lab = G.exe || (JC && (JC.conf || JC.autoexec) ? '(JSON 설정)' : (G.cfAuto ? '(conf 지정)' : 'DOS 프롬프트'));
+      status('<div style="font-size:20px;font-weight:800">' + esc(title) + '</div><div style="color:#aaa">' + esc(lab) + '</div>' +
+        (local && exes.length > 1 ? '<select id="exe0">' + exes.map(n => '<option value="' + esc(n) + '"' + (n === G.exe ? ' selected' : '') + '>▶ ' + esc(n) + '</option>').join('') + '</select>' : '') +
+        '<button class="pri" id="go">▶ 시작</button>');
       await new Promise(ok => { $('go').onclick = ok; });   /* 사용자 클릭 → 오디오/전체화면 허용 */
+      const s0 = $('exe0'); if (s0 && s0.value !== G.exe) { G.exe = s0.value; await setLaunch(); }
       await boot(null);
     } catch (e) { console.error(e); fail('도스를 시작하지 못했어요', e); }
   }
@@ -547,18 +597,117 @@ body.pfs #menu{display:none}
       '<button class="g" id="blank"><b>⌨ DOS 프롬프트 (빈 C:)</b><small>게임 없이 시작</small></button>' +
       items.map((g, i) => '<button class="g" data-i="' + i + '"><b>' + esc(g.t || g.f) + '</b><small>' + esc(g.f) + '</small></button>').join('') +
       (items.length ? '' : '<p style="color:#999">DOS/list.json 에 등록된 게임이 없어요.</p>') +
-      '<button class="g" id="loc"><b>📂 내 컴퓨터에서 zip 열기</b></button>', !!G);
+      '<button class="g" id="loc"><b>📂 내 컴퓨터에서 파일 열기</b><small>zip · jsdos · exe · bat · img · iso (여러 개 가능)</small></button>' +
+      '<button class="g" id="dir"><b>📁 폴더 선택</b><small>게임 폴더 통째로</small></button>' +
+      '<p class="hint">JSON · 파일 · 폴더를 이 화면에 끌어다 놓아도 돼요</p>', !!G);
     b.querySelectorAll('[data-i]').forEach(x => x.onclick = () => { const g = items[x.dataset.i]; const u = new URLSearchParams(); u.set('f', g.f); if (g.t) u.set('t', g.t); location.search = u.toString(); });
     $('loc').onclick = () => $('pick').click();
+    $('dir').onclick = () => $('pickdir').click();
     $('blank').onclick = () => { const u = new URLSearchParams(); u.set('blank', '1'); location.search = u.toString(); };
   }
   $('b-load').onclick = showList;
-  $('pick').onchange = async e => {
-    const file = e.target.files[0]; e.target.value = ''; if (!file) return;
-    closeDlg(); status('파일 읽는 중…'); const buf = await file.arrayBuffer();
-    if (G) { G = null; await stopEmu(); }
-    play(buf, file.name, file.name.replace(/\.[^.]+$/, ''), false, true);
-  };
+  /* ---- JSON(도스박스 설정) 불러오기 ---- */
+  const info = (h, t) => dlg('<h2>' + esc(h) + '</h2><p style="color:#bbb;line-height:1.6;white-space:pre-wrap;margin:0">' + esc(t) + '</p>');
+  function parseJson(o) {
+    if (!o || typeof o !== 'object') return null;
+    const get = (...ks) => { for (const k of ks) { if (o[k] !== undefined) return o[k]; } };
+    const dosbox = o.dosbox && typeof o.dosbox === 'object' ? o.dosbox : {}, cfg = {};
+    const url = get('bundleUrl', 'bundle', 'jsdosUrl', 'url', 'src', 'game', 'path');
+    if (typeof url === 'string' && /\.(jsdos|zip)(\?|#|$)|^https?:|^blob:/i.test(url)) cfg.url = url;
+    const conf = get('dosboxConf', 'dosbox_conf', 'conf', 'config') || dosbox.conf || dosbox.dosboxConf;
+    if (typeof conf === 'string') cfg.conf = conf;
+    let ae = get('autoexec', 'commands', 'run', 'cmd', 'exec') || dosbox.autoexec;
+    if (Array.isArray(ae)) ae = ae.join('\n');
+    if (typeof ae === 'string') cfg.autoexec = ae;
+    cfg.name = get('name', 'title') || '';
+    if (typeof cfg.name !== 'string') cfg.name = '';
+    return (cfg.url || cfg.conf || cfg.autoexec) ? cfg : null;
+  }
+  async function handleJson(file) {
+    try {
+      let obj; const t = await file.text();
+      try { obj = JSON.parse(t); }
+      catch (e) { if (/\[autoexec\]|\[cpu\]|\[sdl\]/i.test(t)) obj = { dosboxConf: t }; else { closeDlg(); return info('JSON을 읽을 수 없어요', e.message); } }
+      const cfg = parseJson(obj);
+      if (!cfg) { closeDlg(); return info('인식할 수 없는 JSON', '도스박스 설정(url / dosboxConf / autoexec)이 JSON 안에 없어요.'); }
+      setJC(cfg); closeDlg();
+      if (cfg.url) {   /* JSON 안의 주소에서 번들(.jsdos/.zip) 받아서 실행 */
+        if (!G) status('번들 받는 중…'); else toast('번들 받는 중…');
+        try {
+          const r = await fetch(cfg.url); if (!r.ok) throw new Error('HTTP ' + r.status);
+          const buf = await r.arrayBuffer(), nm = (cfg.name || cfg.url.split(/[?#]/)[0].split('/').pop() || 'game').replace(/\.[^.]+$/, '');
+          if (G) { G = null; await stopEmu(); }
+          return play(buf, nm + '.zip', cfg.name || nm, false, true);
+        } catch (e) {
+          msg.style.display = 'none';
+          return info('JSON 안의 주소에서 파일을 받지 못했어요', '주소 오류이거나 CORS 때문일 수 있어요.\n해당 .jsdos 파일을 직접 내려받아 📂 게임불러오기로 열어주세요.\n\n' + (e.message || e));
+        }
+      }
+      if (G) { toast('📋 JSON 설정으로 다시 시작해요'); await setLaunch(); await boot(null); return; }
+      toast('📋 JSON 설정을 불러왔어요. 이어서 게임을 선택하세요');
+      showList();
+    } catch (e) { console.error(e); fail('JSON을 적용하지 못했어요', e); }
+  }
+
+  /* ---- 파일 · 폴더 · 끌어다 놓기 ---- */
+  const extOf = n => (n.split('.').pop() || '').toLowerCase();
+  const JUNK = /(^|\/)(\.DS_Store|Thumbs\.db|desktop\.ini)$/i;
+  function mapFromList(list) {
+    const arr = [...list], rel = arr.map(x => x.webkitRelativePath || x.name);
+    const strip = arr.length > 0 && arr.every(x => x.webkitRelativePath) && new Set(rel.map(r => r.split('/')[0])).size === 1;
+    const m = new Map();
+    arr.forEach((x, i) => m.set((strip ? rel[i].split('/').slice(1).join('/') : rel[i]).replace(/\\/g, '/').replace(/^\.?\/+/, ''), x));
+    return { m, top: strip ? rel[0].split('/')[0] : '' };
+  }
+  async function openFiles(src, top) {
+    try {
+      let m = src instanceof Map ? src : null;
+      if (!m) { const r = mapFromList(src); m = r.m; top = r.top; }
+      for (const k of [...m.keys()]) if (JUNK.test(k) || !k) m.delete(k);
+      if (!m.size) return;
+      const names = [...m.keys()]; closeDlg();
+      if (m.size === 1 && /^(json|conf)$/.test(extOf(names[0]))) return handleJson(m.get(names[0]));
+      if (m.size > 1) for (const [k, x] of m) if (extOf(k) === 'json' && k.indexOf('/') < 0) { try { const c = parseJson(JSON.parse(await x.text())); if (c) setJC(c); } catch (e) {} }
+      let buf, name, title;
+      if (m.size === 1 && /^(zip|jsdos)$/.test(extOf(names[0]))) {
+        const x = m.get(names[0]); status('파일 읽는 중…');
+        buf = await x.arrayBuffer(); name = x.name; title = name.replace(/\.[^.]+$/, '');
+      } else {   /* 여러 파일 · 폴더 · 단일 exe/img → zip 으로 묶어서 같은 방식으로 실행 */
+        status('파일 묶는 중… (' + m.size + '개)'); await loadZip();
+        const z = new JSZip(); for (const [k, x] of m) z.file(k, x, { createFolders: false, binary: true });
+        buf = await z.generateAsync({ type: 'arraybuffer', compression: 'STORE' });
+        title = top || names[0].replace(/^.*\//, '').replace(/\.[^.]+$/, ''); name = title + '.zip';
+      }
+      if (G) { G = null; await stopEmu(); }
+      play(buf, name, title, false, true);
+    } catch (e) { console.error(e); fail('파일을 읽지 못했어요', e); }
+  }
+  $('pick').onchange = e => { const l = [...e.target.files]; e.target.value = ''; if (l.length) openFiles(l); };
+  $('pickdir').onchange = e => { const l = [...e.target.files]; e.target.value = ''; if (l.length) openFiles(l); };
+  $('pickjson').onchange = e => { const x = e.target.files[0]; e.target.value = ''; if (x) handleJson(x); };
+  $('b-json').onclick = () => $('pickjson').click();
+
+  async function readEntry(en, path, out) {
+    if (en.isFile) { const x = await new Promise((ok, no) => en.file(ok, no)); out.push([path + en.name, x]); }
+    else if (en.isDirectory) {
+      const rd = en.createReader(); let all = [];
+      for (;;) { const b = await new Promise((ok, no) => rd.readEntries(ok, no)); if (!b.length) break; all = all.concat(b); }
+      for (const c of all) await readEntry(c, path + en.name + '/', out);
+    }
+  }
+  ['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); body.classList.add('drag'); }));
+  document.addEventListener('dragleave', e => { if (!e.relatedTarget) body.classList.remove('drag'); });
+  document.addEventListener('drop', async e => {
+    e.preventDefault(); body.classList.remove('drag');
+    const its = [...(e.dataTransfer.items || [])].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean), fl = [...e.dataTransfer.files];
+    if (its.length) {
+      const list = [], dirOnly = its.length === 1 && its[0].isDirectory;
+      try { for (const it of its) await readEntry(it, '', list); } catch (er) { return fail('폴더를 읽지 못했어요', er); }
+      return openFiles(new Map(list.map(([p, x]) => [dirOnly ? p.split('/').slice(1).join('/') : p, x])), dirOnly ? its[0].name : '');
+    }
+    if (fl.length) openFiles(fl);
+  });
+
 
   const f = qs.get('f');
   if (qs.get('blank')) { blankDos(); }
