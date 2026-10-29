@@ -489,7 +489,7 @@ const ETC=[
  {id:'music',n:'음악',l:'MUSIC',a:'#fb7185',c:['#ff6a8a','#e0245e'],g:'<path d="M42 70V28l28-6v42"/><circle cx="35" cy="71" r="8" fill="#fff"/><circle cx="63" cy="65" r="8" fill="#fff"/>',soon:1},
  {id:'wall',n:'배경화면',l:'WALLPAPER',a:'#8b5cf6',c:['#a78bfa','#5b34d6'],g:'<rect x="32" y="19" width="36" height="62" rx="8"/><path d="M36 66l9-10 7 6 6-5 6 8"/><circle cx="58" cy="38" r="4.5"/>',soon:1}
 ];
-const PCG={id:'pcgame',n:'PC게임 실행기',l:'PC GAME',a:'#5b5bd6',c:['#7a7aff','#3a3ab8'],g:'<rect x="22" y="27" width="56" height="36" rx="4"/><path d="M38 75h24M50 63v12M35 45h10M40 40v10M60 45h.1M67 40h.1"/>',href:'pcgameemulator.html'};
+const PCG={id:'pcgame',n:'PC게임 실행기',l:'PC GAME',a:'#5b5bd6',c:['#7a7aff','#3a3ab8'],g:'<rect x="22" y="27" width="56" height="36" rx="4"/><path d="M38 75h24M50 63v12M35 45h10M40 40v10M60 45h.1M67 40h.1"/>',href:'dosplayer.html'};
 function etcIcon(e){
  return `<svg viewBox="0 0 100 100" width="256" height="256" aria-hidden="true"><defs><linearGradient id="eg_${e.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${e.c[0]}"/><stop offset="1" stop-color="${e.c[1]}"/></linearGradient></defs><rect width="100" height="100" rx="22.5" fill="url(#eg_${e.id})"/><rect width="100" height="50" rx="22.5" fill="#fff" opacity=".10"/><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${e.g}</g></svg>`;
 }
@@ -1380,7 +1380,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 <script>
 /* 캐쉬지우기(업데이트 반영용) + 버전선택 화면으로 돌아가기 */
 (function(){
- var FILES=['./','index.html','index-select.html','mobile.html','dex.html','classic.html','index-1.html','winemu.html','pcgameemulator.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','mobile.html','dex.html','classic.html','index-1.html','winemu.html','pcgameemulator.html','dosplayer.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
