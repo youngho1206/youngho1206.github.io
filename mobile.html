@@ -270,6 +270,25 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
 </style>
 <link rel="stylesheet" href="mobilemenu.css?v=1">
 <link rel="stylesheet" href="cutegame.css?v=1">
+<style id="dropskin">
+/* ===== 게임 파일 불러오기 화면 : 겨울밤 게임방 배경 + 수정 구슬 버튼 ===== */
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop{background:#2c1a80 url(emuwall/drop_bg.webp) 50% 0/cover no-repeat;gap:12px}
+@media (min-aspect-ratio:1/1){:root[data-cg="mobile"]:not(#cg):not(#cg) #drop{background-position:50% 28%}}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop h2{font:700 clamp(26px,6.8vw,38px)/1.15 'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:#fff;letter-spacing:.01em;margin:10px 0 0;
+ text-shadow:0 2px 0 #7a4cf0,0 0 10px rgba(190,150,255,.95),0 0 26px rgba(150,90,255,.8)}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop h2:before,:root[data-cg="mobile"]:not(#cg):not(#cg) #drop h2:after{content:"❄";display:inline-block;font-size:.72em;margin:0 .45em;color:#d9ecff;vertical-align:.08em;text-shadow:0 0 8px #9fd0ff,0 0 18px #b58cff}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop p{color:#e8defe;font-weight:400;font-size:clamp(13px,3.5vw,15px);line-height:1.75;text-shadow:0 1px 8px rgba(24,6,70,.85)}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop #dBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
+ width:min(60vw,240px);aspect-ratio:900/261;height:auto;padding:0 14%;margin:6px 0 0;border:0;border-radius:0;
+ background:url(emuwall/drop_btn.webp) 50% 50%/100% 100% no-repeat;box-shadow:none;
+ color:#fff;font:700 clamp(12.5px,3.6vw,15px) 'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;letter-spacing:0;
+ text-shadow:0 2px 0 rgba(62,24,170,.9),0 0 8px rgba(255,255,255,.5);
+ filter:drop-shadow(0 6px 10px rgba(110,50,230,.55));-webkit-tap-highlight-color:transparent;transition:transform .15s,filter .2s}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop #dBtn:hover{transform:scale(1.04);filter:brightness(1.12) drop-shadow(0 8px 14px rgba(150,90,255,.75))}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop #dBtn:active{transform:scale(.96);filter:brightness(1.2) drop-shadow(0 3px 6px rgba(110,50,230,.6))}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop #dExt{color:#cbb9ff;font-size:clamp(12.5px,3.3vw,14px);font-weight:400}
+:root[data-cg="mobile"]:not(#cg):not(#cg) #drop.over{outline:3px dashed #d9b8ff;outline-offset:-16px}
+</style>
 </head>
 <body>
 <div class="bg"><i></i><i></i><i></i></div>
@@ -301,7 +320,7 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
     <button id="bLoad">📂 게임</button>
     <button id="bSave" disabled>💾 저장</button>
     <button id="bRest" disabled>📥 불러오기</button>
-    <button id="bCtl" disabled>🎮 조작 ON</button>
+    <button id="bCtl" disabled>🎮 버튼숨기기</button>
     <button id="bCore" style="display:none" title="마메게임 엔진(코어) 변경">🧩 코어</button>
     <button id="bFs">⛶ 전체화면</button>
     <button id="bHide">▲ 메뉴숨김</button>
@@ -492,7 +511,7 @@ function startGame(file,ci=0,lvl){
  if(cur.id==='psx'&&LoadGame.needUnzip(file)){const me=cur;loadShow(`${cur.n} · 압축 푸는 중`,40);LoadGame.unzip(file,(p,l)=>{try{loadProgress(p,l)}catch(e){}}).then(f=>{if(cur===me)startGame(f,ci,lvl)});return}
  if(cur.id==='psx'){const bad=LoadGame.badFormat(file);if(bad){iosAlert(bad,'파일 형식 안내');return}if(lvl==null){const adv=LoadGame.advice(file);if(adv)toast(adv)}}
  gameName=file.name.replace(/\.[^.]+$/,'');
- started=false;ctlOn=true;$('#bCtl').textContent='🎮 조작 ON';
+ started=false;ctlOn=true;$('#bCtl').textContent='🎮 버튼숨기기';
  const est=Math.max(5,Math.min(300,file.size/1048576*0.35+4));
  loadShow(`${cur.n} · 파일 준비 중`,est);
  try{if(LoadGame.has(cur.id))LoadGame.start($('#stage'))}catch(e){}
@@ -592,7 +611,7 @@ $('#gsvIn').onchange=async e=>{
 $('#bCtl').onclick=()=>{
  ctlOn=!ctlOn;
  try{fr.contentDocument.body.classList.toggle('hidectl',!ctlOn)}catch(e){}
- $('#bCtl').textContent=ctlOn?'🎮 조작 ON':'🎮 조작 OFF';
+ $('#bCtl').textContent=ctlOn?'🎮 버튼숨기기':'🎮 버튼표시';
 };
 /* 메뉴숨김: 숨기면 화면 전체를 게임이 쓰고, 맨 위를 터치(PC는 마우스를 올림)하면 메뉴가 잠깐 나타났다가 자동으로 사라짐 */
 let barT=0,barL=0;
@@ -1201,7 +1220,7 @@ ICONS_READY.then(()=>{
  if(b)b.onclick=function(e){e.preventDefault();e.stopPropagation();try{parent.postMessage('sky-home','*')}catch(x){}};
 })();
 </script>
-<script src="mobilemenu.js?v=2"></script>
+<script src="mobilemenu.js?v=3"></script>
 <script src="pcplus.js?v=2"></script>
 <script>
 /* '가로로 돌려주세요.' 안내 — [확인]을 누르면 사라지고, 전체화면을 나가거나 가로로 돌리면 다음을 위해 다시 준비됩니다. */
