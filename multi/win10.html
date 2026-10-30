@@ -685,6 +685,122 @@ html.notr #sp{backdrop-filter:none}
 #sp .ico svg{width:30px;height:30px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .bsc{margin-top:10px}.bsc .bw{color:#666}.bsc .bf{margin-top:8px}.bsc small{color:#555}
 </style>
+<style id="w11css">
+/* ── Windows 11 스타일 작업표시줄 · 시작 메뉴 ── */
+#sm{display:none!important}
+#tb{justify-content:flex-start}
+#tb::before{content:"";flex:1 1 0;min-width:0}
+#tb .st,.srch,#tb .ta{border-radius:6px;margin:4px 1px;height:auto!important;align-self:stretch}
+#tb .st{width:42px}
+.logo{width:19px;height:19px;gap:2px}.logo b{background:#00adef}
+#tb .st:hover,#tb .st.on{background:rgba(255,255,255,.14)}
+.srch{width:42px!important;padding:0!important;justify-content:center;background:transparent!important;box-shadow:none!important;cursor:default}
+.srch input{display:none!important}
+.srch:hover,.srch.on{background:rgba(255,255,255,.14)!important}
+.srch .mg{stroke:#fff!important;width:20px!important;height:20px!important}
+#pins,#apps{display:flex;flex:0 1 auto}
+#tb .ta{min-width:42px;padding:0 9px;border-bottom:0!important;border-color:transparent!important;background:transparent}
+#tb .ta:hover{background:rgba(255,255,255,.14)}#tb .ta.on{background:rgba(255,255,255,.1)}
+#tb .ta::after{content:"";position:absolute;left:50%;bottom:2px;width:0;height:3px;border-radius:2px;background:#9aa0a6;transform:translateX(-50%);transition:width .15s}
+#tb .ta.run::after{width:6px}#tb .ta.on::after{width:16px;background:#4cc2ff}
+.ta.dup{display:none!important}
+#tray{flex:1 1 0;justify-content:flex-end}
+.px{image-rendering:pixelated}
+#w11{position:fixed;left:50%;bottom:calc(var(--tbh,40px) + 10px);transform:translateX(-50%);width:min(640px,calc(100vw - 16px));height:min(690px,calc(100% - var(--tbh,40px) - 20px));display:none;flex-direction:column;color:#fff;background:rgba(var(--tbc,32,32,36),var(--tba,.95));backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:10px;box-shadow:0 10px 40px #000a;z-index:9998;overflow:hidden;user-select:none}
+#w11.vis{display:flex;animation:w11up .18s ease-out}
+@keyframes w11up{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+#w11 .ws{margin:20px 26px 4px;height:40px;border-radius:20px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;gap:10px;padding:0 14px;flex:none;cursor:text}
+#w11 .ws svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;flex:none}
+#w11 .ws input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:#fff;font:inherit;font-size:14px;user-select:text}
+#w11 .ws input::placeholder{color:#cfcfcf}
+#w11 .wb{flex:1;overflow-y:auto;padding:4px 28px 12px;scrollbar-width:thin}
+#w11 .wh{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;font-size:14px}
+#w11 .wh button{background:rgba(255,255,255,.1);border:0;color:#fff;font:inherit;font-size:12px;padding:4px 10px;border-radius:5px;cursor:pointer}
+#w11 .wh button:hover{background:rgba(255,255,255,.2)}#w11 .wh span{font-size:12px;color:#ccc}
+#w11 .wg{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+#w11 .wi{text-align:center;padding:10px 2px 6px;border-radius:6px;cursor:default;min-width:0}
+#w11 .wi:hover,#w11 .wl:hover,#w11 .wt:hover{background:rgba(255,255,255,.12)}
+#w11 .wi i{display:grid;place-items:center;height:44px;font-style:normal;font-size:28px}
+#w11 .wi i .si{width:40px;height:40px}
+#w11 .wi span{display:block;font-size:12px;line-height:1.25;margin-top:4px;max-height:30px;overflow:hidden}
+#w11 .wr{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 8px}
+#w11 .wl{display:flex;gap:10px;align-items:center;padding:6px;border-radius:6px;min-width:0;cursor:default}
+#w11 .wl i{flex:none;display:grid;place-items:center;width:32px;height:32px;font-style:normal;font-size:22px}
+#w11 .wl i .si{width:30px;height:30px}
+#w11 .wl b{display:block;font-weight:400;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#w11 .wl small{display:block;color:#b8b8b8;font-size:11px}
+#w11 .wl div{min-width:0}
+#w11 .wc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#w11 .wt{padding:8px 4px;text-align:center;border-radius:6px;cursor:default;min-width:0}
+#w11 .wm{width:72px;height:72px;margin:0 auto 6px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:1fr 1fr;place-items:center;padding:8px;gap:2px;font-size:16px}
+#w11 .wm .si{width:24px;height:24px}
+#w11 .wt span{display:block;font-size:12px;line-height:1.25}
+#w11 .wf{flex:none;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(0,0,0,.22);border-top:1px solid rgba(255,255,255,.08)}
+#w11 .wu{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;font-size:13px;cursor:default}
+#w11 .wu:hover,#w11 .wq button:hover{background:rgba(255,255,255,.12)}
+#w11 .wu svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.2}
+#w11 .wq{display:flex;gap:2px}
+#w11 .wq button{width:40px;height:40px;border:0;background:none;border-radius:6px;display:grid;place-items:center;cursor:default}
+#w11 .wq svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+#w11 .wp{position:absolute;right:18px;bottom:66px;display:none;background:#2b2b2e;border:1px solid #555;border-radius:8px;padding:4px;min-width:150px;box-shadow:0 8px 24px #000b}
+#w11 .wp.on{display:block}#w11 .wp div{padding:9px 14px;border-radius:5px;font-size:13px;cursor:default}#w11 .wp div:hover{background:rgba(255,255,255,.14)}
+@media(max-width:520px){#w11 .wg{grid-template-columns:repeat(4,1fr)}#w11 .wr{grid-template-columns:repeat(2,1fr)}#w11 .wc{grid-template-columns:repeat(3,1fr)}#w11 .wb{padding:4px 14px 12px}}
+#sp{left:50%!important;transform:translateX(-50%);bottom:calc(var(--tbh,40px) + 10px)!important;width:min(640px,calc(100vw - 16px))!important;height:min(690px,calc(100% - var(--tbh,40px) - 20px))!important;border-radius:10px;border:1px solid rgba(255,255,255,.12);overflow:hidden}
+#sp .spf{display:flex!important;order:-1;margin:16px 22px 6px;height:40px;border-radius:20px;padding:0 14px;box-shadow:none;background:rgba(255,255,255,.14);color:#fff}
+#sp .spf input{color:#fff;font-size:14px}#sp .spf .mg{stroke:#fff}#sp .spf input::placeholder{color:#cfcfcf}
+#sp .ico img.px{image-rendering:pixelated}
+</style>
+<style id="arccss">
+#arc{position:fixed;inset:0;z-index:15000;display:none;flex-direction:column;color:#fff;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:radial-gradient(ellipse at 50% 30%,#14275a 0,#0a1430 60%,#070d20 100%);overflow:hidden;user-select:none}
+#arc.vis{display:flex}
+#arc::before{content:"";position:absolute;inset:0;opacity:.07;background:repeating-linear-gradient(0deg,#fff 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,#fff 0 2px,transparent 2px 80px);pointer-events:none}
+#arc .ah{position:relative;flex:none;height:112px;display:flex;justify-content:center;align-items:center}
+#arc .lg{display:flex;align-items:center;gap:10px}
+#arc .lg b{display:block;font:900 30px/1 "Arial Black",Impact,monospace;letter-spacing:2px;-webkit-text-stroke:1px #000;text-shadow:3px 3px 0 #000}
+#arc .lg b:first-child{color:#f7a531}#arc .lg b:last-child{color:#4a90e2}
+#arc .lg img{width:44px;height:44px;image-rendering:pixelated}
+#arc .tr{position:absolute;right:26px;top:14px;display:flex;gap:12px}
+#arc .tb{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:#dfe8ff;cursor:pointer;background:none;border:0;font-family:inherit}
+#arc .tb i{width:58px;height:46px;border:2px solid #7fa0e8;border-radius:8px;background:#16275a;display:grid;place-items:center;box-shadow:0 0 0 2px #0a1430,inset 0 0 10px #2b4a9a}
+#arc .tb:hover i,#arc .tb:focus-visible i{background:#244a9e;border-color:#fff}
+#arc .tb img{width:30px;height:30px;image-rendering:pixelated}
+#arc .am{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:0 10px}
+#arc .ar{flex:none;width:44px;height:64px;border:2px solid #5a78c8;border-radius:10px;background:#12224f;color:#cfe0ff;font-size:28px;cursor:pointer;display:grid;place-items:center}
+#arc .ar:hover{background:#244a9e;color:#fff}
+#arc .cs{display:flex;gap:18px;align-items:center;justify-content:center;max-width:1080px;width:100%;height:100%;max-height:520px}
+#arc .cd{position:relative;flex:1 1 0;min-width:0;height:90%;border:2px solid #243a78;border-radius:6px;background:rgba(16,30,70,.62);padding:14px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;opacity:.8;transition:all .15s;cursor:pointer}
+#arc .cd.on{height:100%;border-color:#6f9cf0;background:rgba(24,44,100,.9);opacity:1;box-shadow:0 0 22px #2f5fd8aa}
+#arc .cd .bd{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#1c2f6a;border:1px solid #9bb8f5;border-radius:12px;font-size:11px;padding:3px 12px;white-space:nowrap}
+#arc .ct{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+#arc .ct img{width:44px;height:44px;image-rendering:pixelated;object-fit:contain}
+#arc .ct b{display:block;font-size:19px}#arc .ct small{color:#9fb4e8;font-size:12px}
+#arc .art{flex:1;min-height:0;position:relative;width:100%;overflow:hidden}
+#arc .art img{position:absolute;inset:0;margin:auto;max-width:78%;max-height:100%;image-rendering:pixelated;object-fit:contain;filter:drop-shadow(0 8px 10px #0008)}
+#arc .cd h3{margin:6px 0 8px;font-size:20px;line-height:1.3;font-weight:700}
+#arc .cd ul{margin:0 0 12px;padding:0;list-style:none;font-size:12px;color:#d3def8;line-height:1.7}
+#arc .cd ul li::before{content:"* "}
+#arc .sel{width:100%;height:46px;border:0;border-radius:4px;font:700 18px inherit;font-family:inherit;color:#7e8fba;background:#24366f;cursor:pointer}
+#arc .cd.on .sel{color:#fff;background:linear-gradient(#3566e0,#1f3fa8);box-shadow:inset 0 0 0 2px #7fa6ff}
+#arc .pk{width:100%;max-width:1000px;height:100%;max-height:540px;display:none;flex-direction:column;border:2px solid #6f9cf0;border-radius:6px;background:rgba(18,34,80,.92);padding:14px 18px}
+#arc.pick .cs,#arc.pick .ar{display:none}#arc.pick .pk{display:flex}
+#arc .pk h2{margin:0 0 10px;font-size:20px;display:flex;justify-content:space-between;align-items:center}
+#arc .pk h2 button{background:#24366f;border:1px solid #7fa0e8;color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-family:inherit}
+#arc .pg{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;align-content:start;padding:4px}
+#arc .pi{border:2px solid #2c4590;border-radius:8px;background:#12234f;text-align:center;padding:12px 6px 8px;cursor:pointer;min-width:0}
+#arc .pi.on,#arc .pi:hover{border-color:#fff;background:#244a9e}
+#arc .pi img{width:72px;height:72px;image-rendering:pixelated;object-fit:contain}
+#arc .pi b{display:block;font-size:13px;font-weight:400;margin-top:4px}#arc .pi small{color:#a9bde9;font-size:11px}
+#arc .pi.sn{opacity:.55}
+#arc .af{flex:none;height:60px;display:flex;align-items:center;justify-content:center;color:#8fa3d8;font-size:12px;gap:18px}
+#arc .af kbd{background:#1c2f6a;border:1px solid #5a78c8;border-radius:4px;padding:1px 7px;color:#fff;font-family:inherit}
+#arcm{position:fixed;inset:0;z-index:15100;display:none;place-items:center;background:#000a}#arcm.on{display:grid}
+#arcm .bx{width:min(440px,92vw);background:#12224f;border:2px solid #6f9cf0;border-radius:8px;padding:18px;color:#fff}
+#arcm h3{margin:0 0 6px}#arcm p{margin:0 0 10px;color:#b9c8ee;font-size:13px}
+#arcm input,#arcm textarea{width:100%;box-sizing:border-box;margin-bottom:8px;border:1px solid #5a78c8;border-radius:5px;background:#0a1430;color:#fff;padding:8px;font:inherit}
+#arcm textarea{height:110px;resize:none}
+#arcm .rw{display:flex;gap:8px;justify-content:flex-end}#arcm button{border:0;border-radius:5px;padding:8px 14px;background:#2b55c8;color:#fff;cursor:pointer;font-family:inherit}#arcm button.g{background:#34416b}
+@media(max-width:760px){#arc .cs{flex-direction:column;max-height:none;overflow-y:auto;align-items:stretch}#arc .cd,#arc .cd.on{height:auto;min-height:200px;flex:none}#arc .ah{height:96px}#arc .lg b{font-size:22px}#arc .ar{display:none}#arc .af{display:none}}
+</style>
 </head>
 <body>
 <div id="desk">
@@ -1026,8 +1142,8 @@ function open(k){
  w.style.cssText=`left:${Math.min(60+off,Math.max(0,innerWidth-a.w))}px;top:${Math.max(0,Math.min(30+off,innerHeight-44-Math.min(a.h,innerHeight-60)))}px;width:${Math.min(a.w,innerWidth)}px;height:${Math.min(a.h,innerHeight-60)}px`;
  w.innerHTML=`<div class="tbar"><span style="padding-left:8px">${a.e}</span><div class="t">${a.n}</div><button class="m">─</button><button class="mx">☐</button><button class="x">✕</button></div><div class="body"></div><div class="rz"></div>`;
  $("#desk").append(w);if(AUTOMAX())w.classList.add("max");a.r(w.querySelector(".body"),w);
- const ta=document.createElement("div");ta.className="ta run";ta.title=a.n;ta.innerHTML=a.e;$("#apps").append(ta);
- wins[id]={w,ta};
+ const ta=document.createElement("div");ta.className="ta run";ta.title=a.n;ta.innerHTML=a.e;if(window.PINK&&PINK.has(k))ta.classList.add("dup");$("#apps").append(ta);
+ wins[id]={w,ta,k};
  const foc=()=>{z++;w.style.zIndex=z;cur=id;for(const i in wins){wins[i].w.classList.toggle("act",i==id);wins[i].ta.classList.toggle("on",i==id&&!wins[i].w.classList.contains("min"))}};
  w.onmousedown=foc;w.ontouchstart=foc;foc();
  w.querySelector(".x").onclick=()=>{w.remove();ta.remove();delete wins[id]};
@@ -2410,6 +2526,134 @@ document.getElementById("icons").addEventListener("click",e=>{
 },true);
 
 open("pc");window.__booted=true;wmAdapt();
+</script>
+<script id="w11js">
+/* ── Windows 11 스타일 시작 메뉴 · 게임 에뮬레이터 (기종 목록은 ../emudata.js 와 자동 동기화) ── */
+(function(){
+const D=s=>document.querySelector(s),E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const PX=id=>`<img class="si px" src="../tabicons/pixel/${id}.png" alt="" draggable="false">`;
+function pxs(rows,pal){let s="";rows.forEach((r,y)=>{for(let x=0;x<r.length;x++){const c=r[x];if(c===".")continue;let n=1;while(r[x+n]===c)n++;s+=`<rect x="${x}" y="${y}" width="${n}" height="1" fill="${pal[c]}"/>`;x+=n-1}});return`<img class="si px" alt="" draggable="false" src="data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 ${rows.length}" shape-rendering="crispEdges">${s}</svg>`)}">`}
+const DOSR=["................","..cccccccccccc..",".cKKKKKKKKKKKKc.",".cKgKKKKKKKKKKc.",".cKKgKKKKKKKKKc.",".cKKKgKKKKKKKKc.",".cKKgKKKKKKKKKc.",".cKgKKKggggKKKc.",".cKKKKKKKKKKKKc.","..cccccccccccc..","......cccccc....",".....cccccccc..."];
+const WINR=["................","..cccccccccccc..",".cSSSSSSSSSSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSSSSSSSSSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSSSSSSSSSSSc.","..cccccccccccc..","......cccccc....",".....cccccccc..."];
+const osIcon=(id,col)=>id==="dos"?pxs(DOSR,{c:"#9aa3b2",K:"#0b0b10",g:"#4ade80"}):pxs(WINR,{c:"#9aa3b2",S:col,w:"#fff"});
+let EM=[["atari2600","Atari 2600",1977,0,"아타리"],["nes","Famicom / NES",1983,0,"패미컴 패미콤 닌텐도 famicom"],["sms","Master System",1985,0,"마스터시스템 세가 sega"],["pce","PC Engine",1987,0,"피씨엔진 pc엔진 nec"],["md","Mega Drive / Genesis",1988,0,"메가드라이브 제네시스 세가 megadrive genesis"],["gb","Game Boy",1989,0,"게임보이 닌텐도 gameboy"],["lynx","Atari Lynx",1989,0,"링스 아타리"],["snes","Super Famicom / SNES",1990,0,"슈퍼패미컴 슈패 닌텐도"],["gg","Game Gear",1990,0,"게임기어 세가"],["segacd","Sega CD",1991,0,"세가cd 메가cd 세가씨디"],["3do","3DO",1993,0,"쓰리디오"],["jaguar","Atari Jaguar",1993,0,"재규어 아타리"],["psx","PlayStation",1994,0,"플레이스테이션 플스 ps1 소니 sony"],["saturn","Sega Saturn",1994,0,"세가새턴 새턴 세가"],["s32x","Sega 32X",1994,0,"세가32x 32엑스"],["vb","Virtual Boy",1995,0,"버추얼보이 닌텐도"],["n64","Nintendo 64",1996,0,"닌텐도64 엔64"],["ngp","Neo Geo Pocket",1998,0,"네오지오포켓 snk"],["gbc","Game Boy Color",1998,0,"게임보이컬러 닌텐도"],["dc","Dreamcast",1998,1,"드림캐스트 드캐 세가"],["ps2","PlayStation 2",2000,1,"플레이스테이션2 플스2 ps2 소니"],["gba","Game Boy Advance",2001,0,"게임보이어드밴스 gba 닌텐도"],["gc","GameCube",2001,1,"게임큐브 닌텐도"],["mamegame","마메게임",2003,0,"마메 mame 오락실 아케이드 arcade 네오지오"],["nds","Nintendo DS",2004,0,"닌텐도ds 닌텐도 디에스"],["wii","Wii",2006,1,"위 닌텐도wii"]];
+let OS=[["dos","MS-DOS",1981,"#4b5563","도스 dos msdos"],["win10","Windows 1.0",1985,"#2dd4bf","윈도우 windows 윈도우1"],["win20","Windows 2.0",1987,"#38bdf8","윈도우 windows 윈도우2"],["win30","Windows 3.0",1990,"#818cf8","윈도우 windows 윈도우3"],["win31","Windows 3.1",1992,"#3b82f6","윈도우 windows 윈도우3.1"],["win95","Windows 95",1995,"#14b8a6","윈도우 windows 윈도우95"],["win98","Windows 98",1998,"#60a5fa","윈도우 windows 윈도우98"]];
+function frame(b,src){b.style.cssText="padding:0;overflow:hidden;background:#000";b.innerHTML=`<iframe allow="autoplay; gamepad; fullscreen; clipboard-read; clipboard-write" allowfullscreen src="${src}" style="width:100%;height:100%;border:0;display:block;background:#000"></iframe>`}
+function soon(b,n,why){b.style.cssText="padding:0;background:#111";b.innerHTML=`<div style="height:100%;display:grid;place-items:center;text-align:center;color:#fff;padding:24px;line-height:1.8"><div><div style="font-size:42px">🚧</div><b style="font-size:18px">${E(n)}</b><p style="color:#bbb;max-width:380px;margin:10px auto 0">${E(why||"이 기종은 웹 브라우저용 에뮬레이터 코어가 아직 없어 실행할 수 없습니다. 코어가 지원되면 바로 연결할 수 있게 자리만 만들어 두었어요.")}</p></div></div>`}
+const isG=k=>/^(emu|os)_/.test(k);
+function reg(){for(const k in APPS)if(isG(k))delete APPS[k];
+ EM.forEach(([id,n,y,s,kw,why])=>{APPS["emu_"+id]={n,e:PX(id),w:980,h:640,nosearch:1,y,s,kw,r:b=>s?soon(b,n,why):frame(b,"../emulator.html?embed=1&launch="+id)}});
+ OS.forEach(([id,n,y,col,kw])=>{APPS["os_"+id]={n,e:osIcon(id,col),w:980,h:640,nosearch:1,os:1,y,kw,r:b=>frame(b,id==="dos"?"../dos.html":"../winemu.html?os="+id)}})}
+registerSearch(()=>Object.keys(APPS).filter(isG).map(k=>{const a=APPS[k];return{key:"w11:"+k,type:"app",name:a.n,sub:(a.os?"PC · 윈도우 에뮬레이터":"게임 에뮬레이터")+" · "+a.y+"년"+(a.s?" · 준비 중":""),icon:a.e,kw:"게임 game 에뮬 에뮬레이터 emulator 롬 retro "+(a.kw||""),run:()=>open(k)}}));
+// 최근 항목 기록
+const jg=()=>{try{return JSON.parse(localStorage.getItem("w11rc"))||[]}catch(e){return[]}};
+const _o=window.open;window.open=function(k){try{if(APPS[k]&&!APPS[k].hidden){localStorage.setItem("w11rc",JSON.stringify([{k,t:Date.now()}].concat(jg().filter(r=>r.k!==k)).slice(0,12)))}}catch(e){}return _o.apply(this,arguments)};
+const ago=t=>{const m=Math.floor((Date.now()-t)/6e4);return m<1?"방금 전":m<60?m+"분 전":m<1440?Math.floor(m/60)+"시간 전":Math.floor(m/1440)+"일 전"};
+// 시작 메뉴
+const sb=D("#sb"),SV=d=>`<svg viewBox="0 0 18 18"><path d="${d}"/></svg>`;
+document.body.insertAdjacentHTML("beforeend",`<div id="w11"><label class="ws"><svg viewBox="0 0 20 20"><circle cx="8" cy="8" r="5.6"/><path d="M12.2 12.2L18 18"/></svg><input id="w11q" type="text" placeholder="게임, 앱, 설정 및 문서 검색" autocomplete="off" spellcheck="false" aria-label="검색"></label><div class="wb" id="w11b"></div><div class="wf"><div class="wu" data-a="pwr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9.5" r="3.2"/><path d="M5.5 19c1.4-3 3.6-4.2 6.5-4.2s5.1 1.2 6.5 4.2"/></svg><span>USER</span></div><div class="wq"><button data-k="docs" title="문서">${SV("M4 1.5h7l3.5 3.5v11.5H4zM11 1.5V5h3.5")}</button><button data-k="xdl" title="다운로드">${SV("M9 2v9M5 7.5l4 4 4-4M3 15h12")}</button><button data-k="pc" title="파일 탐색기">${SV("M1.5 4h5l1.5 2h8v8.5h-14.5z")}</button><button data-k="set" title="설정">${SV("M9 6.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M3.7 14.3l1.4-1.4M12.9 5.1l1.4-1.4")}</button><button data-a="pwr" title="전원">${SV("M9 1.5V8.5M5 4.2a6.2 6.2 0 1 0 8 0")}</button></div><div class="wp" id="w11p"><div data-m="lock">화면잠금</div><div data-m="out">로그아웃</div><div data-m="off">시스템 종료</div></div></div></div>`);
+const W=D("#w11"),Q=D("#w11q"),B=D("#w11b");let view=null,all=false;
+const PIN=["emu_nes","emu_snes","emu_md","emu_gb","emu_gba","emu_psx","emu_n64","emu_nds","emu_mamegame","emu_saturn","os_dos","os_win95"];
+const cell=k=>{const a=APPS[k];return a?`<div class="wi" data-k="${k}" title="${E(a.n)}"><i>${a.e}</i><span>${E(a.n)}</span></div>`:""};
+const keys=f=>Object.keys(APPS).filter(k=>isG(k)&&f(APPS[k]));
+const CATS=()=>[["게임기 · 1980년대",keys(a=>!a.os&&a.y<1990)],["게임기 · 1990년대",keys(a=>!a.os&&a.y>=1990&&a.y<2000)],["게임기 · 2000년대",keys(a=>!a.os&&a.y>=2000)],["PC · DOS · 윈도우",keys(a=>a.os)],["인터넷 · 미디어",["web","yt","guide","music"]],["시스템 · 도구",["pc","np","calc","set"]]];
+function draw(){let h="";const C=CATS();
+ if(view!=null){h=`<div class="wh"><button data-a="back">‹ 뒤로</button><b>${E(C[view][0])}</b><span></span></div><div class="wg">${C[view][1].map(cell).join("")}</div>`}
+ else{const pin=all?keys(a=>!a.s).concat(keys(a=>a.s)):PIN;
+  let rec=jg().filter(r=>APPS[r.k]).slice(0,6).map(r=>[r.k,ago(r.t)]);
+  ["pc","web","music","yt","guide","set"].forEach(k=>{if(rec.length<6&&!rec.some(r=>r[0]===k))rec.push([k,"추천"])});
+  h=`<div class="wh"><b>고정됨</b><button data-a="all">${all?"간단히 보기 ‹":"모두 표시 ›"}</button></div><div class="wg">${pin.map(cell).join("")}</div><div class="wh"><b>최근 항목</b></div><div class="wr">${rec.map(([k,t])=>`<div class="wl" data-k="${k}"><i>${APPS[k].e}</i><div><b>${E(APPS[k].n)}</b><small>${t}</small></div></div>`).join("")}</div><div class="wh"><b>모두</b><span>보기: 범주</span></div><div class="wc">${C.map((c,i)=>`<div class="wt" data-c="${i}"><div class="wm">${c[1].slice(0,4).map(k=>APPS[k]?APPS[k].e:"").join("")}</div><span>${E(c[0])}</span></div>`).join("")}</div>`}
+ B.innerHTML=h;B.scrollTop=0}
+function hide(){W.classList.remove("vis");sb.classList.remove("on");Q.value="";D("#w11p").classList.remove("on")}
+function show(){try{window.closeSP&&window.closeSP()}catch(e){}try{hideCal()}catch(e){}view=null;all=false;draw();W.classList.add("vis");sb.classList.add("on")}
+sb.onclick=e=>{e.stopPropagation();W.classList.contains("vis")?hide():show()};
+const _c=window.closeSM;window.closeSM=function(){_c.apply(this,arguments);hide()};
+// 검색: 시작 메뉴 검색창을 누르거나 입력하면 같은 자리에서 검색 패널(게임·앱·설정·파일)로 이어짐
+function go(v){hide();SEARCH.open();const f=D("#sqf");f.value=v;f.dispatchEvent(new Event("input"));f.focus();try{f.setSelectionRange(v.length,v.length)}catch(e){}}
+Q.addEventListener("focus",()=>go(Q.value));Q.addEventListener("input",()=>go(Q.value));
+document.addEventListener("keydown",e=>{if(!W.classList.contains("vis")||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==="Escape"){hide();return}if(e.key.length===1&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();go(e.key)}});
+document.addEventListener("pointerdown",e=>{if(W.classList.contains("vis")&&!e.target.closest("#w11,#sb"))hide()},true);
+document.addEventListener("contextmenu",e=>{if(e.target.closest("#w11")){e.preventDefault();e.stopPropagation()}},true);
+W.onclick=e=>{e.stopPropagation();const t=e.target,p=D("#w11p");
+ if(!t.closest("#w11p,[data-a=pwr]"))p.classList.remove("on");
+ const m=t.closest("[data-m]");if(m){hide();const a=m.dataset.m;if(a==="off")D("#pw").click();else D('#um .mi[data-a="'+(a==="lock"?"lock":"out")+'"]').click();return}
+ const a=t.closest("[data-a]");if(a){const v=a.dataset.a;if(v==="pwr")p.classList.toggle("on");else if(v==="all"){all=!all;draw()}else if(v==="back"){view=null;draw()}else if(v==="arc"){hide();window.ARC&&ARC.show()}return}
+ const c=t.closest("[data-c]");if(c){view=+c.dataset.c;draw();return}
+ const k=t.closest("[data-k]");if(k&&APPS[k.dataset.k]){hide();open(k.dataset.k)}};
+// 작업표시줄: 고정 아이콘(내 PC · 인터넷 · 설정) — 실행 중이면 표시줄 표시, 누르면 열기/최소화
+const PT=["pc","web","set"],pins=document.createElement("div");pins.id="pins";
+PT.forEach(k=>pins.insertAdjacentHTML("beforeend",`<div class="ta pin" data-k="${k}" title="${E(APPS[k].n)}">${APPS[k].e}</div>`));
+D("#apps").before(pins);window.PINK=new Set(PT);Object.keys(wins).forEach(i=>{const k=PT.find(k=>APPS[k].n===wins[i].ta.title);if(k){wins[i].k=k;wins[i].ta.classList.add("dup")}});
+pins.onclick=e=>{const t=e.target.closest(".pin");if(!t)return;const k=t.dataset.k,id=Object.keys(wins).find(i=>wins[i].k===k);id?wins[id].ta.click():open(k)};
+setInterval(()=>{pins.querySelectorAll(".pin").forEach(p=>{const L=Object.values(wins).filter(x=>x.k===p.dataset.k);p.classList.toggle("run",!!L.length);p.classList.toggle("on",L.some(x=>x.ta.classList.contains("on")))})},300);
+sb.title="시작";
+reg();
+// 사이트의 에뮬레이터 목록(emudata.js)을 읽어 올 수 있으면 자동 동기화 (새 기종을 추가하면 여기에도 바로 나타남)
+try{fetch("../emudata.js",{cache:"no-cache"}).then(r=>r.ok?r.text():Promise.reject()).then(t=>{const d=new Function(t+";return{C:C,P:P,K:typeof S_KW==='undefined'?{}:S_KW}")();
+ EM=d.C.map(c=>[c.id,c.n,c.y,c.soon?1:0,d.K[c.id]||"",c.why||""]);OS=d.P.map(p=>[p.id,p.n,p.y,p.a,d.K[p.id]||""]);reg();if(W.classList.contains("vis"))draw();try{SEARCH.refresh()}catch(e){}}).catch(()=>{})}catch(e){}
+})();
+</script>
+<script id="arcjs">
+/* ── RETRO ARCADE 시작 화면 (게임 선택) ── */
+(function(){
+const D=s=>document.querySelector(s),E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MAIL="youngho7375@naver.com";
+function pxs(rows,pal){let s="";rows.forEach((r,y)=>{for(let x=0;x<r.length;x++){const c=r[x];if(c===".")continue;let n=1;while(r[x+n]===c)n++;s+=`<rect x="${x}" y="${y}" width="${n}" height="1" fill="${pal[c]}"/>`;x+=n-1}});return"data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 ${rows.length}" shape-rendering="crispEdges">${s}</svg>`)}
+const TV=pxs(["...a........a...","....a......a....",".....a....a.....",".cccccccccccccc.",".cSSSSSSSSSScdc.",".cSSSSSSSSSSccc.",".cSSSSSSSSSScdc.",".cSSSSSSSSSSccc.",".cSSSSSSSSSScdc.",".cSSSSSSSSSSccc.",".cccccccccccccc.","..kk........kk.."],{a:"#cfcfcf",c:"#8a5a32",S:"#8fd3ff",d:"#222",k:"#3a2a1a"});
+const HOME=pxs([".......cc.......","......cccc......",".....cccccc.....","....cccccccc....","...cccccccccc...","..cccccccccccc..",".cccccccccccccc.","..ccwwwwwwwwcc..","..ccwwwwwwwwcc..","..ccwwwddwwwcc..","..ccwwwddwwwcc..","..cccccccccccc.."],{c:"#e8eefc",w:"#7fa0e8",d:"#12224f"});
+const ASK=pxs(["..cccccccccccc..",".ccwwwwwwwwwwcc.",".cwwwwwddwwwwwc.",".cwwwwddddwwwwc.",".cwwwwwwddwwwwc.",".cwwwwwddwwwwwc.",".cwwwwwwwwwwwwc.",".cwwwwwddwwwwwc.",".ccwwwwwwwwwwcc.","..ccccwcccccccc.","....ccwc........","....cccc........"],{c:"#e8eefc",w:"#7fa0e8",d:"#12224f"});
+const OSM=pxs(["................","..cccccccccccc..",".cSSSSSSSSSSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSSSSSSSSSSSc.",".cSSwwwSwwwSSSc.",".cSSwwwSwwwSSSc.",".cSSSSSSSSSSSSc.","..cccccccccccc..","......cccccc....",".....cccccccc..."],{c:"#e8eefc",S:"#3b82f6",w:"#fff"});
+const PXI=id=>`../tabicons/pixel/${id}.png`;
+const TVIDS=["psx","n64","saturn","segacd","3do","jaguar","s32x","dc","ps2","gc","wii"];
+const CARDS=[
+ {id:"console",t:"콘솔 오락기",en:"CONSOLE",ico:PXI("nes"),art:PXI("nes"),h:"명작의 귀환:<br>패미컴 &amp; 슈퍼패미컴",l:["전설적인 8-bit &amp; 16-bit 게임들","게임보이 · 메가드라이브 · PC엔진","고전의 재미를 다시 한번"],f:a=>!TVIDS.includes(a.id)&&a.id!=="mamegame"},
+ {id:"tv",t:"텔레비전 게임",en:"TV GAMES",ico:TV,art:TV,h:"TV로 즐기는<br>아날로그 감성",l:["32-bit &amp; 64-bit 게임의 혁명","닌텐도 64 · 플레이스테이션 · 세가 새턴","아날로그 조이패드의 손맛"],badge:"신규 추가",f:a=>TVIDS.includes(a.id)},
+ {id:"arcade",t:"아케이드 캐비닛",en:"ARCADE",ico:PXI("mamegame"),art:PXI("mamegame"),h:"오락실의 열정:<br>마메 &amp; 아케이드",l:["코인용의 대결과 액션","네오지오 · 메탈슬러그 · 킹 오브 파이터즈","레버와 버튼의 타격감"],f:a=>a.id==="mamegame"}
+];
+const items=c=>{const L=Object.keys(APPS).filter(k=>/^(emu|os)_/.test(k)).map(k=>({k,id:k.replace(/^(emu|os)_/,""),a:APPS[k]}));
+ let r=L.filter(x=>!x.a.os&&c.f(x));if(c.id==="console")r=r.concat(L.filter(x=>x.a.os));return r};
+document.body.insertAdjacentHTML("beforeend",`<div id="arc"><div class="ah"><div class="lg"><div><b>RETRO</b><b>ARCADE</b></div><img src="${PXI("mamegame")}" alt=""></div><div class="tr"><button class="tb" data-a="home"><span>홈으로</span><i><img src="${HOME}" alt=""></i></button><button class="tb" data-a="ask"><span>문의하기</span><i><img src="${ASK}" alt=""></i></button><button class="tb" data-a="os"><span>OS모드</span><i><img src="${OSM}" alt=""></i></button></div></div><div class="am"><button class="ar" data-a="prev" aria-label="이전">‹</button><div class="cs" id="arcs"></div><div class="pk" id="arcp"></div><button class="ar" data-a="next" aria-label="다음">›</button></div><div class="af"><span><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> 이동</span><span><kbd>Enter</kbd> 선택</span><span><kbd>Esc</kbd> 뒤로</span><span>웹에서 실행 가능한 게임 에뮬레이터</span></div></div><div id="arcm"><div class="bx"><h3>문의하기</h3><p>받는 사람: ${MAIL}</p><input id="arcs1" placeholder="제목" maxlength="80"><textarea id="arcb" placeholder="문의 내용을 입력하세요"></textarea><div class="rw"><button class="g" data-m="copy">주소 복사</button><button class="g" data-m="x">닫기</button><button data-m="send">메일 보내기</button></div></div></div>`);
+const A=D("#arc"),CS=D("#arcs"),PK=D("#arcp"),M=D("#arcm");let ci=1,pi=0,mode="home",list=[],cur=null;
+CS.innerHTML=CARDS.map((c,i)=>`<div class="cd" data-i="${i}">${c.badge?`<span class="bd">${c.badge}</span>`:""}<div class="ct"><img src="${c.ico}" alt=""><div><b>${c.t}</b><small>(${c.en})</small></div></div><div class="art"><img src="${c.art}" alt=""></div><h3>${c.h}</h3><ul>${c.l.map(x=>`<li>${x}</li>`).join("")}</ul><button class="sel" data-s="${i}">선택하기 &gt;</button></div>`).join("");
+const cds=[...CS.children];
+function paint(){cds.forEach((e,i)=>e.classList.toggle("on",i===ci))}
+function openPick(i){ci=i;paint();const c=CARDS[i];list=items(c);pi=0;mode="pick";A.classList.add("pick");
+ PK.innerHTML=`<h2><span>${c.t} <small style="color:#9fb4e8;font-size:13px">(${c.en})</small></span><button data-a="back">‹ 뒤로 (Esc)</button></h2><div class="pg">${list.map((x,j)=>`<div class="pi${x.a.s?" sn":""}" data-j="${j}"><img src="${x.a.e.match(/src="([^"]+)"/)[1]}" alt=""><b>${E(x.a.n)}</b><small>${x.a.y}년${x.a.s?" · 준비 중":""}</small></div>`).join("")}</div>`;pp()}
+function pp(){[...PK.querySelectorAll(".pi")].forEach((e,j)=>{e.classList.toggle("on",j===pi);if(j===pi)e.scrollIntoView({block:"nearest"})})}
+function back(){mode="home";A.classList.remove("pick")}
+function launch(x){if(!x)return;A.classList.remove("vis");cur=x.k;open(x.k);const w=wins[n];if(w){w.w.classList.add("max");cur={k:x.k,id:n}}}
+window.ARC={show(){back();A.classList.add("vis");paint()},hide(){A.classList.remove("vis")}};
+setInterval(()=>{if(cur&&cur.id&&!wins[cur.id]){cur=null;ARC.show()}},400);
+function mail(){const s=D("#arcs1").value||"웹 OS 문의",b=D("#arcb").value;location.href="mailto:"+MAIL+"?subject="+encodeURIComponent(s)+"&body="+encodeURIComponent(b)}
+A.onclick=e=>{const t=e.target;
+ const j=t.closest("[data-j]");if(j){pi=+j.dataset.j;pp();launch(list[pi]);return}
+ const s=t.closest("[data-s]");if(s){openPick(+s.dataset.s);return}
+ const c=t.closest(".cd");if(c){ci=+c.dataset.i;paint();return}
+ const a=t.closest("[data-a]");if(!a)return;const v=a.dataset.a;
+ if(v==="home")location.href="../index.html?select=1";
+ else if(v==="os")ARC.hide();
+ else if(v==="ask")M.classList.add("on");
+ else if(v==="back")back();
+ else if(v==="prev"){ci=(ci+2)%3;paint()}else if(v==="next"){ci=(ci+1)%3;paint()}};
+M.onclick=e=>{const m=e.target.closest("[data-m]");if(e.target===M){M.classList.remove("on");return}if(!m)return;const v=m.dataset.m;
+ if(v==="x")M.classList.remove("on");else if(v==="send")mail();
+ else if(v==="copy"){try{navigator.clipboard.writeText(MAIL)}catch(x){}m.textContent="복사됨"}};
+document.addEventListener("keydown",e=>{if(!A.classList.contains("vis"))return;
+ if(M.classList.contains("on")){if(e.key==="Escape")M.classList.remove("on");return}
+ const k=e.key;
+ if(mode==="home"){
+  if(k==="ArrowLeft"){ci=(ci+2)%3;paint()}else if(k==="ArrowRight"){ci=(ci+1)%3;paint()}
+  else if(k==="Enter"||k===" "){openPick(ci)}else return;e.preventDefault()}
+ else{
+  const els=[...PK.querySelectorAll(".pi")];let col=1;if(els.length>1){const y=els[0].offsetTop;col=els.findIndex(x=>x.offsetTop!==y);if(col<0)col=els.length}
+  if(k==="ArrowLeft")pi=Math.max(0,pi-1);else if(k==="ArrowRight")pi=Math.min(els.length-1,pi+1);
+  else if(k==="ArrowUp")pi=Math.max(0,pi-col);else if(k==="ArrowDown")pi=Math.min(els.length-1,pi+col);
+  else if(k==="Enter"){launch(list[pi])}else if(k==="Escape"||k==="Backspace"){back()}else return;
+  e.preventDefault();pp()}},true);
+// 시작 메뉴에서 다시 열 수 있는 단추
+const wq=D("#w11 .wq");if(wq){wq.insertAdjacentHTML("afterbegin",`<button data-a="arc" title="게임 선택 화면"><svg viewBox="0 0 18 18"><rect x="1.5" y="5" width="15" height="8" rx="3"/><path d="M5 7.5v3M3.5 9h3M11.5 8h.1M13.5 10h.1"/></svg></button>`)}
+paint();A.classList.add("vis");
+})();
 </script>
 </body>
 </html>
