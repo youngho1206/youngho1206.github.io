@@ -474,6 +474,32 @@ textarea.np{width:100%;height:100%;border:0;outline:0;resize:none;padding:6px;fo
 html.notr #tb,html.notr #sm,html.notr #cal{backdrop-filter:none!important}
 html.tbacc .win:not(.exw):not(.npwin):not(.mpw):not(.iew):not(.edw):not(.stw) .tbar{color:#fff!important}
 .win.stw .tbar{background:#fff;color:#000}.win.stw:not(.act) .tbar{color:#888}.win.stw .body{overflow:hidden}
+/* ── 테마 (밝은 작업 표시줄 / 어두운 앱 / 창 스킨) ── */
+html.slt #tb{color:#111}html.slt .logo b{background:#111}html.slt #tb .st:hover,html.slt #tb .st.on,html.slt #tb .ta:hover,html.slt #tb #tray:hover{background:#0001}html.slt #tb .ta.on{background:#0002}html.slt .show{border-color:#0003}
+html.slt #sm,html.slt #cal{filter:invert(1) hue-rotate(180deg);background:rgba(24,30,38,.96)!important}html.slt #sm img,html.slt #sm i,html.slt #cal img{filter:invert(1) hue-rotate(180deg)}
+html.adk .win:not(.mpw):not(.phw) .body{filter:invert(1) hue-rotate(180deg)}
+html.adk .win .body img,html.adk .win .body video,html.adk .win .body canvas,html.adk .win .body iframe,html.adk .win .body i,html.adk .win .body .thp,html.adk .win .body .pal i,html.adk .win .body .bgl div,html.adk .win .body .bgp,html.adk .win .body .cup img{filter:invert(1) hue-rotate(180deg)}
+html.adk .win .tbar{color:#eee}html.adk .win:not(.act) .tbar{color:#999}html.adk .win.stw .tbar,html.adk .win.stw:not(.act) .tbar{background:#202020}html.adk .win.stw .tbar{color:#eee}html.adk .edw .tbar{background:#2b2f35}
+html[data-sk=mac] .win{border-radius:9px 9px 0 0;overflow:hidden}
+html[data-sk=mac] .win .tbar{height:28px;background:linear-gradient(#ebebeb,#c8c8c8);color:#2b2b2b;border-bottom:1px solid #8c8c8c}
+html[data-sk=mac] .win .tbar .t{text-align:center;padding:0;font-size:13px}
+html[data-sk=mac] .win .tbar button{width:13px;height:13px;min-width:0;margin:0 0 0 8px;padding:0;border-radius:50%;font-size:0;border:1px solid #0003}
+html[data-sk=mac] .win .tbar .x{order:-3;margin-left:10px;background:#ff5f57}html[data-sk=mac] .win .tbar .m{order:-2;background:#febc2e}html[data-sk=mac] .win .tbar .mx{order:-1;background:#28c840}
+html[data-sk=mac] .win .tbar .x:hover,html[data-sk=mac] .win .tbar .m:hover,html[data-sk=mac] .win .tbar .mx:hover{filter:brightness(1.12)}html[data-sk=mac] .win .tbar .x:hover{background:#ff5f57}
+html[data-sk=mac] .win:not(.act) .tbar{color:#888}html[data-sk=mac] .win:not(.act) .tbar button{filter:grayscale(1) opacity(.6)}
+html.adk[data-sk=mac] .win .tbar,html.adk[data-sk=mac] .win.stw .tbar{background:linear-gradient(#4a4a4a,#2e2e2e);color:#eee;border-color:#111}
+html[data-sk=round] .win{border-radius:10px;overflow:hidden}html[data-sk=round] .win .tbar{height:34px}
+/* 테마 설정 화면 */
+.thin{background:#f2f2f2;padding:10px 14px;margin:8px 0;border-left:3px solid var(--acc)}
+.thbt{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.ths{color:#666;font-size:12px;margin:4px 0 8px}
+.thg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.thc{border:2px solid transparent;padding:6px;cursor:default}.thc:hover{background:#0001}.thc.on{border-color:var(--acc)}
+.thc b{display:block;font-weight:600;margin-top:4px;font-size:12px;line-height:1.3}.thc small{display:block;color:#666;font-size:11px}
+.thp{position:relative;height:84px;overflow:hidden;border:1px solid #0003}
+.thw{position:absolute;left:14%;top:12%;width:58%;height:54%;box-shadow:0 2px 6px #0006;overflow:hidden}.thw.mac{border-radius:4px 4px 0 0}.thw.round{border-radius:5px}
+.thw .thb{height:10px;display:flex;align-items:center;gap:3px;padding-left:4px}.thw .thb i{width:5px;height:5px;border-radius:50%;display:block}
+.thk{position:absolute;left:0;right:0;bottom:0;height:9px}
+.cup{height:54px;background:#cfcfcf;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:2px}.cup img{max-height:36px}
 .stm{height:100%;display:flex;flex-direction:column;overflow:auto;color:#000;background:#fff}
 .sho{background:#f2f2f2;display:flex;align-items:center;gap:20px;padding:30px 0 30px 16%;flex:none}.av{width:110px;height:110px;border-radius:50%;background:#e1e1e1;display:grid;place-items:center}
 .sho h1{font-size:28px;font-weight:600}.sho small{display:block;color:#555;margin:2px 0;font-size:13px}
@@ -800,6 +826,14 @@ html.notr #sp{backdrop-filter:none}
 #arcm textarea{height:110px;resize:none}
 #arcm .rw{display:flex;gap:8px;justify-content:flex-end}#arcm button{border:0;border-radius:5px;padding:8px 14px;background:#2b55c8;color:#fff;cursor:pointer;font-family:inherit}#arcm button.g{background:#34416b}
 @media(max-width:760px){#arc .cs{flex-direction:column;max-height:none;overflow-y:auto;align-items:stretch}#arc .cd,#arc .cd.on{height:auto;min-height:200px;flex:none}#arc .ah{height:96px}#arc .lg b{font-size:22px}#arc .ar{display:none}#arc .af{display:none}}
+</style>
+<style id="themecompat">
+/* 테마 엔진 호환: 밝은 작업표시줄(html.slt)일 때 윈11 스타일 요소 색 반전 */
+html.slt .srch .mg{stroke:#111!important}
+html.slt .srch:hover,html.slt .srch.on{background:#0001!important}
+html.slt #w11,html.slt #sp{filter:invert(1) hue-rotate(180deg);background:rgba(24,30,38,.96)!important}
+html.slt #w11 img,html.slt #w11 i,html.slt #sp img,html.slt #sp i{filter:invert(1) hue-rotate(180deg)}
+html.slt #w11 .wp{background:#2b2b2e}
 </style>
 </head>
 <body>
@@ -1308,12 +1342,157 @@ const PAL="#ffb900 #ff8c00 #f7630c #ca5010 #da3b01 #ef6950 #d13438 #ff4343 #e748
 const ZONES=[["Asia/Seoul","(UTC+09:00) 서울"],["Asia/Shanghai","(UTC+08:00) 베이징"],["Asia/Tokyo","(UTC+09:00) 도쿄"],["Europe/London","(UTC+00:00) 런던"],["America/New_York","(UTC-05:00) 뉴욕"]];
 const REG=[["대한민국","Asia/Seoul"],["중국","Asia/Shanghai"],["일본","Asia/Tokyo"],["미국","America/New_York"],["영국","Europe/London"]];
 const ls=(k,v)=>{try{localStorage.setItem("w10"+k,v)}catch(e){}};
-function applyTheme(){const r=document.documentElement,c=gl("col")||"#0078d7",tr=gl("tr")!=="0",al=+(gl("al")||92)/100,st=gl("st")==="1",ta=gl("ta")==="1";
- let [R,G,B]=[1,3,5].map(i=>parseInt(c.substr(i,2),16));if(st){const k=(.3*R+.6*G+.1*B)/255>.6?.6:.8;R*=k;G*=k;B*=k}else[R,G,B]=[28,28,30];
- r.style.setProperty("--acc",c);r.style.setProperty("--tbc",[R,G,B].map(Math.round).join(","));r.style.setProperty("--tba",tr?al:1);r.style.setProperty("--bar",ta?c:"#fff");
- r.classList.toggle("notr",!tr);r.classList.toggle("tbacc",ta);$("#desk").style.background=`#0a3f8f url(${gl("bg")||BGS[0][1]}) center/cover no-repeat`;if(window.wmAdapt)wmAdapt()}
+// ═══ 테마 엔진 : Windows .theme 적용 · 마우스 커서 · 아이콘 ═══
+const THEMES=[{"id":"blossom-aeroglass-blossom-dark","pack":"Blossom","name":"Blossom Dark","lab":"AeroGlass","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":1},{"id":"blossom-aeroglass-blossom-darker","pack":"Blossom","name":"Blossom Darker","lab":"AeroGlass","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":1},{"id":"blossom-aeroglass-blossom-light","pack":"Blossom","name":"Blossom Light","lab":"AeroGlass","sm":"Light","am":"Light","col":"#ffffff","wall":"4.png","sk":"round","tr":1},{"id":"blossom-basic-blossom-dark","pack":"Blossom","name":"Blossom Dark","lab":"Basic","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":0},{"id":"blossom-basic-blossom-darker","pack":"Blossom","name":"Blossom Darker","lab":"Basic","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":0},{"id":"blossom-basic-blossom-light","pack":"Blossom","name":"Blossom Light","lab":"Basic","sm":"Light","am":"Light","col":"#ffffff","wall":"4.png","sk":"round","tr":0},{"id":"blossom-regular-blossom-dark","pack":"Blossom","name":"Blossom Dark","lab":"Regular","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":1},{"id":"blossom-regular-blossom-darker","pack":"Blossom","name":"Blossom Darker","lab":"Regular","sm":"Dark","am":"Dark","col":"#000000","wall":"4.png","sk":"round","tr":1},{"id":"blossom-regular-blossom-light","pack":"Blossom","name":"Blossom Light","lab":"Regular","sm":"Light","am":"Light","col":"#ffffff","wall":"4.png","sk":"round","tr":1},{"id":"dirt-dirt-dark-top-dm","pack":"Dirt","name":"Dirt Dark Top DM","lab":"","sm":"Dark","am":"Dark","col":"#5a5a5a","wall":"dirt (1).png","sk":"flat","tr":1},{"id":"dirt-dirt-dark-top","pack":"Dirt","name":"Dirt Dark Top","lab":"","sm":"Light","am":"None","col":"#5a5a5a","wall":"dirt (1).png","sk":"flat","tr":1},{"id":"dirt-dirt-light-top-dm","pack":"Dirt","name":"Dirt Light Top DM","lab":"","sm":"Dark","am":"Dark","col":"#e5e5e5","wall":"dirt (1).png","sk":"flat","tr":1},{"id":"dirt-dirt-light-top","pack":"Dirt","name":"Dirt Light Top","lab":"","sm":"Light","am":"None","col":"#e5e5e5","wall":"dirt (1).png","sk":"flat","tr":1},{"id":"dirt-dirty-area-dm","pack":"Dirt","name":"Dirty area darkmode","lab":"","sm":"Dark","am":"Dark","col":"#444441","wall":"area (1).png","sk":"flat","tr":1},{"id":"dirt-dirty-area","pack":"Dirt","name":"Dirty area","lab":"","sm":"Dark","am":"Light","col":"#444441","wall":"area (1).png","sk":"flat","tr":1},{"id":"dirt-dirty-groove-dm","pack":"Dirt","name":"Dirty groove darkmode","lab":"","sm":"Dark","am":"Dark","col":"#424242","wall":"groove (1).png","sk":"flat","tr":1},{"id":"dirt-dirty-groove","pack":"Dirt","name":"Dirty groove","lab":"","sm":"Dark","am":"Light","col":"#424242","wall":"groove (1).png","sk":"flat","tr":1},{"id":"goon-goon","pack":"Goon","name":"goon","lab":"","sm":"Dark","am":"Dark","col":"#252a33","wall":"","sk":"flat","tr":1},{"id":"kimi-kimi-dark","pack":"Kimi","name":"Kimi Dark","lab":"","sm":"None","am":"Dark","col":"#ffffff","wall":"kimi night.png","sk":"round","tr":1},{"id":"kimi-kimi-day","pack":"Kimi","name":"Kimi Day","lab":"","sm":"None","am":"Light","col":"#ffffff","wall":"kimi day.png","sk":"round","tr":1},{"id":"kimi-kimi-night","pack":"Kimi","name":"Kimi Night","lab":"","sm":"None","am":"Dark","col":"#202020","wall":"kimi night.png","sk":"round","tr":1},{"id":"nfyx-nfyx-day","pack":"NFYX","name":"NFYX day","lab":"","sm":"Dark","am":"Light","col":"","wall":"day.png","sk":"round","tr":1},{"id":"nfyx-nfyx-night","pack":"NFYX","name":"NFYX night","lab":"","sm":"Dark","am":"Dark","col":"","wall":"night.png","sk":"round","tr":1},{"id":"paper-paper-moon","pack":"Paper","name":"Paper Moon","lab":"","sm":"Dark","am":"Dark","col":"#495359","wall":"1.jpg","sk":"round","tr":1},{"id":"paper-paper-night","pack":"Paper","name":"Paper Moon Night","lab":"","sm":"Dark","am":"Dark","col":"#495359","wall":"1.jpg","sk":"round","tr":1},{"id":"paper-paper","pack":"Paper","name":"Paper","lab":"","sm":"Dark","am":"Light","col":"#ffffff","wall":"1.jpg","sk":"round","tr":1},{"id":"void-void-dark","pack":"Void","name":"Void dark","lab":"","sm":"Dark","am":"Dark","col":"#323232","wall":"dark.jpg","sk":"flat","tr":1},{"id":"void-void-day","pack":"Void","name":"Void day","lab":"","sm":"Dark","am":"Light","col":"#e5e5e5","wall":"day.jpg","sk":"flat","tr":1},{"id":"void-void-night","pack":"Void","name":"Void night","lab":"","sm":"Dark","am":"Dark","col":"#323232","wall":"night.jpg","sk":"flat","tr":1},{"id":"mac-osx-commandbar-mac-osx-nuala-2","pack":"mac osx","name":"mac osx Nuala commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-nuala-black-2","pack":"mac osx","name":"mac osx Nuala Black commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-nuala-black","pack":"mac osx","name":"mac osx Nuala Black","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-nuala","pack":"mac osx","name":"mac osx Nuala","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-promate-2","pack":"mac osx","name":"mac osx Promate commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-promate","pack":"mac osx","name":"mac osx Promate","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-caesar-2","pack":"mac osx","name":"mac osx caesar commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-caesar","pack":"mac osx","name":"mac osx caesar","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-leopard-2","pack":"mac osx","name":"mac osx leopard commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-leopard","pack":"mac osx","name":"mac osx leopard","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-mnml-2","pack":"mac osx","name":"mac osx mnml commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-mnml","pack":"mac osx","name":"mac osx mnml","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-commandbar-mac-osx-plastic-pulse-2","pack":"mac osx","name":"mac osx plastic pulse commandbar","lab":"commandbar","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1},{"id":"mac-osx-mac-osx-plastic-pulse","pack":"mac osx","name":"mac osx plastic pulse","lab":"","sm":"Light","am":"Light","col":"#bcbcbc","wall":"mac osx.png","sk":"mac","tr":1}];
+THEMES.unshift({id:"win10",pack:"Windows 10",name:"Windows 10 (기본)",lab:"",sm:"Dark",am:"Light",col:"",wall:"",sk:"flat",tr:1,def:1});
+const ASSET={wall:{},cur:{},ico:{},tf:{}};
+const idb={db:null,
+ open(){return this.db||(this.db=new Promise((res,rej)=>{try{const r=indexedDB.open("w10theme",1);r.onupgradeneeded=()=>r.result.createObjectStore("a");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))},
+ async tx(m,f){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction("a",m),q=f(t.objectStore("a"));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})},
+ get(k){return this.tx("readonly",s=>s.get(k))},set(k,v){return this.tx("readwrite",s=>s.put(v,k))},del(k){return this.tx("readwrite",s=>s.delete(k))},keys(){return this.tx("readonly",s=>s.getAllKeys())}};
+const b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+const MIME={cur:"image/x-icon",ico:"image/x-icon",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",bmp:"image/bmp",webp:"image/webp",svg:"image/svg+xml"};
+const fixBlob=f=>{const e=(f.name.split(".").pop()||"").toLowerCase();return new Blob([f],{type:MIME[e]||f.type||"application/octet-stream"})};
+const bn=p=>(p||"").replace(/,\s*-?\d+\s*$/,"").split(/[\\/]/).pop().trim().toLowerCase();
+const pick=(acc,mul)=>new Promise(res=>{const i=document.createElement("input");i.type="file";i.accept=acc||"";i.multiple=!!mul;i.style.display="none";i.onchange=()=>{res([...i.files]);i.remove()};document.body.append(i);i.click()});
+async function putAsset(t,n,blob){n=n.toLowerCase();try{await idb.set(t+":"+n,blob)}catch(e){}const o=ASSET[t][n];if(o&&o.url&&o.url.startsWith("blob:"))URL.revokeObjectURL(o.url);ASSET[t][n]={blob,url:t==="tf"?"":t==="cur"?await b2d(blob):URL.createObjectURL(blob)}}
+async function delAsset(t,n){try{await idb.del(t+":"+n)}catch(e){}delete ASSET[t][n]}
+async function loadAssets(){try{for(const k of await idb.keys()){const i=k.indexOf(":"),t=k.slice(0,i),n=k.slice(i+1);if(!ASSET[t])continue;const b=await idb.get(k);if(b)ASSET[t][n]={blob:b,url:t==="tf"?"":t==="cur"?await b2d(b):URL.createObjectURL(b)}}}catch(e){}applyTheme();applyIcons();applyCursors()}
+
+// ── 색 계산 ──
+const hx2=c=>[1,3,5].map(i=>parseInt(c.substr(i,2),16));
+const lumOf=c=>{const[r,g,b]=hx2(c);return(.3*r+.6*g+.1*b)/255};
+const satOf=c=>{const[r,g,b]=hx2(c),M=Math.max(r,g,b),m=Math.min(r,g,b);return M?(M-m)/M:0};
+const shade=(c,a)=>{const[r,g,b]=hx2(c),t=a<0?0:255,p=Math.abs(a);return"#"+[r,g,b].map(v=>Math.round(v+(t-v)*p).toString(16).padStart(2,"0")).join("")};
+function resolveTheme(t){
+ const am=t.am&&t.am!=="None"?t.am:(t.sm&&t.sm!=="None"?t.sm:"Light"),sm=t.sm&&t.sm!=="None"?t.sm:am,col=t.col||"",L=col?lumOf(col):null;
+ let tbc=sm==="Dark"?[28,28,30]:[243,243,243],acc="#0078d7";
+ if(col){if(sm==="Dark"&&L<.45)tbc=hx2(col);else if(sm!=="Dark"&&L>.55)tbc=hx2(col);if(satOf(col)>.28&&L>.12&&L<.9)acc=col}
+ return{sm,am,acc,tbc,sk:t.sk||"flat",tr:t.tr===0?0:1}}
+
+// ── 테마 적용 ──
+function applyTheme(){const r=document.documentElement,c=gl("col")||"#0078d7",tr=gl("tr")!=="0",al=+(gl("al")||92)/100,st=gl("st")==="1",ta=gl("ta")==="1",th=gl("th"),tc=th&&gl("tc"),sm=gl("sm")||"Dark",am=gl("am")||"Light",dk=am==="Dark";
+ let [R,G,B]=[1,3,5].map(i=>parseInt(c.substr(i,2),16));
+ if(tc)[R,G,B]=tc.split(",").map(Number);else if(st){const k=(.3*R+.6*G+.1*B)/255>.6?.6:.8;R*=k;G*=k;B*=k}else[R,G,B]=[28,28,30];
+ r.style.setProperty("--acc",c);r.style.setProperty("--tbc",[R,G,B].map(Math.round).join(","));r.style.setProperty("--tba",tr?al:1);
+ r.style.setProperty("--bar",ta?c:(dk?"#202020":"#fff"));r.style.setProperty("--win",dk?"#202020":"#fff");
+ r.classList.toggle("notr",!tr);r.classList.toggle("tbacc",ta);r.classList.toggle("adk",dk);r.classList.toggle("slt",sm==="Light"&&!!tc);
+ r.dataset.sk=gl("sk")||"flat";
+ const bv=gl("bg")||BGS[0][1],bu=bv.startsWith("idb:")?((ASSET.wall[bv.slice(4)]||{}).url||BGS[0][1]):bv;
+ $("#desk").style.background=`#0a3f8f url("${bu}") center/cover no-repeat`;if(window.wmAdapt)wmAdapt()}
+const cthm=()=>{ls("th","");ls("tc","")};
+
+async function useTheme(t){
+ const r=resolveTheme(t);
+ ls("th",t.id);ls("col",r.acc);ls("st","0");ls("ta","0");ls("tr",String(r.tr));ls("tc",t.def?"":r.tbc.join(","));ls("sm",r.sm);ls("am",r.am);ls("sk",r.sk);
+ if(t.def)ls("bg","");else if(t.wall&&ASSET.wall[t.wall])ls("bg","idb:"+t.wall);
+ if(gl("thc")!=="0"){
+  if(t.cur&&Object.keys(t.cur).length){for(const r0 in ASSET.cur)await delAsset("cur",r0);for(const[role,fn]of Object.entries(t.cur)){const f=ASSET.tf[t.id+"/"+fn];if(f)await putAsset("cur",role,f.blob)}ls("cus","custom")}
+  else ls("cus","default")}
+ if(gl("thi")!=="0"){for(const k in ASSET.ico)await delAsset("ico",k);if(t.ico)for(const[slot,fn]of Object.entries(t.ico)){const f=ASSET.tf[t.id+"/"+fn];if(f)await putAsset("ico",slot,f.blob)}}
+ applyTheme();applyCursors();applyIcons()}
+const allThemes=()=>{let u=[];try{u=JSON.parse(gl("thcustom")||"[]")}catch(e){}return THEMES.concat(u)};
+
+// ── 마우스 커서 ──
+const CURROLES=[["Arrow","일반 선택","default"],["Hand","링크 선택","pointer"],["IBeam","텍스트 선택","text"],["SizeNWSE","창 크기 조절","nwse-resize"]];
+const CURNAMES={"arrow":"Arrow","hand":"Hand","ibeam":"IBeam","sizenwse":"SizeNWSE"};
+function svgRaw(role,f,s,z){
+ const P={Arrow:[5,3,'<path d="M5 3v21l5-4.6 3.5 8 3.4-1.5-3.5-7.9H21z"/>'],
+  Hand:[13,3,'<rect x="11" y="3" width="4" height="15" rx="2"/><rect x="15" y="10" width="4" height="10" rx="2"/><rect x="19" y="11" width="4" height="10" rx="2"/><rect x="7" y="14" width="19" height="13" rx="5"/>'],
+  IBeam:[13,16,'<path d="M9 4h8M13 4v24M9 28h8" stroke-linecap="round"/>'],
+  SizeNWSE:[16,16,'<path d="M6 6h8l-3 3 10 10 3-3v8h-8l3-3L9 11 6 14z"/>']};
+ const[hx,hy,body]=P[role],ln=role==="IBeam",sz=32*z;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 32 32"><g fill="${ln?"none":s}" stroke="${s}" stroke-width="${ln?4:3}" stroke-linejoin="round">${body}</g><g fill="${ln?"none":f}" stroke="${ln?f:"none"}" stroke-width="1.6" stroke-linejoin="round">${body}</g></svg>`;
+ return["data:image/svg+xml;utf8,"+encodeURIComponent(svg),Math.round(hx*z),Math.round(hy*z)]}
+function applyCursors(){
+ const sc=gl("cus")||"default",z=+(gl("cuz")||1),acc=gl("col")||"#0078d7";
+ let st=document.getElementById("curcss");if(!st){st=document.createElement("style");st.id="curcss";document.head.append(st)}
+ const V={};let any=false;
+ for(const[r,,kw]of CURROLES){let v=null;
+  if(sc==="custom"){const a=ASSET.cur[r.toLowerCase()];if(a)v=`url("${a.url}")`}
+  else if(sc!=="default"){const[f,s]=sc==="black"?["#000","#fff"]:sc==="white"?["#fff","#000"]:[acc,"#fff"],[u,x,y]=svgRaw(r,f,s,z);v=`url("${u}") ${x} ${y}`}
+  if(v)any=true;V[r]=(v?v+",":"")+kw}
+ document.documentElement.classList.toggle("cu",any);
+ st.textContent=any?`html.cu,html.cu *{cursor:${V.Arrow}}html.cu textarea,html.cu input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]):not([type=button]),html.cu .ss{cursor:${V.IBeam}}html.cu a,html.cu .mlk,html.cu .pal i,html.cu .bgl div,html.cu .thc{cursor:${V.Hand}}html.cu .rz{cursor:${V.SizeNWSE}}`:""}
+
+// ── 아이콘 ──
+const ICSLOTS=[["s16","내 PC"],["s32","휴지통"],["s14","인터넷"],["s2","메모장"],["calc","계산기"],["s22","설정"],["s235","문서"],["s236","사진"],["s35","바탕 화면"],["s225","음악 플레이어"],["s237","음악 폴더"],["s238","비디오"],["s231","다운로드"],["s8","로컬 디스크"]];
+const icoSrc=k=>k==="calc"?"img/ico/calc.png":`img/ico/${k}.png`;
+function icoFix(i){if(!i.dataset.o){const s=i.getAttribute("src"),k=Object.keys(ASSET.ico).find(k=>ASSET.ico[k].url===s);i.dataset.o=k?icoSrc(k):s}
+ const m=/ico\/([^/.]+)\.png$/.exec(i.dataset.o),a=m&&ASSET.ico[m[1]],w=a?a.url:i.dataset.o;if(i.getAttribute("src")!==w)i.setAttribute("src",w)}
+function applyIcons(){document.querySelectorAll("img.si").forEach(icoFix)}
+new MutationObserver(ms=>{if(!Object.keys(ASSET.ico).length)return;ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.matches&&n.matches("img.si"))icoFix(n);n.querySelectorAll&&n.querySelectorAll("img.si").forEach(icoFix)}))}).observe(document.body,{childList:true,subtree:true});
+
+// ── .theme 파일 불러오기 ──
+function parseIni(t){const s={};let c=null;t.replace(/\r/g,"").split("\n").forEach(l=>{l=l.trim();if(!l||l[0]===";")return;const m=/^\[(.*)\]$/.exec(l);if(m){c=m[1];s[c]=s[c]||{};return}const i=l.indexOf("=");if(c&&i>0)s[c][l.slice(0,i).trim()]=l.slice(i+1).trim()});return s}
+async function readTxt(f){const b=new Uint8Array(await f.arrayBuffer());if(b[0]===255&&b[1]===254)return new TextDecoder("utf-16le").decode(b);if(b[0]===254&&b[1]===255)return new TextDecoder("utf-16be").decode(b);let s=new TextDecoder("utf-8").decode(b);if(s.includes("\uFFFD")){try{s=new TextDecoder("euc-kr").decode(b)}catch(e){}}return s.replace(/^\uFEFF/,"")}
+const CLSID_SLOT={"{20D04FE0-3AEA-1069-A2D8-08002B30309D}":["","s16"],"{645FF040-5081-101B-9F08-00AA002F954E}":["Empty","s32"]};
+async function importTheme(files){
+ const tf=files.find(f=>/\.theme$/i.test(f.name));if(!tf)return null;
+ const ini=parseIni(await readTxt(tf)),vs=ini.VisualStyles||{},de=ini["Control Panel\\Desktop"]||{},cu=ini["Control Panel\\Cursors"]||{},th=ini.Theme||{};
+ const by={};files.forEach(f=>by[f.name.toLowerCase()]=f);
+ const id="u"+Date.now().toString(36),m=/^0x[0-9a-f]{2}([0-9a-f]{6})$/i.exec(vs.ColorizationColor||"");
+ const t={id,pack:"내 테마",name:th.DisplayName||tf.name.replace(/\.theme$/i,""),lab:"",sm:vs.SystemMode||"None",am:vs.AppMode||"None",col:m&&vs.AutoColorization!=="1"?"#"+m[1].toLowerCase():"",wall:bn(de.Wallpaper),sk:"flat",tr:1,cur:{},ico:{}};
+ const rep={ok:[],miss:[]};
+ rep.ok.push(`모드: 시스템 ${t.sm} / 앱 ${t.am}`+(t.col?` · 색 ${t.col}`:""));
+ if(vs.Path)rep.ok.push("시각 스타일(.msstyles): "+bn(vs.Path)+" — 브라우저에서는 직접 렌더링할 수 없어 모드·색·창 모양으로 근사 적용");
+ if(t.wall){const f=by[t.wall];if(f){await putAsset("wall",t.wall,fixBlob(f));rep.ok.push("배경: "+t.wall)}else rep.miss.push("배경 이미지 "+t.wall)}
+ for(const[role,p]of Object.entries(cu)){const n=bn(p);if(!n||role==="DefaultValue"||role==="DefaultValue.MUI"||!/\.(cur|png|ani)$/.test(n))continue;
+  if(/^aero_/.test(n)&&!by[n])continue;
+  const f=by[n];if(f&&!/\.ani$/i.test(n)){await putAsset("tf",id+"/"+f.name,fixBlob(f));t.cur[role.toLowerCase()]=f.name;rep.ok.push(`커서 ${role}: ${n}`)}else rep.miss.push(`커서 ${role} (${n}${/\.ani$/.test(n)?" — .ani는 브라우저 미지원":""})`)}
+ for(const sec in ini){const m2=/^CLSID\\(\{[^}]+\})\\DefaultIcon$/i.exec(sec);if(!m2)continue;const cs=CLSID_SLOT[m2[1].toUpperCase()];if(!cs)continue;
+  const p=ini[sec][cs[0]===""?"DefaultValue":cs[0]];const n=bn(p);if(!n)continue;
+  if(/\.(ico|png)$/.test(n)&&by[n]){await putAsset("tf",id+"/"+by[n].name,fixBlob(by[n]));t.ico[cs[1]]=by[n].name;rep.ok.push(`아이콘 ${cs[1]}: ${n}`)}else if(!/\.dll$/.test(n))rep.miss.push(`아이콘 ${n}`)}
+ const list=JSON.parse(gl("thcustom")||"[]");list.push(t);ls("thcustom",JSON.stringify(list));
+ return{t,rep}}
+function thMsg(title,html){const d=document.createElement("div");d.style.cssText="position:fixed;inset:0;z-index:20000;display:grid;place-items:center;background:#0004";d.innerHTML=`<div style="background:#fff;color:#000;border:1px solid #1883d7;width:min(460px,92vw);max-height:80vh;overflow:auto;box-shadow:0 6px 24px #0008;font-size:13px;user-select:text"><div style="padding:8px 12px;font-weight:600">${title}</div><div style="padding:6px 16px 14px;line-height:1.6">${html}</div><div style="padding:8px 12px;text-align:right;background:#f0f0f0"><button class="pb">확인</button></div></div>`;d.querySelector("button").onclick=()=>d.remove();document.body.append(d)}
+
+// ── 설정 화면 : 테마 / 마우스 커서 / 아이콘 ──
+function thPrev(t){const r=resolveTheme(t),dk=r.am==="Dark",w=t.wall&&ASSET.wall[t.wall],bg=w?`url("${w.url}") center/cover`:`linear-gradient(135deg,${shade(r.acc,.2)},${shade(r.acc,-.5)})`;
+ const bar=r.sk==="mac"?(dk?"linear-gradient(#4a4a4a,#2e2e2e)":"linear-gradient(#ebebeb,#c8c8c8)"):(dk?"#202020":"#fff"),dots=r.sk==="mac"?'<i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>':"";
+ return`<div class="thp" style="background:${bg}"><div class="thw ${r.sk}" style="background:${dk?"#2b2b2b":"#f5f5f5"}"><div class="thb" style="background:${bar}">${dots}</div></div><div class="thk" style="background:rgb(${r.tbc})"></div></div>`}
+function thUI(el){
+ const cur=gl("th")||"win10",all=allThemes(),packs=[...new Set(all.map(t=>t.pack))],ct=all.find(t=>t.id===cur),re=()=>thUI(el);
+ let h=`<h2>테마</h2><div class="thin"><b>현재 테마</b> : ${ct?esc(ct.pack+" · "+ct.name):"사용자 지정"}</div>
+<div class="thbt"><button class="pb" data-a="imp">＋ .theme 파일 불러오기</button><button class="pb" data-a="rst">기본 테마로 되돌리기</button></div>
+<p class="ths">.theme 파일과 함께 배경 이미지(.jpg .png), 마우스 커서(.cur .png), 아이콘(.ico .png)을 한꺼번에 선택하면 파일 이름으로 연결해 모두 적용합니다.</p>
+<label class="ck"><input type="checkbox" data-o="thc" ${gl("thc")!=="0"?"checked":""}> 테마가 마우스 커서를 변경하도록 허용</label><label class="ck"><input type="checkbox" data-o="thi" ${gl("thi")!=="0"?"checked":""}> 테마가 바탕 화면 아이콘을 변경하도록 허용</label>`;
+ if(ct&&ct.wall)h+=`<div class="thin">이 테마의 배경 이미지 <b>${esc(ct.wall)}</b> — ${ASSET.wall[ct.wall]?"적용됨":"테마 zip에는 포함돼 있지 않습니다."} <button class="pb" data-a="wall" data-w="${esc(ct.wall)}">${ASSET.wall[ct.wall]?"교체":"배경 파일 선택"}</button></div>`;
+ for(const p of packs)h+=`<h3>${esc(p)}</h3><div class="thg">`+all.filter(t=>t.pack===p).map(t=>{const r=resolveTheme(t);return`<div class="thc${t.id===cur?" on":""}" data-t="${esc(t.id)}">${thPrev(t)}<b>${esc(t.name)}</b><small>${esc((t.lab?t.lab+" · ":"")+(r.sm==="Dark"?"어두운":"밝은")+" 시스템 · 앱 "+(r.am==="Dark"?"어두움":"밝음"))}</small></div>`}).join("")+`</div>`;
+ el.innerHTML=h;
+ el.onchange=e=>{const o=e.target.dataset&&e.target.dataset.o;if(o)ls(o,e.target.checked?"1":"0")};
+ el.onclick=async e=>{
+  const c=e.target.closest(".thc");if(c){const t=all.find(x=>x.id===c.dataset.t);if(t){await useTheme(t);re()}return}
+  const a=e.target.closest("[data-a]");if(!a)return;const k=a.dataset.a;
+  if(k==="rst"){await useTheme(THEMES[0]);ls("cus","default");for(const x in ASSET.ico)await delAsset("ico",x);applyCursors();applyIcons();re()}
+  else if(k==="wall"){const f=(await pick("image/*"))[0];if(f){await putAsset("wall",a.dataset.w,fixBlob(f));if(ct&&ct.wall===a.dataset.w.toLowerCase())ls("bg","idb:"+ct.wall);applyTheme();re()}}
+  else if(k==="imp"){const fs=await pick(".theme,.jpg,.jpeg,.png,.bmp,.gif,.webp,.cur,.ico",true);if(!fs.length)return;const r=await importTheme(fs);
+   if(!r){thMsg("테마 가져오기","선택한 파일 중 <b>.theme</b> 파일이 없습니다. .theme 파일을 함께 선택해 주세요.");return}
+   await useTheme(r.t);re();thMsg("테마 적용됨 — "+esc(r.t.name),"<b>적용한 항목</b><br>"+r.rep.ok.map(esc).join("<br>")+(r.rep.miss.length?"<br><br><b>파일이 없어 적용하지 못한 항목</b><br>"+r.rep.miss.map(esc).join("<br>")+"<br><small>이 파일들을 .theme과 함께 선택하면 적용됩니다.</small>":""))}}}
+function curUI(el){
+ const sc=gl("cus")||"default",z=gl("cuz")||"1",acc=gl("col")||"#0078d7",re=()=>curUI(el);
+ const S=[["default","Windows 기본 (시스템 커서)"],["black","Windows 검정"],["white","Windows 흰색"],["accent","강조 색"]];if(Object.keys(ASSET.cur).length)S.push(["custom","내 커서 (불러온 파일)"]);
+ const pv=k=>{if(k==="default")return'<span style="font-size:12px;color:#444">시스템</span>';if(k==="custom")return CURROLES.map(([r])=>ASSET.cur[r.toLowerCase()]?`<img src="${ASSET.cur[r.toLowerCase()].url}">`:"").join("");const[f,s]=k==="black"?["#000","#fff"]:k==="white"?["#fff","#000"]:[acc,"#fff"];return["Arrow","Hand","IBeam"].map(r=>`<img src="${svgRaw(r,f,s,1)[0]}">`).join("")};
+ el.innerHTML=`<h2>마우스 커서</h2><h3>커서 스키마</h3><div class="thg">${S.map(([k,n])=>`<div class="thc${k===sc?" on":""}" data-k="${k}"><div class="cup">${pv(k)}</div><b>${n}</b></div>`).join("")}</div>
+<h3>크기</h3><select class="ps" data-z="1">${[["1","보통"],["1.5","크게"],["2","아주 크게"]].map(([v,n])=>`<option value="${v}" ${v===z?"selected":""}>${n}</option>`).join("")}</select>
+<h3>내 커서 파일</h3><p class="ths">.cur 또는 .png 파일을 불러옵니다. .cur는 파일 안의 클릭 위치가 그대로 쓰이고, .ani(움직이는 커서)는 브라우저가 지원하지 않습니다.</p>
+${CURROLES.map(([r,n])=>`<div class="dv"><b>${n}</b><span>${ASSET.cur[r.toLowerCase()]?"불러옴":"—"}</span><button class="pb" data-f="${r}">파일 선택</button><button class="pb" data-r="${r}">초기화</button></div>`).join("")}`;
+ el.onchange=e=>{if(e.target.dataset.z){ls("cuz",e.target.value);applyCursors();re()}};
+ el.onclick=async e=>{const c=e.target.closest(".thc");if(c){ls("cus",c.dataset.k);applyCursors();re();return}
+  const f=e.target.closest("[data-f]"),r=e.target.closest("[data-r]");
+  if(f){const fl=(await pick(".cur,.png,.gif,.ico"))[0];if(fl){await putAsset("cur",f.dataset.f,fixBlob(fl));ls("cus","custom");applyCursors();re()}}
+  else if(r){await delAsset("cur",r.dataset.r);applyCursors();re()}}}
+function icoUI(el){
+ const re=()=>icoUI(el);
+ el.innerHTML=`<h2>아이콘</h2><p class="ths">바탕 화면·작업 표시줄·탐색기에 표시되는 아이콘을 바꿉니다. .ico 또는 .png 파일을 선택하세요.</p><div class="thbt"><button class="pb" data-a="all">모두 초기화</button></div>
+<div class="thg">${ICSLOTS.map(([k,n])=>`<div class="thc icc"><div class="cup"><img src="${ASSET.ico[k]?ASSET.ico[k].url:icoSrc(k)}" style="width:40px;height:40px;object-fit:contain"></div><b>${n}</b><div class="thbt" style="margin:4px 0 0"><button class="pb" data-f="${k}">변경</button><button class="pb" data-r="${k}">초기화</button></div></div>`).join("")}</div>`;
+ el.onclick=async e=>{const f=e.target.closest("[data-f]"),r=e.target.closest("[data-r]"),a=e.target.closest("[data-a]");
+  if(f){const fl=(await pick(".ico,.png,.jpg,.jpeg,.gif,.webp,.svg"))[0];if(fl){await putAsset("ico",f.dataset.f,fixBlob(fl));applyIcons();re()}}
+  else if(r){await delAsset("ico",r.dataset.r);applyIcons();re()}
+  else if(a){for(const k in ASSET.ico)await delAsset("ico",k);applyIcons();re()}}}
+
 function setTZ(z){TZ=z;ls("tz",z);tick();if($("#cal").classList.contains("show")){calClock();drawCal()}}
-const SETTINGS_CATS={dev:["장치","연결된 기기, 블루투스","⌨",["연결된 기기","블루투스"]],per:["개인 설정","배경, 색상, 아이콘","🖌",["배경","색","아이콘"]],tim:["시간 및 언어","언어, 지역, 날짜 및 시간","🕓",["날짜 및 시간","지역","언어"]],abt:["정보","Web Emulator 정보","ℹ",["정보"]]};
+const SETTINGS_CATS={dev:["장치","연결된 기기, 블루투스","⌨",["연결된 기기","블루투스"]],per:["개인 설정","배경, 색상, 테마, 마우스 커서, 아이콘","🖌",["배경","색","테마","마우스 커서","아이콘"]],tim:["시간 및 언어","언어, 지역, 날짜 및 시간","🕓",["날짜 및 시간","지역","언어"]],abt:["정보","Web Emulator 정보","ℹ",["정보"]]};
 function settings(b,w){
  w.classList.add("stw");
  const C=SETTINGS_CATS;
@@ -1363,10 +1542,10 @@ function settings(b,w){
   el.querySelector(".bgl").onclick=e=>{const d=e.target.closest("[data-u]");if(!d)return;ls("bg",d.dataset.u);applyTheme();V.per0(el)}},
  per1(el){const c=gl("col")||"#0078d7",al=gl("al")||92;
   el.innerHTML=`<h2>색</h2><label class="ck"><input type="checkbox" id="x1" ${gl("tr")!=="0"?"checked":""}> 투명 효과</label><div>투명도 <input type="range" id="x2" min="30" max="100" value="${al}"> <span id="x2v">${al}%</span></div><h3>테마 컬러 선택</h3><p>Windows 색상표</p><div class="pal">${PAL.map(x=>`<i data-c="${x}" class="${x==c?"on":""}" style="background:${x}"></i>`).join("")}</div><p>사용자 지정 색 <input type="color" id="x3" value="${c}"></p><h3>다음 화면에 테마 컬러 표시</h3><label class="ck"><input type="checkbox" id="x4" ${gl("st")==="1"?"checked":""}> 시작 메뉴, 작업 표시줄 및 알림 센터</label><label class="ck"><input type="checkbox" id="x5" ${gl("ta")==="1"?"checked":""}> 제목 표시줄 및 창 테두리</label>`;
-  el.oninput=e=>{const i=e.target.id;if(i==="x2"){ls("al",e.target.value);el.querySelector("#x2v").textContent=e.target.value+"%"}else if(i==="x3"){ls("col",e.target.value);ls("st","1")}else return;applyTheme()};
-  el.onchange=e=>{const i=e.target.id,v=e.target.checked?"1":"0";if(i==="x1")ls("tr",v);else if(i==="x4")ls("st",v);else if(i==="x5")ls("ta",v);else return;applyTheme()};
-  el.onclick=e=>{const p=e.target.closest("[data-c]");if(!p)return;ls("col",p.dataset.c);ls("st","1");applyTheme();V.per1(el)}},
- per2(el){el.innerHTML="<h2>아이콘</h2><p>아이콘 설정은 아직 제공되지 않습니다.</p>"},
+  el.oninput=e=>{const i=e.target.id;if(i==="x2"){ls("al",e.target.value);el.querySelector("#x2v").textContent=e.target.value+"%"}else if(i==="x3"){cthm();ls("col",e.target.value);ls("st","1")}else return;applyTheme()};
+  el.onchange=e=>{const i=e.target.id,v=e.target.checked?"1":"0";if(i==="x1")ls("tr",v);else if(i==="x4"){cthm();ls("st",v)}else if(i==="x5")ls("ta",v);else return;applyTheme()};
+  el.onclick=e=>{const p=e.target.closest("[data-c]");if(!p)return;cthm();ls("col",p.dataset.c);ls("st","1");applyTheme();V.per1(el)}},
+ per2(el){thUI(el)},per3(el){curUI(el)},per4(el){icoUI(el)},
  tim0(el){el.innerHTML=`<h2>날짜 및 시간</h2><h3>현재 날짜 및 시간</h3><p class="cl"></p><p>표준 시간대</p><select class="ps">${ZONES.map(([z,n])=>`<option value="${z}" ${z==TZ?"selected":""}>${n}</option>`).join("")}</select>`;
   const u=()=>{const e=el.querySelector(".cl");if(e)e.textContent=new Date().toLocaleString(LOC[LANG],{timeZone:TZ,dateStyle:"full",timeStyle:"medium"})};u();live(u,1000);el.querySelector("select").onchange=e=>setTZ(e.target.value)},
  tim1(el){el.innerHTML=`<h2>지역</h2><p>국가 또는 지역</p><select class="ps">${REG.map(([n,z])=>`<option value="${z}" ${z==TZ?"selected":""}>${n}</option>`).join("")}</select>`;el.querySelector("select").onchange=e=>setTZ(e.target.value)},
@@ -2004,7 +2183,9 @@ const D={};`설정|Settings|设置|設定
 연결된 기기|Connected devices|已连接的设备|接続済みデバイス
 블루투스|Bluetooth|蓝牙|Bluetooth
 연결된 기기, 블루투스|Connected devices, Bluetooth|已连接设备、蓝牙|接続済みデバイス、Bluetooth
-배경, 색상, 아이콘|Background, colors, icons|背景、颜色、图标|背景、色、アイコン
+배경, 색상, 테마, 마우스 커서, 아이콘|Background, colors, themes, mouse cursor, icons|背景、颜色、主题、鼠标指针、图标|背景、色、テーマ、マウス カーソル、アイコン
+테마|Themes|主题|テーマ
+마우스 커서|Mouse cursor|鼠标指针|マウス カーソル
 언어, 지역, 날짜 및 시간|Language, region, date & time|语言、区域、日期和时间|言語、地域、日付と時刻
 Web Emulator 정보|About Web Emulator|关于 Web Emulator|Web Emulator について
 배경|Background|背景|背景
@@ -2165,7 +2346,7 @@ function i18n(root){if(!root)return;const tw=document.createTreeWalker(root,Node
  if(root.querySelectorAll)root.querySelectorAll("[placeholder],[title]").forEach(e=>["placeholder","title"].forEach(a=>{const v=e.getAttribute(a);if(v==null)return;const o="_o"+a,t="_t"+a;if(e[o]!==undefined&&v!==e[t])e[o]=undefined;const src=e[o]!==undefined?e[o]:v,out=trn(src);if(out!==v){e[o]=LANG==="ko"?undefined:src;e[t]=out;e.setAttribute(a,out)}}))}
 function setLang(l){LANG=l;ls("lang",l);document.documentElement.lang=l;i18n(document.body);tick();if($("#cal").classList.contains("show")){calClock();drawCal()}}
 new MutationObserver(ms=>{if(LANG==="ko")return;ms.forEach(m=>{m.addedNodes.forEach(x=>x.nodeType===1?i18n(x):x.nodeType===3&&i18n(x.parentNode));if(m.type==="characterData")i18n(m.target.parentNode)})}).observe(document.body,{childList:true,subtree:true,characterData:true});
-applyTheme();document.documentElement.lang=LANG;if(LANG!=="ko")i18n(document.body);
+applyTheme();loadAssets();document.documentElement.lang=LANG;if(LANG!=="ko")i18n(document.body);
 
 // 시작: 환영 창
 
@@ -2195,7 +2376,7 @@ const SEARCH=(function(){
  const AKW={pc:"this pc computer explorer 컴퓨터 내컴퓨터 이pc 탐색기 파일탐색기 내 컴퓨터",np:"notepad text memo txt 메모 메모장 텍스트 편집 노트패드",calc:"calculator calc 계산 계산기",
   set:"settings control panel 환경설정 제어판 설정",web:"edge browser internet web 브라우저 웹 인터넷 엣지 익스플로러 크롬 chrome 사이트",yt:"youtube video 유튜브 동영상 영상",
   guide:"game guide 게임 공략 게임공략 internet explorer ie",music:"music player mp3 media 음악 플레이어 재생 노래 미디어 뮤직"};
- const SETKW={"연결된 기기":"키보드 마우스 헤드셋 마이크 게임패드 keyboard mouse device","블루투스":"bluetooth","배경":"wallpaper background 바탕화면 배경화면 테마 이미지","색":"color accent 색상 작업표시줄 테마 투명","아이콘":"icon",
+ const SETKW={"연결된 기기":"키보드 마우스 헤드셋 마이크 게임패드 keyboard mouse device","블루투스":"bluetooth","배경":"wallpaper background 바탕화면 배경화면 테마 이미지","색":"color accent 색상 작업표시줄 테마 투명","아이콘":"icon 아이콘 바꾸기","테마":"theme themes 테마 윈도우 theme msstyles 마우스 커서 cursor","마우스 커서":"cursor pointer mouse 커서 포인터",
   "날짜 및 시간":"time clock date timezone 시간 시계 시간대","지역":"region country 국가","언어":"language 한국어 english 日本語 中文","정보":"about version info 버전 만든이 메일 연락처","장치":"devices","개인 설정":"personalization 테마 꾸미기","시간 및 언어":"time language"};
  const providers=[];
  const norm=s=>String(s||"").normalize("NFC").toLowerCase();
