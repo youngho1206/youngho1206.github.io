@@ -272,7 +272,7 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
 html.emuopen #rp{display:none}
 #rp{--ink:#2f6fb5;--ink2:#1f4e84;--glass:rgba(255,255,255,.30);--edge:rgba(255,255,255,.75);
  position:fixed;inset:0;z-index:1;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
- --rpdef:url(emuwall/christmas_pc.jpg);
+ --rpdef:url(emuwall/bg13.jpg);
  background:#14235e var(--rpbg,var(--rpdef)) center/cover no-repeat fixed;
  font-family:'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:var(--ink2);
  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -280,7 +280,7 @@ html.emuopen #rp{display:none}
 #rp button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .rp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 40px}
 /* 휴대폰·세로 화면: 세로 구도 배경으로 자동 교체 (화면 크기에 맞춤, iOS 의 fixed 배경 버그도 피함) */
-@media (max-width:700px) and (orientation:portrait),(max-aspect-ratio:3/4){#rp{--rpdef:url(emuwall/christmas_mobile.jpg);background-position:42% center;background-attachment:scroll}}
+@media (max-width:700px) and (orientation:portrait),(max-aspect-ratio:3/4){#rp{--rpdef:url(emuwall/bg13.jpg);background-position:50% center;background-attachment:scroll}}
 /* 맨 위: 왼쪽( < ) 메뉴 · 가운데 제목 · 오른쪽( > ) 메뉴 */
 .rp-top{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"t t" "l r";align-items:center;gap:16px 10px;padding-top:6px}
 .rp-top .l{grid-area:l}.rp-top .r{grid-area:r}
@@ -1555,7 +1555,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
   calc:'<rect x="15" y="9" width="34" height="46" rx="4"/><rect x="21" y="15" width="22" height="9" rx="1.5"/><path d="M23 33h.1M32 33h.1M41 33h.1M23 42h.1M32 42h.1M41 42h.1M23 49h.1M32 49h.1M41 49h.1" stroke-width="3"/>'
  };
 
- var mode=ls.get('rpIcon','line');
+ var mode=ls.get('rpIcon','color');
 
  function tile(kind,id,name,inner){
   return '<button type="button" class="rp-it" data-k="'+kind+'" data-id="'+id+'" title="'+esc(name)+'"><span class="rp-box">'+inner+'</span><span class="rp-nm">'+esc(name)+'</span></button>';
@@ -1590,7 +1590,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  });
 
  /* 배경 */
- var BG_DEFAULT='emuwall/christmas_pc.jpg';
+ var BG_DEFAULT='emuwall/bg13.jpg';
  /* 예전 기본 배경을 그대로 쓰던 사람은 새 기본 배경으로 한 번만 옮겨 줍니다 (다른 배경을 직접 고른 사람은 그대로 유지) */
  try{if(ls.get('rpBgMig3','')!=='1'){if(ls.get('rpBg2','')==='emuwall/retrogamingwallpaper.jpg')localStorage.removeItem('rpBg2');localStorage.setItem('rpBgMig3','1')}}catch(_){}
  /* 기본 배경이면 CSS(--rpdef)가 PC용/휴대폰용을 알아서 고르게 하고, 그 외 배경만 직접 지정 */
@@ -1616,7 +1616,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  $('#rVer').onclick=function(){location.href='index.html?select=1'};
 
  /* › 오른쪽: 캐쉬지우기(기존 js-cache 기능) · 배경선택 · 아이콘선택 */
- var BGS=[['emuwall/christmas_pc.jpg','emuwall/th_christmas.jpg'],['emuwall/retrogamingwallpaper.jpg','emuwall/retrogamingwallpaper.jpg']];
+ var BGS=[['emuwall/bg13.jpg','emuwall/th_bg13.jpg'],['emuwall/christmas_pc.jpg','emuwall/th_christmas.jpg'],['emuwall/retrogamingwallpaper.jpg','emuwall/retrogamingwallpaper.jpg']];
  for(var i=1;i<=30;i++){if(i===8||i===9)continue;var n=('0'+i).slice(-2);BGS.push(['pcwall/gooroom_bg_'+n+'.jpg','pcwall/t/gooroom_bg_'+n+'.jpg'])}
  for(var j=1;j<=6;j++)BGS.push(['pcwall/gooroom_theme_bg_'+j+'.jpg','pcwall/t/gooroom_theme_bg_'+j+'.jpg']);
  for(var s=1;s<=14;s++){var m=('0'+s).slice(-2);BGS.push(['skywall/sky'+m+'.jpg','skywall/t/sky'+m+'.jpg'])}
@@ -1631,8 +1631,8 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  });
  $('#rIcon').onclick=function(){
   open('아이콘선택','<div class="rp-ics">'
-   +'<button type="button" data-ic="line" class="'+(mode==='line'?'cur':'')+'"><svg viewBox="0 0 64 64">'+L.nes+'</svg>단선 라인 (기본)</button>'
-   +'<button type="button" data-ic="color" class="'+(mode==='color'?'cur':'')+'"><img src="icons/nes.png" alt="">기존 컬러 아이콘</button></div>'
+   +'<button type="button" data-ic="line" class="'+(mode==='line'?'cur':'')+'"><svg viewBox="0 0 64 64">'+L.nes+'</svg>단선 라인</button>'
+   +'<button type="button" data-ic="color" class="'+(mode==='color'?'cur':'')+'"><img src="icons/nes.png" alt="">기존 컬러 아이콘 (기본)</button></div>'
    +'<p class="rp-sub">선택하면 바로 적용되고 다음 접속 때도 유지돼요.</p>');
  };
 

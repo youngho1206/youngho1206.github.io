@@ -264,7 +264,7 @@
   try{
    await WT.apply(id);
    MPref.setIcon('theme');
-   MPref.setWall(id==='default'?'dreamsky':'theme');
+   MPref.setWall(id==='default'?'sunset':'theme');
   }catch(err){
    nm.textContent='불러오기 실패';
    setTimeout(()=>{nm.textContent=old;delete btn.dataset.busy},1600);

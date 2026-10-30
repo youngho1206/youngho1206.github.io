@@ -7,7 +7,7 @@
    ===================================================================== */
 (function(){
  'use strict';
- var KW='mm.wall',KI='mm.icon',DEF_WALL='dreamsky';
+ var KW='mm.wall',KI='mm.icon',DEF_WALL='sunset';
 
  /* ---------- 배경화면 목록 (mobilebg/ 폴더 · 썸네일은 mobilebg/thumb/) ---------- */
  var WALLS=[
