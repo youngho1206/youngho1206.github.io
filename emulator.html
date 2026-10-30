@@ -1473,6 +1473,13 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 (function(){
  var q=new URLSearchParams(location.search),id=q.get('launch');
  if(!q.has('embed'))return;
+ /* ?exit=1 : 전체화면 버튼 옆에 '나가기' 단추 — 부모 페이지(win10.html)에 알려 처음 화면으로 돌아가게 합니다 */
+ if(q.get('exit')==='1'){
+  var mkEx=function(){var b=document.createElement('button');b.className='bExitX';b.innerHTML='🚪 나가기';b.title='게임 선택 화면으로 나가기';
+   b.onclick=function(){try{var f=document.fullscreenElement||document.webkitFullscreenElement;if(f)(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(x){}parent.postMessage({type:'emu-exit'},'*')};return b};
+  var fb=document.getElementById('bFs');if(fb)fb.after(mkEx());
+  var pf=document.querySelector('#pbar [data-a="fs"]');if(pf)pf.after(mkEx());
+ }
  var st=document.createElement('style');
  st.textContent='.arc,#pagebg,#rp{display:none!important}#emu #bHome{display:none!important}body{background:#000!important}html.embed-nores #resdlg{display:none!important}';
  document.head.appendChild(st);

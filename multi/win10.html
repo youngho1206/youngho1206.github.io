@@ -833,6 +833,7 @@ const APPS={
  pc:{n:"내 PC",e:IC(16),w:730,h:500,r:(b,w)=>xplorer(b,w,"pc")},
  np:{n:"메모장",e:IC(2),w:700,h:480,r:notepad},
  calc:{n:"계산기",e:'<img class="si" src="img/ico/calc.png" alt="" draggable="false">',w:300,h:440,r:calc},
+ game:{n:"게임세상",e:'<img class="si px" src="../tabicons/pixel/mamegame.png" alt="" draggable="false">',w:10,h:10,kw:"게임 게임세상 레트로 아케이드 오락실 에뮬레이터 game arcade retro",r:()=>{}},
  set:{n:"설정",e:IC(22),w:920,h:600,r:settings},
  web:{n:"인터넷",e:IC(14),w:940,h:620,r:edge},
  docs:{n:"문서",e:IC(235),w:730,h:500,r:(b,w)=>xplorer(b,w,"docs"),hidden:true},
@@ -848,7 +849,7 @@ const APPS={
  xdl:{n:"다운로드",e:IC(231),w:730,h:500,hidden:true,r:(b,w)=>xplorer(b,w,"dl")},
  xc:{n:"로컬 디스크 (C:)",e:IC(8),w:730,h:500,hidden:true,r:(b,w)=>xplorer(b,w,"c")}
 };
-const DESK=["pc","trash","web","np","calc","set"];
+const DESK=["pc","trash","web","np","calc","set","game"];
 let z=10,wins={},n=0,cur=null;
 
 // 바탕화면 아이콘
@@ -2542,7 +2543,7 @@ function frame(b,src){b.style.cssText="padding:0;overflow:hidden;background:#000
 function soon(b,n,why){b.style.cssText="padding:0;background:#111";b.innerHTML=`<div style="height:100%;display:grid;place-items:center;text-align:center;color:#fff;padding:24px;line-height:1.8"><div><div style="font-size:42px">🚧</div><b style="font-size:18px">${E(n)}</b><p style="color:#bbb;max-width:380px;margin:10px auto 0">${E(why||"이 기종은 웹 브라우저용 에뮬레이터 코어가 아직 없어 실행할 수 없습니다. 코어가 지원되면 바로 연결할 수 있게 자리만 만들어 두었어요.")}</p></div></div>`}
 const isG=k=>/^(emu|os)_/.test(k);
 function reg(){for(const k in APPS)if(isG(k))delete APPS[k];
- EM.forEach(([id,n,y,s,kw,why])=>{APPS["emu_"+id]={n,e:PX(id),w:980,h:640,nosearch:1,y,s,kw,r:b=>s?soon(b,n,why):frame(b,"../emulator.html?embed=1&launch="+id)}});
+ EM.forEach(([id,n,y,s,kw,why])=>{APPS["emu_"+id]={n,e:PX(id),w:980,h:640,nosearch:1,y,s,kw,r:b=>s?soon(b,n,why):frame(b,"../emulator.html?embed=1&exit=1&launch="+id)}});
  OS.forEach(([id,n,y,col,kw])=>{APPS["os_"+id]={n,e:osIcon(id,col),w:980,h:640,nosearch:1,os:1,y,kw,r:b=>frame(b,id==="dos"?"../dos.html":"../winemu.html?os="+id)}})}
 registerSearch(()=>Object.keys(APPS).filter(isG).map(k=>{const a=APPS[k];return{key:"w11:"+k,type:"app",name:a.n,sub:(a.os?"PC · 윈도우 에뮬레이터":"게임 에뮬레이터")+" · "+a.y+"년"+(a.s?" · 준비 중":""),icon:a.e,kw:"게임 game 에뮬 에뮬레이터 emulator 롬 retro "+(a.kw||""),run:()=>open(k)}}));
 // 최근 항목 기록
@@ -2652,8 +2653,14 @@ document.addEventListener("keydown",e=>{if(!A.classList.contains("vis"))return;
   e.preventDefault();pp()}},true);
 // 시작 메뉴에서 다시 열 수 있는 단추
 const wq=D("#w11 .wq");if(wq){wq.insertAdjacentHTML("afterbegin",`<button data-a="arc" title="게임 선택 화면"><svg viewBox="0 0 18 18"><rect x="1.5" y="5" width="15" height="8" rx="3"/><path d="M5 7.5v3M3.5 9h3M11.5 8h.1M13.5 10h.1"/></svg></button>`)}
+const _o2=window.open;window.open=function(k){if(k==="game"){ARC.show();return}return _o2.apply(this,arguments)};
 paint();A.classList.add("vis");
 })();
+</script>
+<script id="exitjs">
+/* 에뮬레이터 화면의 '나가기' 단추 → 창을 닫고 처음(게임 선택) 화면으로 */
+addEventListener("message",function(e){if(!e.data||e.data.type!=="emu-exit")return;
+ for(const i in wins){const fr=wins[i].w.querySelector("iframe");if(fr&&fr.contentWindow===e.source){wins[i].w.querySelector(".x").click();if(window.ARC)ARC.show();break}}});
 </script>
 </body>
 </html>
