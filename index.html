@@ -41,7 +41,7 @@ function go(k,keep){
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#050035}
 html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
-body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:#050035;display:flex;justify-content:center;align-items:center}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:transparent;display:flex;justify-content:center;align-items:center}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
 
@@ -143,6 +143,19 @@ h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em
  .foot{position:absolute;left:calc(var(--u)*140);right:calc(var(--u)*140);top:calc(var(--u)*762);max-width:none;margin:0;gap:calc(var(--u)*6) calc(var(--u)*22);font-size:max(11px,calc(var(--u)*14));z-index:2}
 }
 
+
+/* ───────── 로고 이미지 + 별빛 밤하늘 ───────── */
+h1.title.logo{display:block;font-size:0;line-height:0}
+h1.title.logo img{display:block;width:min(92vw,560px);height:auto;margin:0 auto;filter:drop-shadow(0 0 10px rgba(120,160,255,.55));animation:logoGlow 4s ease-in-out infinite alternate}
+@keyframes logoGlow{from{filter:drop-shadow(0 0 6px rgba(120,160,255,.35))}to{filter:drop-shadow(0 0 16px rgba(255,130,235,.7))}}
+#skyBg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
+#skyP{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
+html.ds-saver #skyBg,html.ds-saver #skyP{opacity:.6}
+@media (min-width:900px) and (min-aspect-ratio:13/10){
+ h1.title.logo{top:calc(var(--u)*70)}
+ h1.title.logo img{width:calc(var(--u)*640)}
+}
+
 /* ───────── 안내 시트(공지·설치·게임방법) ───────── */
 #sh{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,0,28,.72);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 #sh.on{opacity:1;visibility:visible;transition-delay:0s}
@@ -197,7 +210,9 @@ h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em
 <body>
 <div id="instBn" role="dialog" aria-label="앱 설치 안내"><img src="icons/app-192.png" alt="" width="44" height="44"><div class="ib-t"><b>영호의 게임에뮬레이터</b><span id="instSub">주소창 없이 앱처럼 크게 즐겨요</span></div><button type="button" id="instGo">앱 설치</button><button type="button" id="instNo" aria-label="닫기">✕</button></div>
 
+<canvas id="skyBg" aria-hidden="true"></canvas>
 <div class="poster">
+  <canvas id="skyP" aria-hidden="true"></canvas>
   <img class="deco l" src="menuicons/deco-left.png" alt="" aria-hidden="true">
   <img class="deco r" src="menuicons/deco-right.png" alt="" aria-hidden="true">
   <div class="floor" aria-hidden="true"></div>
@@ -213,7 +228,7 @@ h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em
     <i></i>
   </div>
 
-  <h1 class="title"><span class="t1" data-t="영호의">영호의</span><span class="t2" data-t="게임에뮬">게임에뮬</span></h1>
+  <h1 class="title logo"><img src="menuicons/title-logo.webp" alt="영호의 게임에뮬레이터" width="1200" height="400" decoding="async"></h1>
 
   <div class="infobar">이 사이트는 게임을 제공하는 사이트가 아닙니다. 콘솔게임 웹에뮬레이터 사이트입니다.</div>
   <p class="pick">사용하시는 기종을 선택하세요.</p>
@@ -725,5 +740,56 @@ window.addEventListener('storage',function(e){if(e.key===KEY){autoSaver=false;se
 })();
 </script>
 <!-- DEVSTATUS:END -->
+<script>
+/* 별빛 반짝이는 밤하늘 */
+(function(){
+ var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var root=document.documentElement,run=true;
+ function Sky(cv){
+  var c=cv.getContext('2d'),W=0,H=0,stars=[],shoots=[],dpr=Math.min(window.devicePixelRatio||1,2);
+  var cols=['#ffffff','#cfe6ff','#a9d8ff','#ffd9f5','#fff2b0'];
+  function size(){
+   var r=cv.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);
+   cv.width=W*dpr;cv.height=H*dpr;c.setTransform(dpr,0,0,dpr,0,0);
+   var n=Math.round(Math.min(160,Math.max(50,W*H/5500)));stars=[];
+   for(var i=0;i<n;i++){var big=Math.random()<.14;
+    stars.push({x:Math.random()*W,y:Math.random()*H,r:big?1.5+Math.random()*1.3:.4+Math.random()*.9,
+     sp:.6+Math.random()*2.2,ph:Math.random()*6.283,col:cols[(Math.random()*cols.length)|0],big:big,dx:(Math.random()-.5)*.02})}
+  }
+  function spark(s,a){
+   c.globalAlpha=a;c.fillStyle=s.col;c.shadowColor=s.col;c.shadowBlur=s.big?10:4;
+   c.beginPath();c.arc(s.x,s.y,s.r,0,6.283);c.fill();
+   if(s.big){var L=s.r*5*a;c.shadowBlur=0;c.globalAlpha=a*.8;c.fillRect(s.x-L,s.y-.4,L*2,.8);c.fillRect(s.x-.4,s.y-L,.8,L*2)}
+  }
+  function frame(t){
+   c.clearRect(0,0,W,H);
+   for(var i=0;i<stars.length;i++){var s=stars[i];
+    var a=.25+.75*(.5+.5*Math.sin(t/1000*s.sp+s.ph));
+    if(!reduce){s.x+=s.dx;if(s.x<0)s.x=W;else if(s.x>W)s.x=0}
+    spark(s,a)}
+   c.shadowBlur=0;
+   if(!reduce){
+    if(Math.random()<.004&&shoots.length<2){shoots.push({x:Math.random()*W*.8,y:Math.random()*H*.35,vx:5+Math.random()*3,vy:2.5+Math.random()*2,l:0})}
+    for(var j=shoots.length-1;j>=0;j--){var m=shoots[j];m.x+=m.vx;m.y+=m.vy;m.l++;
+     var g=c.createLinearGradient(m.x,m.y,m.x-m.vx*9,m.y-m.vy*9);
+     g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');
+     c.globalAlpha=1;c.strokeStyle=g;c.lineWidth=1.6;c.beginPath();c.moveTo(m.x,m.y);c.lineTo(m.x-m.vx*9,m.y-m.vy*9);c.stroke();
+     if(m.l>60||m.x>W||m.y>H)shoots.splice(j,1)}
+   }
+   c.globalAlpha=1;
+  }
+  size();
+  return {size:size,frame:frame};
+ }
+ var a=Sky(document.getElementById('skyBg')),b=Sky(document.getElementById('skyP'));
+ function loop(t){
+  if(run&&!document.hidden){a.frame(t);b.frame(t)}
+  if(reduce){a.frame(0);b.frame(0);return}
+  requestAnimationFrame(loop)
+ }
+ var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){a.size();b.size()},150)});
+ requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
