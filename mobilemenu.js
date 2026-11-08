@@ -178,8 +178,8 @@
 
  const PREV=['nes','snes','gameboy','playstation'];
  function themeIconUrl(style,n){
-  if(style==='theme'){const W=window.WT;return(W&&W.map&&W.map[n])?W.map[n]:'icons/'+n+'.png?v=4'}
-  return MPref.iconUrl(style,n)||('icons/'+n+'.png?v=4');
+  if(style==='theme'){const W=window.WT;return(W&&W.map&&W.map[n])?W.map[n]:'icons/'+n+'.png?v=5'}
+  return MPref.iconUrl(style,n)||('icons/'+n+'.png?v=5');
  }
  function themeBody(t){
   if(t==='icon'){

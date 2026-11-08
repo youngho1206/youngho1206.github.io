@@ -1586,7 +1586,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
  function pInner(p){
   if(mode==='color'&&typeof WT!=='undefined'){
    var map={dos:'msdos',win10:'windows1',win20:'windows2',win30:'windows3',win31:'windows31',win95:'windows95',win98:'windows98'};
-   return '<img src="icons/'+map[p.id]+'.png" alt="'+esc(p.n)+'" draggable="false">';
+   return '<img src="icons/'+map[p.id]+'.png?v=5" alt="'+esc(p.n)+'" draggable="false">';
   }
   return '<svg viewBox="0 0 64 64" aria-hidden="true">'+L[PC[p.id]||'win']+'</svg>';
  }

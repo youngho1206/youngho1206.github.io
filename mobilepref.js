@@ -83,7 +83,7 @@
  /* 미리보기용: 스타일별 파일 주소 (name = IMG 값, 예: 'nes','gameboy') */
  P.iconUrl=function(style,name){
   var id=idOf(name);
-  if(style==='default')return 'icons/'+name+'.png?v=4';
+  if(style==='default')return 'icons/'+name+'.png?v=5';
   if(style==='beta')return BETA[name]?'icons/beta/'+name+'.png':null;
   if(style==='pixel')return(id&&PIXEL[id])?'tabicons/pixel/'+id+'.png':null;
   if(style==='vector'){var v=id==='dos'?'msdos':id;return(v&&VECTOR[v])?'rpicons/'+v+'.svg':null}
