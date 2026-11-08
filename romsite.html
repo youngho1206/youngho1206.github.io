@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<script src="noads.js"></script>
+<script src="saver.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080b17">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-180.png">
+<title>Rom Site · 영호의 게임에뮬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{--kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#080b17}
+html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
+body{min-height:100vh;min-height:100dvh;display:flex;justify-content:center;
+ background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(40,60,160,.28),transparent 70%),#080b17}
+a{color:inherit;text-decoration:none}
+.wrap{width:100%;max-width:560px;padding:max(26px,env(safe-area-inset-top)) 22px max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px}
+
+.note{display:flex;align-items:center;justify-content:center;gap:12px;font:700 clamp(17px,4.9vw,24px)/1.4 var(--kr);word-break:keep-all;text-align:left}
+.note .i{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,#38a8ff,#1166ee);box-shadow:0 0 14px rgba(40,140,255,.6);font:italic 900 24px Georgia,serif}
+.note em{font-style:normal;color:#35d8ff}
+hr{width:100%;border:0;height:2px;margin:0;background:#1c2748}
+
+.list{display:flex;flex-direction:column;gap:18px;margin:10px 0}
+.site{--a:#1d6bff;--b:#0a46d6;position:relative;display:flex;align-items:center;height:76px;padding:0 18px;border-radius:20px;border:0;cursor:pointer;width:100%;color:#fff;
+ background:linear-gradient(180deg,var(--a),var(--b));box-shadow:0 0 22px rgba(80,140,255,.5),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.18);box-shadow:0 0 22px color-mix(in srgb,var(--a) 55%,transparent),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.18);
+ transition:transform .16s,box-shadow .2s,filter .2s}
+.site:hover,.site:focus-visible{transform:translateY(-3px);filter:brightness(1.1);box-shadow:0 0 30px rgba(80,140,255,.7),inset 0 2px 0 rgba(255,255,255,.4);box-shadow:0 0 30px color-mix(in srgb,var(--a) 75%,transparent),inset 0 2px 0 rgba(255,255,255,.4);outline:none}
+.site:active{transform:scale(.98)}
+.site .ic{flex:none;width:64px;display:grid;place-items:center}
+.site .ic svg{width:44px;height:44px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.site .ic svg .f{fill:#fff;stroke:none}
+.site:before{content:"";position:absolute;left:84px;top:14px;bottom:14px;width:1px;background:rgba(255,255,255,.55)}
+.site b{flex:1;text-align:center;font:700 clamp(22px,6.4vw,31px) var(--kr);letter-spacing:.005em;text-shadow:0 2px 4px rgba(0,0,0,.25)}
+.site .ex{flex:none;width:38px;height:38px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.s1{--a:#2d7bff;--b:#0a4ad8}.s2{--a:#a855f7;--b:#6420c9}.s3{--a:#2fd16b;--b:#14a04a}.s4{--a:#ffb21f;--b:#f26a0c}.s5{--a:#27dcf6;--b:#07a9cf}
+
+.nav{display:flex;align-items:center;justify-content:center;gap:0;margin-top:6px}
+.nav a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:50px;margin:0 6px;border-radius:99px;font:700 clamp(13px,3.7vw,16px) var(--kr);white-space:nowrap;
+ background:linear-gradient(180deg,#4a516e,#2c3150);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);transition:filter .2s,transform .16s}
+.nav a:hover,.nav a:focus-visible{filter:brightness(1.25);outline:none}
+.nav a:active{transform:scale(.97)}
+.nav svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nav svg .f{fill:#fff;stroke:none}
+.nav u{width:1px;height:38px;background:#fff;opacity:.85;text-decoration:none;flex:none}
+.legal{margin:4px 4px 0;text-align:center;color:#7f89b3;font:400 12px/1.6 var(--kr);word-break:keep-all}
+
+/* 새창 안내 */
+#ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,4,14,.78);opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .2s}
+#ov.on{opacity:1;visibility:visible;transition-delay:0s}
+.card{width:min(100%,420px);padding:24px 22px 20px;border-radius:24px;text-align:center;background:linear-gradient(180deg,#141c3e,#0d1330);border:2px solid #2d7bff;box-shadow:0 0 26px rgba(45,123,255,.5),0 20px 50px rgba(0,0,0,.6);transform:scale(.96);transition:transform .2s}
+#ov.on .card{transform:none}
+.card .nm{font:900 22px var(--kr);color:#35d8ff;margin:0 0 10px}
+.card p{margin:0;font:500 16.5px/1.7 var(--kr);word-break:keep-all}
+.card .cd{margin:14px 0 6px;font:700 14px var(--kr);color:#aeb9e8}
+.card .cd b{color:#ffd35a;font-size:18px}
+.bar{height:6px;border-radius:6px;background:#202a55;overflow:hidden;margin:0 0 16px}
+.bar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#35d8ff,#a855f7)}
+.bar.run i{width:100%;transition:width 3s linear}
+.btns{display:flex;gap:10px}
+.btns a,.btns button{flex:1;height:46px;border:0;border-radius:99px;font:700 15px var(--kr);cursor:pointer;display:grid;place-items:center;color:#fff}
+.btns .go{background:linear-gradient(180deg,#2d7bff,#0a4ad8)}
+.btns .no{background:#2c3354}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="note"><span class="i">i</span><span>이름을 누르면 <em>새창</em>으로 사이트가 열립니다.</span></div>
+  <hr>
+
+  <div class="list">
+    <a class="site s1" href="https://romsfun.org.im/index.html" target="_blank" rel="noopener noreferrer" data-n="Romsfun">
+      <span class="ic"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19"/><ellipse cx="24" cy="24" rx="8" ry="19"/><path d="M5 24h38M8 14h32M8 34h32"/></svg></span>
+      <b>Romsfun</b>
+      <svg class="ex" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+    </a>
+    <a class="site s2" href="https://www.romsgames.net/" target="_blank" rel="noopener noreferrer" data-n="Roms Games">
+      <span class="ic"><svg viewBox="0 0 48 48"><path class="f" d="M14 15h20c5 0 8 3 9.500 9.500l1.500 8c.700 3.500-1.500 6.500-5 6.500-2 0-3.500-1-5-3l-3-4H16l-3 4c-1.500 2-3 3-5 3-3.500 0-5.700-3-5-6.500l1.500-8C6 18 9 15 14 15z"/><path d="M14 22v6M11 25h6" stroke="#6420c9" stroke-width="2.600"/><circle cx="32" cy="23" r="1.800" fill="#6420c9" stroke="none"/><circle cx="36" cy="27" r="1.800" fill="#6420c9" stroke="none"/></svg></span>
+      <b>Roms Games</b>
+      <svg class="ex" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+    </a>
+    <a class="site s3" href="https://coolrom.com/roms/" target="_blank" rel="noopener noreferrer" data-n="CoolROM">
+      <span class="ic"><svg viewBox="0 0 48 48"><path class="f" d="M24 3l6.200 13.500 14.800 1.700-11 10 3 14.600L24 35.400 11 42.800l3-14.600-11-10 14.800-1.700z"/></svg></span>
+      <b>CoolROM</b>
+      <svg class="ex" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+    </a>
+    <a class="site s4" href="https://romspure.cc/" target="_blank" rel="noopener noreferrer" data-n="Romspure">
+      <span class="ic"><svg viewBox="0 0 11 8" style="shape-rendering:crispEdges"><path class="f" fill-rule="evenodd" d="M2 0h1v1h1v1h3V1h1V0h1v1h-1v1h1v1h1v3h-1v1h-1V6h-1v1H8V6H3v1H2V6H1v1H0V3h1V2h1V1H1V0zm2 3v1h1V3zm3 0v1h1V3z"/></svg></span>
+      <b>Romspure</b>
+      <svg class="ex" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+    </a>
+    <a class="site s5" href="https://vimm.net/vault/" target="_blank" rel="noopener noreferrer" data-n="Vimm">
+      <span class="ic"><svg viewBox="0 0 48 48"><path d="M7 12l17 27L41 12" stroke-width="7"/></svg></span>
+      <b>Vimm</b>
+      <svg class="ex" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+    </a>
+  </div>
+
+  <hr>
+  <nav class="nav" aria-label="이동">
+    <a href="index.html?select=1"><svg viewBox="0 0 24 24"><path class="f" d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/></svg>메인화면</a>
+    <u></u>
+    <a href="emulator.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.500"/><path d="M8 20h8M12 16v4"/></svg>PC사용자</a>
+    <u></u>
+    <a href="mobile.html"><svg viewBox="0 0 24 24"><rect x="7" y="2.500" width="10" height="19" rx="2"/><path d="M11 18.500h2"/></svg>Mobile사용자</a>
+  </nav>
+  <p class="legal">이 사이트는 게임 파일을 제공하지 않으며, 연결된 외부 사이트는 본 사이트와 관계가 없습니다.<br>롬파일은 본인이 합법적으로 소유한 게임만 사용하세요.</p>
+</main>
+
+<div id="ov" aria-hidden="true">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="ovName">
+    <div class="nm" id="ovName"></div>
+    <p>새 창으로 연결됩니다.<br>모바일사용자는 '페이지 탭'에서 사이트를 돌아올 수가 있습니다.</p>
+    <div class="cd" id="ovCd"><b id="ovSec">3</b>초 후 자동으로 새창이 열립니다.</div>
+    <div class="bar" id="ovBar"><i></i></div>
+    <div class="btns"><button type="button" class="no" id="ovNo">취소</button><a class="go" id="ovGo" target="_blank" rel="noopener noreferrer" href="#">지금 열기</a></div>
+  </div>
+</div>
+
+<script>
+(function(){
+ var ov=document.getElementById('ov'),nm=document.getElementById('ovName'),go=document.getElementById('ovGo'),
+     cd=document.getElementById('ovCd'),sec=document.getElementById('ovSec'),bar=document.getElementById('ovBar'),no=document.getElementById('ovNo');
+ var timer=0,tick=0,url='';
+ function close(){clearTimeout(timer);clearInterval(tick);bar.classList.remove('run');ov.classList.remove('on');ov.setAttribute('aria-hidden','true')}
+ function open(u,n){
+  close();url=u;nm.textContent=n;go.href=u;
+  cd.innerHTML='<b id="ovSec">3</b>초 후 자동으로 새창이 열립니다.';sec=document.getElementById('ovSec');
+  ov.classList.add('on');ov.setAttribute('aria-hidden','false');
+  void bar.offsetWidth;bar.classList.add('run');
+  var n3=3;tick=setInterval(function(){n3--;if(n3>0&&sec)sec.textContent=n3},1000);
+  timer=setTimeout(function(){
+   clearInterval(tick);
+   var w=null;try{w=window.open(url,'_blank')}catch(e){}
+   if(w){try{w.opener=null}catch(e){}close()}
+   else{ /* 브라우저가 자동 열기를 막은 경우 → 직접 누르도록 안내 */
+    bar.classList.remove('run');
+    cd.textContent='브라우저가 자동 열기를 막았어요. 아래 ‘지금 열기’를 눌러 주세요.';
+   }
+  },3000);
+ }
+ document.querySelectorAll('a.site').forEach(function(a){
+  a.addEventListener('click',function(e){
+   if(e.defaultPrevented||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
+   e.preventDefault();open(a.href,a.dataset.n);
+  });
+ });
+ no.onclick=close;
+ go.addEventListener('click',function(){setTimeout(close,50)});
+ ov.addEventListener('click',function(e){if(e.target===ov)close()});
+ addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+</script>
+</body>
+</html>

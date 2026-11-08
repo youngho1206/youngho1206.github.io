@@ -6,7 +6,7 @@
 <script src="saver.js"></script>
 <script src="adnotice.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1b1f4b">
+<meta name="theme-color" content="#050138">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/app-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,260 +29,239 @@ function go(k,keep){
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
 :root{
- --red:#e8495b;--red2:#ff8a96;--green:#2f9e6e;--gold:#ffcf7d;--blue:#4a8fe0;--orange:#e8963a;
- --ink:#1b1f4b;--cream:#fff8ef;--brown:#5a2a3a;--mut:#8a5a66;
- --jua:Jua,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+ /* 데스크톱 화면에서 16:9 포스터 크기에 맞춰 모든 글자·간격이 같이 커지고 작아집니다 (1456px 기준 1단위) */
+ --u:calc(min(100vw,177.7778vh) / 1456);
+ --cy:#35e6ff;--bl:#3b6bff;--vi:#8b5cff;--mg:#e040fb;--pk:#ff4fa8;
  --kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+ --han:"Black Han Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:#1b1f4b}
+html{background:#050035}
 html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
-body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:transparent}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:#050035;display:flex;justify-content:center;align-items:center}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
 
-/* ───── 배경 : 눈 내리는 겨울밤 ───── */
-.scene{position:fixed;inset:0;z-index:0;pointer-events:none;background:#1b1f4b url(emuwall/christmas_pc.jpg) center/cover no-repeat}
-/* 휴대폰·세로 화면: 세로 구도로 잘라 둔 배경 사용 (화면 크기에 맞춤) */
-@media (max-width:700px) and (orientation:portrait),(max-aspect-ratio:3/4){.scene{background-image:url(emuwall/christmas_mobile.jpg);background-position:42% center}}
-.scene:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,14,50,.38),rgba(10,14,50,.06) 38%,rgba(12,16,54,.34))}
-.lights{position:fixed;left:0;right:0;top:0;height:22px;z-index:3;pointer-events:none;
+/* ───────── 포스터(첫 화면) ───────── */
+.poster{position:relative;width:100%;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;
+ padding:max(22px,env(safe-area-inset-top)) 14px max(26px,env(safe-area-inset-bottom));
+ display:flex;flex-direction:column;align-items:center;gap:16px;
  background:
-  radial-gradient(circle 4.5px at 10px 13px,#ff6b7a 96%,transparent 100%) 0 0/80px 22px repeat-x,
-  radial-gradient(circle 4.5px at 30px 14px,#ffd36b 96%,transparent 100%) 0 0/80px 22px repeat-x,
-  radial-gradient(circle 4.5px at 50px 13px,#7be3a6 96%,transparent 100%) 0 0/80px 22px repeat-x,
-  radial-gradient(circle 4.5px at 70px 14px,#86c5ff 96%,transparent 100%) 0 0/80px 22px repeat-x,
-  linear-gradient(#3b2f58,#3b2f58) 0 3px/100% 2px no-repeat;
- filter:drop-shadow(0 0 5px rgba(255,225,170,.75));animation:tw 2.6s ease-in-out infinite alternate}
-@keyframes tw{from{opacity:.6}to{opacity:1}}
-.clock{position:fixed;right:clamp(18px,3vw,44px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;font:400 clamp(15px,1.6vw,20px) var(--jua);letter-spacing:.1em;color:#fff;text-shadow:0 2px 8px rgba(10,6,40,.7);display:none}
-.tagl{position:fixed;left:clamp(18px,3vw,44px);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;font:400 14px var(--jua);letter-spacing:.14em;color:#ffe0a8;text-shadow:0 2px 8px rgba(10,6,40,.7);display:none}
-@media (min-width:900px){.clock{display:block}}
-@media (min-width:1100px){.tagl{display:block}}
+  radial-gradient(ellipse 70% 38% at 0% 0%,rgba(0,90,255,.38),transparent 70%),
+  radial-gradient(ellipse 70% 38% at 100% 0%,rgba(210,0,255,.32),transparent 70%),
+  linear-gradient(180deg,#07013c 0%,#050138 50%,#0b004e 100%)}
+.deco,.floor,.sp{display:none}
+.topline{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin-top:4px}
+.topline i{flex:1;max-width:120px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--cy));box-shadow:0 0 8px var(--cy)}
+.topline i+svg+i{background:linear-gradient(90deg,var(--pk),transparent);box-shadow:0 0 8px var(--pk)}
+.topline svg{width:46px;height:auto;flex:none;fill:var(--pk);filter:drop-shadow(0 0 8px rgba(255,79,168,.9));shape-rendering:crispEdges}
 
-/* ───── 공통 둥근 패널 ───── */
-.cp{--col:var(--red);position:relative}
+h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em;font:400 min(12.4vw,86px)/1.08 var(--han);letter-spacing:.01em;text-align:center}
+.title span{position:relative;display:inline-block;color:transparent;-webkit-text-fill-color:transparent}
+.title span:before,.title span:after{content:attr(data-t);position:absolute;left:0;top:0;white-space:nowrap}
+.title span:before{z-index:0;color:#1a0a66;-webkit-text-fill-color:#1a0a66;-webkit-text-stroke:.07em #2b1692;
+ text-shadow:0 .02em 0 #2b1692,0 .04em 0 #2b1692,0 .06em 0 #241383,0 .08em 0 #241383,0 .1em 0 #1d0f75,0 .12em 0 #1d0f75}
+.title span:after{z-index:1;background-image:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:.025em rgba(255,255,255,.6)}
+.title .t1{--g:linear-gradient(180deg,#d7fbff 0%,#5de8ff 38%,#1c9dff 100%);filter:drop-shadow(0 0 .18em rgba(53,230,255,.55))}
+.title .t1:before{-webkit-text-stroke-color:#0b3f9e;text-shadow:0 .02em 0 #0b3f9e,0 .04em 0 #0b3f9e,0 .06em 0 #0a3a93,0 .08em 0 #0a3a93,0 .1em 0 #082f7a,0 .12em 0 #082f7a}
+.title .t2{--g:linear-gradient(180deg,#ffe3fb 0%,#ff7ee9 38%,#a63dff 100%);transform:skewX(-7deg);filter:drop-shadow(0 0 .18em rgba(224,64,251,.55))}
 
-/* ───── 레이아웃 ───── */
-.stage{position:relative;z-index:10;max-width:1020px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.6vh,26px);
- padding:max(34px,calc(env(safe-area-inset-top,0px) + 30px)) clamp(14px,3vw,30px) max(30px,calc(env(safe-area-inset-bottom,0px) + 24px))}
-.topnav,.botnav{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(6px,1.2vw,12px);width:100%}
-.btn{appearance:none;margin:0;cursor:pointer;height:42px;padding:0 clamp(14px,2vw,22px);border-radius:99px;position:relative;
- border:2px solid rgba(255,255,255,.7);background:rgba(255,248,239,.9);color:var(--red);
- font:400 clamp(13px,1.4vw,15.5px) var(--jua);letter-spacing:.03em;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;text-decoration:none;
- box-shadow:0 4px 0 rgba(120,40,70,.35),0 8px 18px rgba(10,6,40,.3);transition:transform .15s,box-shadow .15s,background .2s}
-.btn:hover{transform:translateY(-2px);background:#fff;box-shadow:0 6px 0 rgba(120,40,70,.35),0 12px 22px rgba(10,6,40,.35)}
-.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(120,40,70,.35)}
-.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
-.btn.y{color:var(--green)}.btn.r{color:var(--orange)}
-.btn.fill{color:#fff;background:linear-gradient(135deg,var(--red2),var(--red) 70%);border-color:#ffd0d6;text-shadow:0 1px 2px rgba(120,20,40,.5);box-shadow:0 4px 0 #a8263d,0 8px 18px rgba(232,73,91,.4)}
-.btn.fill:hover{background:linear-gradient(135deg,#ffa0aa,#f0556a 70%)}
-.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.btn .dot{position:absolute;top:-3px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--red);border:2px solid #fff;display:none}
-.btn.new .dot{display:block}
+.infobar{max-width:min(100%,760px);padding:11px 18px;border:2px solid transparent;border-radius:16px;text-align:center;font:500 clamp(12.5px,3.5vw,17px)/1.5 var(--kr);word-break:keep-all;
+ background:linear-gradient(rgba(8,10,70,.82),rgba(8,10,70,.82)) padding-box,linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--pk)) border-box;
+ box-shadow:0 0 14px rgba(53,230,255,.35),0 0 22px rgba(255,79,168,.22)}
+.pick{margin:2px 0 0;font:500 clamp(16px,4.6vw,22px) var(--kr);letter-spacing:.02em;text-shadow:0 2px 10px rgba(0,0,40,.7)}
 
-/* 제목 */
-header{text-align:center;display:flex;flex-direction:column;align-items:center;gap:clamp(10px,1.8vh,18px);margin-top:clamp(4px,2vh,22px)}
-.eyebrow{font:400 clamp(13px,1.8vw,17px) var(--jua);letter-spacing:.1em;color:#ffe0a8;text-shadow:0 2px 10px rgba(10,6,40,.6)}
-h1{margin:0;font:400 clamp(34px,7.4vw,70px)/1.14 var(--jua);letter-spacing:.02em;word-break:keep-all;text-wrap:balance;color:#fff;
- text-shadow:3px 0 #d63c52,-3px 0 #d63c52,0 3px #d63c52,0 -3px #d63c52,2px 2px #d63c52,-2px -2px #d63c52,2px -2px #d63c52,-2px 2px #d63c52,0 7px 0 #a8263d,0 18px 28px rgba(10,6,40,.5)}
-.sub{margin:0;max-width:720px;font:400 clamp(13px,1.55vw,15.5px)/1.75 var(--kr);color:#f4e8f7;word-break:keep-all;text-shadow:0 2px 8px rgba(10,6,40,.7)}
-.sub b{color:#ffe08a;font-weight:700}
+.menu{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 10px;width:100%;max-width:640px}
+.mi{flex:0 0 calc(33.333% - 7px);display:flex;flex-direction:column;align-items:center;text-align:center;padding:12px 6px 12px;border-radius:18px;
+ background:rgba(30,25,120,.35);border:1px solid rgba(120,140,255,.28);transition:transform .18s,background .2s,box-shadow .2s}
+.mi:hover,.mi:focus-visible{transform:translateY(-4px);background:rgba(60,50,190,.45);box-shadow:0 0 20px rgba(80,140,255,.5);outline:none}
+.mi:active{transform:scale(.97)}
+.mi .ic{height:68px;width:100%;display:flex;align-items:center;justify-content:center}
+.mi img{display:block;max-height:100%;max-width:86%;object-fit:contain;filter:drop-shadow(0 0 8px rgba(70,130,255,.55))}
+.mi b{margin-top:8px;font:700 clamp(15px,4.2vw,20px) var(--kr);color:var(--c,#bfe3ff);text-shadow:0 0 10px rgba(80,150,255,.55)}
+.mi small{margin-top:3px;font:400 clamp(11.5px,3.1vw,13.5px)/1.35 var(--kr);color:#fff;opacity:.92;word-break:keep-all}
 
-/* 방문자 */
-.visit{display:inline-flex;gap:14px;align-items:center;padding:7px 22px;border-radius:99px;background:rgba(40,26,76,.62);border:1.5px solid rgba(255,214,170,.5);
- -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font:400 clamp(13px,1.4vw,14.5px) var(--jua);letter-spacing:.06em;color:#f1e3f5}
-.visit b{color:#ffd98a;font:400 1.15em var(--jua)}
-.visit u{width:1px;height:14px;background:rgba(255,214,170,.5);text-decoration:none}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:440px;margin-top:4px}
+.tb{--c:var(--cy);appearance:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;padding:12px 8px 11px;color:#fff;border-radius:20px;
+ border:3px solid var(--c);background:rgba(14,10,80,.72);box-shadow:0 0 12px var(--c),inset 0 0 14px rgba(80,110,255,.35);box-shadow:0 0 12px var(--c),inset 0 0 14px color-mix(in srgb,var(--c) 38%,transparent);
+ transition:transform .18s,box-shadow .2s}
+.tb:hover,.tb:focus-visible{transform:translateY(-3px);box-shadow:0 0 22px var(--c),inset 0 0 18px rgba(80,110,255,.5);box-shadow:0 0 22px var(--c),inset 0 0 18px color-mix(in srgb,var(--c) 55%,transparent);outline:none}
+.tb:active{transform:scale(.97)}
+.tb img{height:46px;width:auto;max-width:70px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(70,130,255,.5))}
+.tb span{font:700 clamp(13.5px,3.7vw,16px) var(--kr);white-space:nowrap;letter-spacing:-.02em}
+.tb .dot{position:absolute;top:-6px;right:-5px;width:15px;height:15px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;display:none;box-shadow:0 0 8px #ff3b5c}
+.tb.new .dot{display:block}
+.tb.c2{--c:#7c7bff}.tb.c3{--c:#d946ef}.tb.c4{--c:#ff4fa8}
 
-/* 카드 : 사탕 줄무늬 테두리 선물 카드 */
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,28px);width:100%}
-.card{--bw:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;
- padding:clamp(24px,4vw,44px) clamp(14px,2.4vw,26px);color:var(--brown);text-decoration:none;min-height:clamp(170px,26vw,250px);
- border:var(--bw) solid transparent;border-radius:32px;
- background:linear-gradient(180deg,#fffaf2,#ffeee6) padding-box,repeating-linear-gradient(45deg,var(--col) 0 12px,#fff 12px 24px) border-box;
- box-shadow:0 14px 30px rgba(10,6,40,.4),0 0 0 1px rgba(255,255,255,.4);
- transition:transform .25s cubic-bezier(.2,.9,.3,1),box-shadow .25s}
-.card.y{--col:var(--red)}
-#cd{--col:var(--green)}
-#cold{--col:var(--blue)}
-#cp{--col:var(--orange)}
-#cx{--col:#8a5ad6}
-.card:before{content:"";position:absolute;left:12%;right:12%;top:-15px;height:18px;pointer-events:none;border-radius:10px 10px 0 0;
- background:radial-gradient(circle 7px at 10% 11px,#fff 96%,transparent 100%),radial-gradient(circle 9px at 36% 12px,#fff 96%,transparent 100%),
-  radial-gradient(circle 6px at 62% 11px,#fff 96%,transparent 100%),radial-gradient(circle 8px at 88% 12px,#fff 96%,transparent 100%),
-  linear-gradient(#fff,#fff) 0 0/100% 11px no-repeat;filter:drop-shadow(0 2px 2px rgba(20,20,80,.3))}
-.card:hover{transform:translateY(-6px) rotate(-.6deg);box-shadow:0 22px 40px rgba(10,6,40,.5),0 0 34px rgba(255,200,140,.45),0 0 0 1px rgba(255,255,255,.5)}
-.card:active{transform:scale(.98)}
-.card:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
-.card svg{width:clamp(70px,11vw,118px);height:auto;fill:none;stroke:var(--col);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-bottom:clamp(4px,1.2vw,12px)}
-.card b{font:400 clamp(18px,2.5vw,27px)/1.3 var(--jua);color:var(--brown);word-break:keep-all}
-.card span{font:400 clamp(12px,1.35vw,14px)/1.5 var(--kr);color:var(--mut);word-break:keep-all}
-.card .tg{position:absolute;left:20px;top:12px;font:400 12px var(--jua);letter-spacing:.1em;color:var(--col)}
-.card .rec{position:absolute;right:14px;top:12px;display:none;padding:3px 12px;border-radius:99px;background:var(--red);color:#fff;font:400 12.5px var(--jua);letter-spacing:.05em;box-shadow:0 2px 0 #a8263d}
-.card.rec-on .rec{display:block}
-.card.wide{grid-column:1/-1}
-.card.sm{min-height:clamp(120px,17vw,170px);padding:clamp(16px,2.6vw,26px) clamp(12px,2vw,20px)}
-.card.sm svg{width:clamp(44px,6.4vw,70px)}
-.card.sm b{font-size:clamp(16px,2vw,22px)}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;max-width:640px;margin-top:6px;font:400 12px var(--kr);color:#b9c3ff}
+.foot b{color:#ffe08a;font-weight:700}
+.foot .vis{display:inline-flex;gap:10px;align-items:center}
+.foot .vis u{width:1px;height:11px;background:rgba(185,195,255,.45);text-decoration:none}
+.keep{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;color:#e2e7ff}
+.keep input{width:16px;height:16px;accent-color:#ff4fa8}
+.foot .lk{display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.foot .lk a,.foot .lk button{appearance:none;background:none;border:0;border-bottom:1px dotted rgba(185,195,255,.6);padding:0 0 1px;color:#b9c3ff;font:inherit;cursor:pointer}
+.foot .lk a:hover,.foot .lk button:hover{color:#fff;border-color:#fff}
+.foot button:disabled{opacity:.6}
 
-/* 하단 */
-.keep{display:flex;align-items:center;gap:10px;color:#fff;font:400 14px var(--jua);cursor:pointer;user-select:none;text-shadow:0 2px 6px rgba(10,6,40,.7)}
-.keep input{width:18px;height:18px;accent-color:var(--red)}
-.legacy{font:400 13.5px var(--jua);letter-spacing:.06em;color:#ffe0a8;text-decoration:none;border-bottom:2px dotted rgba(255,224,168,.6);padding-bottom:2px;text-shadow:0 2px 6px rgba(10,6,40,.7)}
-.legacy:hover{color:#fff;border-color:#fff}
+/* ───────── 데스크톱: 참고 이미지와 같은 16:9 포스터 ───────── */
+@media (min-width:900px) and (min-aspect-ratio:13/10){
+ body{overflow:hidden}
+ .poster{width:calc(var(--u)*1456);height:calc(var(--u)*819);min-height:0;padding:0;display:block;
+  background:
+   radial-gradient(ellipse 22% 60% at 0% 55%,rgba(0,80,255,.38),transparent 75%),
+   radial-gradient(ellipse 22% 60% at 100% 55%,rgba(200,0,255,.32),transparent 75%),
+   radial-gradient(ellipse 40% 30% at 50% 0%,rgba(40,30,180,.35),transparent 80%),
+   linear-gradient(180deg,#07013c 0%,#050138 45%,#0a004a 100%)}
+ .deco{display:block;position:absolute;top:0;height:100%;width:auto;pointer-events:none;z-index:0}
+ .deco.l{left:0}.deco.r{right:0}
+ .floor{display:block;position:absolute;left:calc(var(--u)*300);right:calc(var(--u)*300);bottom:0;height:calc(var(--u)*215);overflow:hidden;z-index:0;pointer-events:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
+ .floor:before{content:"";position:absolute;left:-60%;right:-60%;top:0;bottom:-40%;
+  background:linear-gradient(rgba(90,120,255,.75) 2px,transparent 2px) 0 0/calc(var(--u)*90) calc(var(--u)*46),linear-gradient(90deg,rgba(160,90,255,.75) 2px,transparent 2px) 0 0/calc(var(--u)*90) calc(var(--u)*46);
+  transform:perspective(calc(var(--u)*330)) rotateX(58deg);transform-origin:50% 0;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 55%);mask-image:linear-gradient(180deg,transparent,#000 55%)}
+ .sp{display:block;position:absolute;width:calc(var(--u)*18);height:calc(var(--u)*18);z-index:0;pointer-events:none;background:var(--c);
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);filter:drop-shadow(0 0 4px var(--c));animation:tw 3s ease-in-out infinite alternate}
+ @keyframes tw{from{opacity:.45;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
 
-@media (max-width:600px){
- .choices{grid-template-columns:1fr;max-width:340px;margin:0 auto;gap:12px}
- .card,.card.sm{--bw:5px;border-radius:24px;gap:12px!important;padding:14px 14px 14px 16px!important}
- .card svg,.card.sm svg{width:44px!important}
- .card b{font-size:16px!important}
- .card span{font-size:11.5px!important}
- .card,.card.sm{flex-direction:row;text-align:left;justify-content:flex-start;gap:16px;min-height:0;padding:22px 18px 22px 20px}
- .card svg,.card.sm svg{width:58px;margin:0;flex:none}
- .card .tx{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
- .card .tg{display:none}
- .card .rec{top:8px}
- .topnav .btn,.botnav .btn{flex:1 1 44%;justify-content:center}
+ .topline{position:absolute;left:calc(var(--u)*430);width:calc(var(--u)*596);top:calc(var(--u)*34);margin:0;gap:calc(var(--u)*24);z-index:2}
+ .topline i{max-width:none;height:calc(var(--u)*4)}
+ .topline svg{width:calc(var(--u)*87)}
+ h1.title{position:absolute;left:0;right:0;top:calc(var(--u)*96);margin:0;font-size:calc(var(--u)*150);gap:0 calc(var(--u)*30);z-index:2;flex-wrap:nowrap;white-space:nowrap}
+ .infobar{position:absolute;left:calc(var(--u)*230);top:calc(var(--u)*284);width:calc(var(--u)*996);max-width:none;height:calc(var(--u)*62);padding:0;display:flex;align-items:center;justify-content:center;
+  border-width:calc(var(--u)*3);border-radius:calc(var(--u)*16);font-size:calc(var(--u)*25.5);white-space:nowrap;z-index:2}
+ .pick{position:absolute;left:0;right:0;top:calc(var(--u)*364);margin:0;text-align:center;font-size:calc(var(--u)*33);z-index:2}
+ .menu{position:absolute;left:calc(var(--u)*266);top:calc(var(--u)*428);width:calc(var(--u)*922);max-width:none;display:grid;grid-template-columns:repeat(5,1fr);gap:0;z-index:2}
+ .mi{flex:none;padding:0 calc(var(--u)*6);height:calc(var(--u)*176);border:0;border-radius:calc(var(--u)*18);background:transparent;justify-content:flex-start;position:relative}
+ .mi+.mi:before{content:"";position:absolute;left:0;top:calc(var(--u)*8);bottom:calc(var(--u)*10);width:1px;background:linear-gradient(180deg,transparent,rgba(190,205,255,.75) 15%,rgba(190,205,255,.75) 85%,transparent)}
+ .mi:hover,.mi:focus-visible{background:rgba(80,100,255,.18);box-shadow:0 0 calc(var(--u)*26) rgba(90,140,255,.5)}
+ .mi .ic{height:calc(var(--u)*92);margin-top:calc(var(--u)*4)}
+ .mi img{max-width:calc(var(--u)*118)}
+ .mi b{margin-top:calc(var(--u)*6);font-size:calc(var(--u)*26)}
+ .mi small{margin-top:calc(var(--u)*4);font-size:calc(var(--u)*16.5)}
+ .tools{position:absolute;left:0;right:0;top:calc(var(--u)*632);width:auto;max-width:none;margin:0 auto;display:flex;justify-content:center;gap:calc(var(--u)*16);z-index:2}
+ .tb{min-width:calc(var(--u)*170);height:calc(var(--u)*108);padding:calc(var(--u)*8) calc(var(--u)*20);gap:calc(var(--u)*4);border-width:calc(var(--u)*3);border-radius:calc(var(--u)*24)}
+ .tb img{height:calc(var(--u)*58);max-width:calc(var(--u)*80)}
+ .tb span{font-size:calc(var(--u)*20)}
+ .foot{position:absolute;left:calc(var(--u)*140);right:calc(var(--u)*140);top:calc(var(--u)*762);max-width:none;margin:0;gap:calc(var(--u)*6) calc(var(--u)*22);font-size:max(11px,calc(var(--u)*14));z-index:2}
 }
-@media (min-width:601px){.card .tx{display:flex;flex-direction:column;align-items:center;gap:6px}}
 
-/* ───── 시트 / 설명창 ───── */
-#sh{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(22,10,44,.62);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
+/* ───────── 안내 시트(공지·설치·게임방법) ───────── */
+#sh{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,0,28,.72);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 #sh.on{opacity:1;visibility:visible;transition-delay:0s}
-#sh .sheet{width:min(100%,600px);max-height:86vh;max-height:86dvh;display:flex;flex-direction:column;color:var(--brown);font-family:var(--kr);
- background:linear-gradient(180deg,#fffaf2,#ffeee6);border:5px solid #fff;border-radius:30px;box-shadow:0 0 0 3px var(--red),0 24px 60px rgba(10,6,40,.6);
+#sh .sheet{width:min(100%,600px);max-height:86vh;max-height:86dvh;display:flex;flex-direction:column;color:#eef1ff;font-family:var(--kr);
+ background:linear-gradient(180deg,#14096a,#0a0540);border:2px solid var(--cy);border-radius:24px;box-shadow:0 0 22px rgba(53,230,255,.45),0 24px 60px rgba(0,0,30,.7);
  transform:translateY(16px) scale(.97);transition:transform .3s cubic-bezier(.2,.9,.25,1)}
 #sh.on .sheet{transform:none}
-.grab{display:none}
-.sh-h{flex:none;display:flex;align-items:center;justify-content:space-between;padding:18px 22px 8px 26px;border-bottom:2px dotted rgba(232,73,91,.35)}
-.sh-h b{font:400 24px var(--jua);color:var(--red);letter-spacing:.02em}
-.sh-h button{border:0;border-radius:99px;background:var(--red);color:#fff;font:400 14px var(--jua);cursor:pointer;padding:7px 16px;box-shadow:0 3px 0 #a8263d}
-.sh-h button:active{transform:translateY(2px);box-shadow:none}
-.sh-s{flex:none;padding:8px 26px 0;color:var(--mut);font:400 13px var(--jua);letter-spacing:.06em}
-.sh-b{overflow:auto;padding:14px 18px 24px;-webkit-overflow-scrolling:touch}
-.gc{background:#fff;border-left:5px solid var(--green);border-radius:14px;padding:14px 16px;margin-bottom:12px;font:400 15px/1.7 var(--kr);color:var(--brown);white-space:pre-wrap;word-break:keep-all;overflow-wrap:break-word;box-shadow:0 3px 10px rgba(120,40,70,.1)}
-.gc h3{margin:0 0 6px;font:400 17px/1.45 var(--jua);color:var(--red);white-space:normal}
-.gc.em{color:var(--mut);text-align:center;white-space:normal}
+.sh-h{flex:none;display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px 24px;border-bottom:1px dashed rgba(120,160,255,.4)}
+.sh-h b{font:900 21px var(--kr);color:var(--cy);letter-spacing:.01em}
+.sh-h button{border:0;border-radius:99px;background:linear-gradient(135deg,#ff6fb9,#c026d3);color:#fff;font:700 13.5px var(--kr);cursor:pointer;padding:7px 16px;box-shadow:0 0 12px rgba(224,64,251,.5)}
+.sh-s{flex:none;padding:8px 24px 0;color:#a9b6ff;font:500 12.5px var(--kr);letter-spacing:.05em}
+.sh-b{overflow:auto;padding:14px 16px 22px;-webkit-overflow-scrolling:touch}
+.gc{background:rgba(255,255,255,.06);border-left:4px solid var(--cy);border-radius:12px;padding:13px 15px;margin-bottom:12px;font:400 14.5px/1.7 var(--kr);color:#eef1ff;white-space:pre-wrap;word-break:keep-all;overflow-wrap:break-word}
+.gc h3{margin:0 0 6px;font:700 16.5px/1.45 var(--kr);color:#ff9bd5;white-space:normal}
+.gc.em{color:#a9b6ff;text-align:center;white-space:normal}
 .gc ol{margin:0;padding:0;list-style:none;counter-reset:s;white-space:normal}
-.gc li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;padding:9px 0}
-.gc li+li{border-top:1px dashed rgba(232,73,91,.3)}
-.gc li:before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font:400 15px/28px var(--jua);text-align:center;box-shadow:0 2px 0 #a8263d}
-.gc small{display:block;margin-top:10px;color:var(--mut);font:400 12.5px/1.55 var(--kr);white-space:normal}
-.ne-edit{display:block;margin:0 0 12px auto;border:0;border-radius:99px;background:var(--red);color:#fff;font:400 14px var(--jua);padding:8px 16px;cursor:pointer;box-shadow:0 3px 0 #a8263d}
-.ne-ta{width:100%;border:2px solid #f0c9c9;border-radius:12px;padding:10px;font:400 14px/1.6 var(--kr);color:var(--brown);resize:vertical;background:#fff}
-.ne-in{width:100%;margin-top:8px;border:2px solid #f0c9c9;border-radius:12px;padding:10px;font:400 14px var(--kr);background:#fff;color:var(--brown)}
-.ne-h{margin:6px 2px;color:var(--mut);font:400 12.5px/1.55 var(--kr)}
-.ne-c{display:block;margin:8px 2px;color:var(--brown);font:400 13.5px var(--kr)}
-.ne-m{min-height:18px;margin:4px 2px;color:var(--red);font:700 13px var(--kr)}
+.gc li{counter-increment:s;display:flex;gap:13px;align-items:flex-start;padding:9px 0}
+.gc li+li{border-top:1px dashed rgba(120,160,255,.3)}
+.gc li:before{content:counter(s);flex:none;width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#35e6ff,#3b6bff);color:#04123a;font:900 14px/27px var(--kr);text-align:center;box-shadow:0 0 8px rgba(53,230,255,.6)}
+.gc small{display:block;margin-top:10px;color:#a9b6ff;font:400 12.5px/1.55 var(--kr);white-space:normal}
+.ne-edit{display:block;margin:0 0 12px auto;border:0;border-radius:99px;background:linear-gradient(135deg,#ff6fb9,#c026d3);color:#fff;font:700 13.5px var(--kr);padding:8px 16px;cursor:pointer}
+.ne-ta,.ne-in{width:100%;border:2px solid rgba(120,160,255,.5);border-radius:12px;padding:10px;font:400 14px/1.6 var(--kr);color:#fff;background:rgba(5,3,50,.8)}
+.ne-ta{resize:vertical}.ne-in{margin-top:8px}
+.ne-h{margin:6px 2px;color:#a9b6ff;font:400 12.5px/1.55 var(--kr)}
+.ne-c{display:block;margin:8px 2px;color:#eef1ff;font:400 13.5px var(--kr)}
+.ne-m{min-height:18px;margin:4px 2px;color:#ff9bd5;font:700 13px var(--kr)}
 .ne-r{display:flex;gap:8px;margin:6px 0}
-.ne-b{flex:1;height:44px;border:0;border-radius:99px;background:#d9c7c7;color:var(--brown);font:400 16px var(--jua);cursor:pointer}
-.ne-b.ok{background:var(--green);color:#fff}
+.ne-b{flex:1;height:44px;border:0;border-radius:99px;background:#3a3a7a;color:#fff;font:700 15px var(--kr);cursor:pointer}
+.ne-b.ok{background:linear-gradient(135deg,#35e6ff,#3b6bff);color:#04123a}
 .ne-b:disabled{opacity:.6}
+.sh-b>.ne-b{width:100%;margin-top:4px}
 
-#guideOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(22,10,44,.72);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
+#guideOv{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;background:rgba(3,0,28,.8);padding:max(12px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
 #guideOv.on{opacity:1;visibility:visible;transition-delay:0s}
-#guideOv .gv{flex:1;min-height:0;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#fff;border:4px solid #fff;border-radius:24px;box-shadow:0 0 0 3px var(--red),0 20px 60px rgba(10,6,40,.6)}
+#guideOv .gv{flex:1;min-height:0;width:min(100%,900px);margin:0 auto;display:flex;flex-direction:column;overflow:hidden;background:#0a0540;border:2px solid var(--cy);border-radius:20px;box-shadow:0 0 22px rgba(53,230,255,.45)}
 #guideOv iframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
-#guideOv .gv-f{flex:none;display:flex;gap:8px;padding:10px;background:#fff2ea}
-#guideOv .gv-close{flex:1;height:46px;border:0;border-radius:99px;background:var(--red);color:#fff;font:400 17px var(--jua);cursor:pointer;box-shadow:0 4px 0 #a8263d}
+.gv-f{flex:none;display:flex;justify-content:center;padding:10px}
+.gv-close{border:0;border-radius:99px;background:linear-gradient(135deg,#ff6fb9,#c026d3);color:#fff;font:700 15px var(--kr);padding:10px 34px;cursor:pointer;box-shadow:0 0 12px rgba(224,64,251,.5)}
 
 /* 앱 설치 안내 배너 */
-#instBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:90;max-width:520px;margin:0 auto;align-items:center;gap:12px;padding:12px 12px 12px 14px;
- background:#fffaf2;border:3px solid #fff;border-radius:22px;box-shadow:0 0 0 2px var(--red),0 14px 34px rgba(10,6,40,.5);color:var(--brown);animation:instup .4s cubic-bezier(.2,.9,.3,1)}
+#instBn{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:none;align-items:center;gap:12px;width:min(calc(100% - 24px),460px);padding:10px 12px;border-radius:18px;
+ background:rgba(10,6,70,.94);border:2px solid var(--cy);box-shadow:0 0 18px rgba(53,230,255,.4),0 10px 30px rgba(0,0,30,.6);color:#fff}
 #instBn.on{display:flex}
-@keyframes instup{from{opacity:0;transform:translateY(24px)}}
-#instBn img{flex:none;border-radius:12px}
-#instBn .ib-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-family:var(--kr)}
-#instBn .ib-t b{font:400 15px var(--jua);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--red)}
-#instBn .ib-t span{font-size:12px;line-height:1.45;color:var(--mut);word-break:keep-all}
-#instGo{flex:none;border:0;border-radius:99px;padding:10px 18px;background:var(--red);color:#fff;font:400 14px var(--jua);cursor:pointer;box-shadow:0 3px 0 #a8263d}
-#instNo{flex:none;border:0;background:none;color:var(--mut);font-size:17px;padding:6px;cursor:pointer}
-
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#instBn img{border-radius:10px;flex:none}
+#instBn .ib-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#instBn .ib-t b{font:700 14px var(--kr)}
+#instBn .ib-t span{font:400 11.5px/1.4 var(--kr);color:#b9c3ff}
+#instBn button{border:0;cursor:pointer;font:700 13px var(--kr);border-radius:99px;padding:8px 14px;color:#04123a;background:linear-gradient(135deg,#35e6ff,#3b6bff)}
+#instBn #instNo{background:none;color:#b9c3ff;padding:6px}
 </style>
-<link rel="stylesheet" href="cutegame.css?v=1">
 </head>
 <body>
-<div class="scene" aria-hidden="true"></div>
-<div class="lights" aria-hidden="true"></div>
-<div class="tagl" aria-hidden="true">❄ MERRY CHRISTMAS ❄</div>
-<div class="clock" id="clk" aria-hidden="true"></div>
-
 <div id="instBn" role="dialog" aria-label="앱 설치 안내"><img src="icons/app-192.png" alt="" width="44" height="44"><div class="ib-t"><b>영호의 게임에뮬레이터</b><span id="instSub">주소창 없이 앱처럼 크게 즐겨요</span></div><button type="button" id="instGo">앱 설치</button><button type="button" id="instNo" aria-label="닫기">✕</button></div>
 
-<div class="stage">
-  <!-- 상단 메뉴 -->
-  <nav class="topnav" aria-label="상단 메뉴">
-    <button type="button" class="btn cp" id="bNotice">공지사항<i class="dot"></i></button>
-    <button type="button" class="btn cp" id="bGuide">어플설치방법</button>
-    <button type="button" class="btn cp" id="bSave">세이브파일저장방법</button>
-    <button type="button" class="btn cp y fill" id="bInstall"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>앱설치</button>
+<div class="poster">
+  <img class="deco l" src="menuicons/deco-left.png" alt="" aria-hidden="true">
+  <img class="deco r" src="menuicons/deco-right.png" alt="" aria-hidden="true">
+  <div class="floor" aria-hidden="true"></div>
+  <i class="sp" style="--c:#35e6ff;left:calc(var(--u)*452);top:calc(var(--u)*118)" aria-hidden="true"></i>
+  <i class="sp" style="--c:#b07bff;left:calc(var(--u)*1125);top:calc(var(--u)*32);animation-delay:-1s" aria-hidden="true"></i>
+  <i class="sp" style="--c:#ff7ee9;left:calc(var(--u)*1170);top:calc(var(--u)*88);animation-delay:-2s" aria-hidden="true"></i>
+  <i class="sp" style="--c:#ffd84a;left:calc(var(--u)*300);top:calc(var(--u)*252);animation-delay:-.5s" aria-hidden="true"></i>
+  <i class="sp" style="--c:#35e6ff;left:calc(var(--u)*1190);top:calc(var(--u)*232);animation-delay:-1.5s" aria-hidden="true"></i>
+
+  <div class="topline" aria-hidden="true">
+    <i></i>
+    <svg viewBox="0 0 11 8"><path d="M2 0h1v1h1v1h3V1h1V0h1v1h-1v1h1v1h1v3h-1v1h-1V6h-1v1H8V6H3v1H2V6H1v1H0V3h1V2h1V1H1V0zm2 3v1h1V3zm3 0v1h1V3z" fill-rule="evenodd"/></svg>
+    <i></i>
+  </div>
+
+  <h1 class="title"><span class="t1" data-t="영호의">영호의</span><span class="t2" data-t="게임에뮬">게임에뮬</span></h1>
+
+  <div class="infobar">이 사이트는 게임을 제공하는 사이트가 아닙니다. 콘솔게임 웹에뮬레이터 사이트입니다.</div>
+  <p class="pick">사용하시는 기종을 선택하세요.</p>
+
+  <nav class="menu" aria-label="기종 선택">
+    <a class="mi" href="emulator.html" data-k="e" style="--c:#a9d8ff"><span class="ic"><img src="menuicons/pc.png" alt=""></span><b>PC</b><small>컴퓨터페이지로<br>접속하기</small></a>
+    <a class="mi" href="mobile.html" data-k="m" style="--c:#c9b2ff"><span class="ic"><img src="menuicons/mobile.png" alt=""></span><b>Mobile</b><small>휴대폰 사용자로<br>접속하기</small></a>
+    <a class="mi" href="romsite.html" style="--c:#7fe9ff"><span class="ic"><img src="menuicons/rom.png" alt=""></span><b>Rom Site</b><small>롬파일 찾기</small></a>
+    <a class="mi" href="gallery.html" style="--c:#d7b8ff"><span class="ic"><img src="menuicons/photo.png" alt=""></span><b>Photo</b><small>게임사진</small></a>
+    <a class="mi" href="music.html" style="--c:#9fe6ff"><span class="ic"><img src="menuicons/music.png" alt=""></span><b>Music</b><small>게임음악듣기</small></a>
   </nav>
 
-  <header>
-    <div class="eyebrow">🎄 Merry Christmas &amp; Happy Holidays 🎄</div>
-    <h1 data-t="영호의 게임에뮬레이터">영호의 게임에뮬레이터</h1>
-    <p class="sub">* 다양한 콘솔기기의 게임에뮬레이터를 통해 <b>롬파일</b>을 불러와 게임을 즐길 수 있는 추억의 게임웹에뮬레이터 사이트입니다.</p>
-    <div class="visit cp" id="visit"><span>오늘 방문 <b id="vToday">…</b></span><u></u><span>전체 방문 <b id="vTotal">…</b></span></div>
-  </header>
-
-  <!-- 접속 선택 -->
-  <main class="choices">
-    <a class="card cp y" id="cm" href="mobile.html" data-k="m">
-      <span class="tg">// MOBILE</span><span class="rec">추천</span>
-      <svg viewBox="0 0 64 64"><rect x="19" y="5" width="26" height="54" rx="5"/><path d="M27 11h10M28 53h8"/><rect x="24" y="18" width="16" height="26" rx="1.5"/><path d="M28 31h8M32 27v8"/></svg>
-      <div class="tx"><b>휴대폰으로 접속하기</b><span>스마트폰에 맞춘 인터페이스</span></div>
-    </a>
-    <a class="card cp" id="cold" href="emulator.html" data-k="e">
-      <span class="tg">// PC &amp; TABLET</span><span class="rec">추천</span>
-      <svg viewBox="0 0 64 64"><rect x="8" y="10" width="48" height="32" rx="3"/><path d="M22 52h20M32 42v10"/><path d="M20 26h6M23 23v6M40 26h.1M45 26h.1"/></svg>
-      <div class="tx"><b>컴퓨터(PC)/태블릿으로 접속하기</b><span>예전 방식의 게임 에뮬레이터 화면</span></div>
-    </a>
-    <a class="card cp" id="cx" href="multi/win10.html" data-k="x">
-      <span class="tg">// MULTI</span>
-      <svg viewBox="0 0 64 64"><rect x="6" y="10" width="52" height="34" rx="3"/><path d="M22 54h20M32 44v10"/><rect x="12" y="16" width="10" height="10" rx="2"/><rect x="26" y="16" width="10" height="10" rx="2"/><rect x="40" y="16" width="10" height="10" rx="2"/></svg>
-      <div class="tx"><b>멀티기능으로 접속하기</b><span>윈도우10 스타일 화면 · 음악(MP3) 등 다양한 기능</span></div>
-    </a>
-    <a class="card cp" id="cv" href="videos.html" data-k="v">
-      <span class="tg">// GAME VIDEO</span>
-      <svg viewBox="0 0 64 64"><rect x="6" y="12" width="52" height="38" rx="9"/><path d="M27 23v16l14-8z"/><path d="M18 57h28"/></svg>
-      <div class="tx"><b>게임동영상 보기</b><span>유튜브에 올린 내 게임 영상을 바로 보기</span></div>
-    </a>
-  </main>
-
-  <!-- 하단 메뉴 -->
-  <nav class="botnav" aria-label="하단 메뉴">
-    <button type="button" class="btn cp r js-wipe" id="bWipe" title="이 사이트에 쌓인 기록을 모두 지우고 처음 접속한 상태로 되돌립니다"><span id="bWipeT">데이터삭제</span></button>
-    <button type="button" class="btn cp" id="bCache"><span id="bCacheT">캐쉬삭제</span></button>
-    <button type="button" class="btn cp y" id="bHow">게임하는방법</button>
-    <button type="button" class="btn cp y" id="bHome">홈에 바로가기 추가하기</button>
+  <nav class="tools" aria-label="안내 메뉴">
+    <button type="button" class="tb" id="bInstall"><img src="menuicons/install.png" alt=""><span>어플 설치하기</span></button>
+    <button type="button" class="tb c2" id="bSave"><img src="menuicons/save.png" alt=""><span>세이브파일 저장방법</span></button>
+    <button type="button" class="tb c3" id="bHow"><img src="menuicons/howto.png" alt=""><span>에뮬레이터 사용법</span></button>
+    <button type="button" class="tb c4" id="bNotice"><img src="menuicons/notice.png" alt=""><span>공지사항</span><i class="dot"></i></button>
   </nav>
 
-  <label class="keep"><input type="checkbox" id="keep">다음부터 이 화면으로 바로 접속</label>
-  <a class="legacy" href="classic.html" id="bClassic" data-k="c">통합 화면 (윈도우·DOS 에뮬레이터)</a>
+  <div class="foot">
+    <span class="vis"><span>오늘 방문 <b id="vToday">…</b></span><u></u><span>전체 방문 <b id="vTotal">…</b></span></span>
+    <label class="keep"><input type="checkbox" id="keep">다음부터 이 화면으로 바로 접속</label>
+    <span class="lk">
+      <a href="multi/win10.html" data-k="x">멀티기능</a>
+      <a href="videos.html" data-k="v">게임동영상</a>
+      <a href="classic.html" data-k="c">통합화면</a>
+      <button type="button" id="bCache"><span id="bCacheT">캐쉬삭제</span></button>
+      <button type="button" class="js-wipe" id="bWipe"><span id="bWipeT">데이터삭제</span></button>
+    </span>
+  </div>
 </div>
 
-<div id="sh" aria-hidden="true"><div class="sheet cp" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="sh-h"><b id="shT"></b><button type="button" id="shX">닫기</button></div><div class="sh-s" id="shS"></div><div class="sh-b" id="shB"></div></div></div>
+<div id="sh" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="sh-h"><b id="shT"></b><button type="button" id="shX">닫기</button></div><div class="sh-s" id="shS"></div><div class="sh-b" id="shB"></div></div></div>
 <div id="guideOv" aria-hidden="true"><div class="gv"><iframe id="guideFr" title="안내" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="guideX">닫기</button></div></div></div>
-
-<script src="xmas.js?v=1"></script>
-<script>
-(function(){
- XmasSnow.on(1);
- var clk=document.getElementById('clk');
- function tick(){var d=new Date();clk.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
- tick();setInterval(tick,15000);
-})();
-</script>
 
 <script>
 (function(){
 var $=function(s){return document.querySelector(s)};
 var sh=$('#sh');
 function mk(c,t,tag){var e=document.createElement(tag||'div');if(c)e.className=c;if(t!=null)e.textContent=t;return e}
-function open_(title,sub,nodes){$('#shT').textContent=title;$('#shS').textContent=sub||'';$('#shS').style.display=sub?'':'none';var b=$('#shB');b.innerHTML='';nodes.forEach(function(n){b.appendChild(n)});b.scrollTop=0;sh.classList.add('on');sh.setAttribute('aria-hidden','false');$('#shX').focus()}
+function open_(title,sub,nodes){if(title==='앱 설치하기'&&!nodes.some(function(n){return n.tagName==='BUTTON'}))nodes=nodes.concat([guideBtn()]);$('#shT').textContent=title;$('#shS').textContent=sub||'';$('#shS').style.display=sub?'':'none';var b=$('#shB');b.innerHTML='';nodes.forEach(function(n){b.appendChild(n)});b.scrollTop=0;sh.classList.add('on');sh.setAttribute('aria-hidden','false');$('#shX').focus()}
 function close_(){sh.classList.remove('on');sh.setAttribute('aria-hidden','true')}
 $('#shX').onclick=close_;
 sh.addEventListener('click',function(e){if(e.target===sh)close_()});
@@ -376,7 +355,6 @@ var ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator
 var android=/Android/.test(ua);
 var macSafari=!ios&&/Macintosh/.test(ua)&&/Safari/.test(ua)&&!/Chrome|Chromium|Edg|OPR|Firefox/.test(ua);
 var standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
-if(standalone)$('#bInstall').style.display='none';
 var samsung=/SamsungBrowser/.test(ua),DKEY='instDismissed',bn=$('#instBn');
 function dismissed(){try{var t=+localStorage.getItem(DKEY)||0;return Date.now()-t<3*864e5}catch(e){return false}}
 function hideBn(remember){bn.classList.remove('on');if(remember){try{localStorage.setItem(DKEY,String(Date.now()))}catch(e){}}}
@@ -386,7 +364,7 @@ function showBn(){
  bn.classList.add('on');
 }
 addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;setTimeout(showBn,1200)});
-addEventListener('appinstalled',function(){$('#bInstall').style.display='none';dip=null;hideBn(false)});
+addEventListener('appinstalled',function(){dip=null;hideBn(false)});
 $('#instNo').onclick=function(){hideBn(true)};
 $('#instGo').onclick=function(){hideBn(false);$('#bInstall').click()};
 setTimeout(function(){if(!dip&&(ios||samsung))showBn()},2500);
@@ -398,16 +376,11 @@ function steps(list,foot){
 }
 $('#bInstall').onclick=function(){
  if(dip){var d=dip;dip=null;d.prompt();return}
+ if(standalone){open_('앱 설치하기','',[mk('gc em','이미 앱으로 설치해서 사용 중입니다.'),guideBtn()]);return}
  if(ios)open_('앱 설치하기','아이폰 · 아이패드',[steps(['Safari로 이 페이지를 엽니다.','화면 아래(또는 위)의 공유 버튼을 누릅니다.','“홈 화면에 추가”를 선택합니다.','오른쪽 위의 “추가”를 누르면 홈 화면에 앱이 생깁니다.'],'다른 브라우저에서는 보이지 않을 수 있어요. Safari에서 열어 주세요.')]);
  else if(macSafari)open_('앱 설치하기','Mac · Safari',[steps(['메뉴 막대에서 “파일”을 엽니다.','“Dock에 추가”를 선택합니다.','이름을 확인하고 “추가”를 누릅니다.'])]);
  else open_('앱 설치하기','PC · 안드로이드',[steps(['주소창 오른쪽의 설치 아이콘을 누릅니다.','아이콘이 없으면 브라우저 메뉴(⋮)를 엽니다.','“앱 설치” 또는 “홈 화면에 추가”를 선택합니다.'],'Chrome, Edge, 삼성 인터넷에서 설치할 수 있어요. PC용 Firefox는 앱 설치를 지원하지 않습니다.')]);
 };
-$('#bHome').onclick=function(){
- if(ios)open_('홈에 바로가기 추가하기','아이폰 · 아이패드',[steps(['Safari로 이 페이지를 엽니다.','공유 버튼(□↑)을 누릅니다.','“홈 화면에 추가”를 선택합니다.','오른쪽 위의 “추가”를 누르면 홈 화면에 바로가기가 생깁니다.'])]);
- else if(android)open_('홈에 바로가기 추가하기','안드로이드',[steps(['Chrome(또는 삼성 인터넷)으로 이 페이지를 엽니다.','오른쪽 위(또는 아래)의 메뉴(⋮ / ≡)를 누릅니다.','“홈 화면에 추가”를 선택합니다.','“추가”를 누르면 홈 화면에 바로가기가 생깁니다.'])]);
- else open_('홈에 바로가기 추가하기','PC',[steps(['Chrome 또는 Edge로 이 페이지를 엽니다.','오른쪽 위 메뉴(⋮ / …)에서 “바로가기 만들기”(Chrome) 또는 “앱 → 이 사이트를 앱으로 설치”(Edge)를 선택합니다.','Chrome은 “창으로 열기”를 체크하면 독립된 창으로 열립니다.','바탕화면·작업표시줄에 생긴 바로가기를 사용하세요.'],'메뉴 이름은 브라우저 버전에 따라 조금 다를 수 있어요.')]);
-};
-
 /* ---------- 게임하는 방법 ---------- */
 $('#bHow').onclick=function(){
  open_('게임하는 방법','HOW TO PLAY',[steps([
@@ -422,15 +395,14 @@ $('#bHow').onclick=function(){
 /* ---------- 어플설치방법 · 세이브파일저장방법 ---------- */
 var ov=$('#guideOv'),fr=$('#guideFr');
 function gOpen(u,t){if(fr.getAttribute('src')!==u){fr.src=u}fr.title=t;ov.classList.add('on');ov.setAttribute('aria-hidden','false');$('#guideX').focus()}
+function guideBtn(){var b=mk('ne-b ok','자세한 설치 방법 보기','button');b.type='button';b.onclick=function(){close_();gOpen('https://youngho1206.tistory.com/m/1','어플 설치 방법')};return b}
 function gClose(){ov.classList.remove('on');ov.setAttribute('aria-hidden','true')}
-$('#bGuide').onclick=function(){gOpen('https://youngho1206.tistory.com/m/1','어플 설치 방법')};
 $('#bSave').onclick=function(){gOpen('https://youngho1206.tistory.com/2','세이브파일 저장 방법')};
 $('#guideX').onclick=gClose;
 addEventListener('keydown',function(e){if(e.key==='Escape')gClose()});
 
 /* ---------- 접속 버전 선택 ---------- */
-$((innerWidth>=700?'#cold':'#cm')).classList.add('rec-on');
-document.querySelectorAll('.card[data-k],#bClassic[data-k]').forEach(function(a){
+document.querySelectorAll('a[data-k]').forEach(function(a){
  a.addEventListener('click',function(e){e.preventDefault();go(a.dataset.k,document.getElementById('keep').checked)});
 });
 })();
@@ -442,7 +414,7 @@ document.querySelectorAll('.card[data-k],#bClassic[data-k]').forEach(function(a)
 (function(){
  var btn=document.getElementById('bCache');if(!btn)return;
  var lab=document.getElementById('bCacheT'),busy=false;
- var FILES=['./','index.html','index-select.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dosplayer.html','dos.html','emuhost.html',
+ var FILES=['./','index.html','index-select.html','romsite.html','music.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dosplayer.html','dos.html','emuhost.html',
   'gallery.html','tablet.html','videos.html','videos/videos.json','map.html','memo.html','calc.html','life.html','search.html',
   'retro.js','retro.css','perf.css','cutegame.css','mamegame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
