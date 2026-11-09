@@ -6,7 +6,7 @@
              6자리 연결코드가 나옵니다.
    · 친구  : 같은 사이트에서 '친구와 함께 → 코드로 참가하기' 에 코드를 넣으면
              방장의 게임 화면·소리가 실시간으로 나오고, 친구의 버튼 입력은 방장 게임의
-             2P(3P·4P) 조작으로 전달됩니다. (친구는 ROM 파일이 필요 없습니다)
+             2P(3P·4P) 조작으로 전달됩니다. (친구도 같은 ROM 으로 게임을 먼저 실행해야 합니다)
    · 연결 : WebRTC(PeerJS 무료 공개 연결서버) — 별도 서버·PHP 필요 없음.
             게임 화면/소리/버튼은 방장과 친구 사이에 직접 오갑니다.
 
@@ -279,10 +279,10 @@
     var b = ui.body; b.innerHTML = '';
     if (guest.local) view = 'glocal'; else if (host.active) view = 'host';
     if (view === 'home') {
-      el('div', 'font-size:13px;line-height:1.55;color:#cdd3f5', '같은 사이트에 접속한 친구와 연결코드(번호)로 바로 함께 할 수 있어요.<br>방장만 게임 ROM 이 있으면 돼요.', b);
+      el('div', 'font-size:13px;line-height:1.55;color:#cdd3f5', '같은 사이트에 접속한 친구와 연결코드(번호)로 바로 함께 할 수 있어요.<br>방장과 친구 모두 같은 게임 ROM 이 있어야 해요.', b);
       btn(b, '🏠 방 만들기 (내가 방장)', '#4b6bff', function () { view = 'host'; hostStart(); renderPanel(); });
       btn(b, '🔑 코드로 참가하기', '#2fa36b', function () { view = 'join'; renderPanel(); });
-      el('div', 'margin-top:12px;font-size:12px;line-height:1.55;color:#9aa3d8', '💡 같은 ROM 방식 : 방장과 친구가 <b>둘 다 같은 게임을 먼저 실행</b>한 뒤 연결하면, 각자 기기에서 게임이 돌아가서 속도가 빨라요.<br>친구가 게임 없이 참가하면 방장의 화면을 받아 보는 화면 중계 방식으로 연결돼요.', b);
+      el('div', 'margin-top:12px;font-size:12px;line-height:1.55;color:#9aa3d8', '💡 같은 ROM 방식 : 방장과 친구가 <b>둘 다 같은 게임을 먼저 실행</b>한 뒤 연결하면, 각자 기기에서 게임이 돌아가서 속도가 빨라요.<br>친구가 같은 ROM 으로 게임을 실행하지 않았다면 연결되지 않아요 (화면 중계 없음).', b);
     } else if (view === 'glocal') {
       ui.gBox = el('div', '', null, b);
       renderGuestLocal();
@@ -380,9 +380,8 @@
     });
     conn.on('data', function (d) {
       var g = host.guests[slot]; if (!g || g.conn !== conn || !d) return;
-      if (d.t === 'b' && d.i >= 0 && d.i < 16) {
-        g.down[d.i] = d.v ? 1 : 0;
-        var info = findEmu(); if (info) simulate(info, g.slot, d.i, d.v ? 1 : 0);
+      if (d.t === 'b') {
+        return; /* 화면 중계 방식 입력 차단 */
       } else if (d.t === 'hello') {
         onHello(g, d);
       } else if (d.t === 'in' && g.mode === 'local') {
@@ -440,12 +439,13 @@
     }, ms);
   }
   function onHello(g, d) {
-    if (d.mode === 'stream') { g.mode = 'stream'; try { g.conn.send({ t: 'hi', player: g.slot + 1 }); } catch (e) {} renderHost(); refreshPill(); return; }
+    /* 화면 중계(stream) 방식 완전 차단 : 같은 ROM 이 확인된 친구만 연결 허용 */
+    if (d.mode !== 'local' || !d.sig) { try { g.conn.send({ t: 'norom' }); } catch (e) {} setTimeout(function () { try { g.conn.close(); } catch (e) {} }, 300); return; }
     var info = findEmu();
-    if (!info) { try { g.conn.send({ t: 'nohost' }); } catch (e) {} return; }
+    if (!info) { try { g.conn.send({ t: 'nohost' }); } catch (e) {} setTimeout(function () { try { g.conn.close(); } catch (e) {} }, 300); return; }
     romSig(info).then(function (my) {
       var ok = my && d.sig && my.hash === d.sig.hash && my.size === d.sig.size && (!d.core || !my.core || d.core === my.core);
-      if (!ok) { try { g.conn.send({ t: 'mismatch' }); } catch (e) {} return; }
+      if (!ok) { try { g.conn.send({ t: 'mismatch' }); } catch (e) {} setTimeout(function () { try { g.conn.close(); } catch (e) {} }, 300); return; }
       g.mode = 'local';
       try { g.conn.send({ t: 'ok', mode: 'local', player: g.slot + 1 }); } catch (e) {}
       hostNetUpdate(); sendState([g]);
@@ -494,7 +494,7 @@
     if (!host.active || !host.peer) return;
     var info = findEmu(), any = false;
     host.guests.forEach(function (g) {
-      if (!g || !g.open || g.mode !== 'stream') return;
+      if (!g || !g.open || g.mode !== 'stream') return; /* stream 모드는 더 이상 없음 */
       any = true;
       if (!info) {
         if (g.call) { try { g.call.close(); } catch (e) {} g.call = null; g.sig = ''; try { g.conn.send({ t: 'wait' }); } catch (e) {} }
@@ -591,11 +591,7 @@
         report(t === 'peer-unavailable' ? '해당 코드의 방을 찾을 수 없어요. 코드를 확인해 주세요.' : '연결에 실패했어요. (' + (t || 'error') + ')', false);
         if (!done) guestStop(true);
       });
-      p.on('call', function (call) {
-        try { call.answer(undefined, { sdpTransform: boostSdp }); } catch (e) { call.answer(); }
-        guest.call = call;
-        call.on('stream', function (s) { showStream(s); lowLatency(call); });
-      });
+      p.on('call', function (call) { try { call.close(); } catch (e) {} }); /* 화면 중계 수신 차단 */
       p.on('open', function () {
         var conn = p.connect(PREFIX + code, { reliable: true });
         guest.conn = conn;
@@ -613,11 +609,9 @@
               guest.helloT = setTimeout(function () { if (guest.pending) { report('방장의 응답이 없어요.', false); guestStop(true); } }, 25000);
             });
           } else {
-            /* 게임이 없으면 '화면 중계 방식' */
-            try { conn.send({ t: 'hello', mode: 'stream' }); } catch (e) {}
-            report('연결됐어요!', true);
-            closePanel();
-            openGuestUI();
+            /* 게임(ROM)이 없으면 연결 불가 : 화면 중계 없음 */
+            report('게임을 먼저 실행해야 연결할 수 있어요. 방장과 같은 ROM 파일로 게임을 실행한 뒤 다시 시도해 주세요.', false);
+            guestStop(true);
           }
         });
         conn.on('data', function (d) {
@@ -635,6 +629,7 @@
             refreshPill();
           }
           else if (d.t === 'mismatch') { guest.pending = false; report('방장과 게임 파일이 달라요. 같은 ROM 파일(같은 zip)로 실행해 주세요.', false); guestStop(true); }
+          else if (d.t === 'norom') { guest.pending = false; report('방장과 같은 ROM 으로 게임을 실행해야 연결할 수 있어요.', false); guestStop(true); }
           else if (d.t === 'nohost') { guest.pending = false; report('방장이 아직 게임을 실행하지 않았어요. 방장이 게임을 켠 뒤 다시 시도해 주세요.', false); guestStop(true); }
           else if (d.t === 'in') { var inf = findEmu(); if (inf) { simulate(inf, d.p, d.i, d.v); net.recv++; } }
           else if (d.t === 'state') { loadSyncState(d.d); }
