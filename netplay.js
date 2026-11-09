@@ -84,12 +84,27 @@
     });
     return found;
   }
+  function simTarget(info) { return (typeof info.gm.simulateInput === 'function') ? info.gm : info.gm.functions; }
   function simulate(info, player, idx, val) {
-    var gm = info.gm;
-    try {
-      if (typeof gm.simulateInput === 'function') gm.simulateInput(player, idx, val);
-      else gm.functions.simulateInput(player, idx, val);
-    } catch (e) {}
+    try { var t = simTarget(info); (t.__npOrig || t.simulateInput).call(t, player, idx, val); } catch (e) {}
+  }
+
+  /* ---------- 같은 ROM 확인 (파일 내용 해시) ---------- */
+  function hex(buf) { var a = new Uint8Array(buf), o = ''; for (var i = 0; i < a.length; i++) o += (a[i] < 16 ? '0' : '') + a[i].toString(16); return o; }
+  function romSig(info) {
+    var w = info.win, u = w.EJS_gameUrl;
+    if (info.sigCache && info.sigCache.u === u) return Promise.resolve(info.sigCache.v);
+    var pr;
+    if (u && u.arrayBuffer) {
+      var size = u.size, BIG = 32 * 1048576;
+      pr = (size > BIG
+        ? Promise.all([u.slice(0, 4194304).arrayBuffer(), u.slice(size - 4194304).arrayBuffer()]).then(function (p) { var c = new Uint8Array(p[0].byteLength + p[1].byteLength); c.set(new Uint8Array(p[0]), 0); c.set(new Uint8Array(p[1]), p[0].byteLength); return c.buffer; })
+        : u.arrayBuffer()).then(function (buf) { return { buf: buf, size: size }; });
+    } else if (typeof u === 'string') {
+      pr = fetch(u).then(function (r) { return r.arrayBuffer(); }).then(function (buf) { return { buf: buf, size: buf.byteLength }; });
+    } else return Promise.resolve(null);
+    return pr.then(function (r) { return crypto.subtle.digest('SHA-256', r.buf).then(function (h) { return { hash: hex(h), size: r.size, core: String(w.EJS_core || '') }; }); })
+      .then(function (v) { info.sigCache = { u: u, v: v }; return v; }, function () { return null; });
   }
 
   /* ---------- 게임 소리 가져오기 ----------
@@ -149,6 +164,50 @@
   }
 
   /* ======================================================================
+     '같은 ROM 방식' 공통 : 각자 게임을 실행하고 버튼 입력만 서로 주고받음
+     ====================================================================== */
+  var net = { on: false, role: null, slot: 1, rtt: 0, D: 0, sent: 0, recv: 0, resyncT: 0, wrapT: 0, pingT: 0, lastSync: 0, stateKB: 0 };
+  function netWrap() {
+    var info = findEmu(); if (!info) return;
+    var t = simTarget(info);
+    if (t.__npOrig) return;
+    var orig = t.simulateInput; t.__npOrig = orig;
+    t.simulateInput = function (p, i, v) {
+      if (!net.on || p !== 0) return orig.call(t, p, i, v);   /* 내 조작은 항상 1P 로 들어옴 */
+      var slot = net.role === 'host' ? 0 : net.slot, self = this;
+      net.sent++;
+      if (net.role === 'host') hostBroadcast({ t: 'in', p: 0, i: i, v: v });
+      else if (guest.conn && guest.conn.open) { try { guest.conn.send({ t: 'in', i: i, v: v }); } catch (e) {} }
+      /* 상대 쪽에 도착하는 시간과 맞추려고 내 조작도 통신 지연의 절반만큼 늦춰서 적용 */
+      if (net.D > 3) setTimeout(function () { orig.call(t, slot, i, v); }, net.D);
+      else return orig.call(t, slot, i, v);
+    };
+  }
+  function netUnwrap() {
+    try { eachWindow(window, function (w) { var e = w.EJS_emulator; if (!e || !e.gameManager) return; var gm = e.gameManager, t = (typeof gm.simulateInput === 'function') ? gm : gm.functions; if (t.__npOrig) { t.simulateInput = t.__npOrig; delete t.__npOrig; } }); } catch (e) {}
+  }
+  function netStart(role) {
+    net.on = true; net.role = role; net.sent = net.recv = 0;
+    netWrap(); clearInterval(net.wrapT); net.wrapT = setInterval(function () { if (net.on) netWrap(); }, 1000);
+  }
+  function netStop() { net.on = false; clearInterval(net.wrapT); clearInterval(net.pingT); clearTimeout(net.resyncT); netUnwrap(); net.rtt = 0; net.D = 0; }
+  function toU8(x) {
+    if (x instanceof Uint8Array) return x;
+    if (x instanceof ArrayBuffer) return new Uint8Array(x);
+    if (x && x.buffer) return new Uint8Array(x.buffer, x.byteOffset || 0, x.byteLength);
+    return new Uint8Array(x);
+  }
+  function loadSyncState(u8) {
+    var info = findEmu(); if (!info) return;
+    try { info.gm.loadState(toU8(u8)); net.lastSync = Date.now(); } catch (e) {}
+  }
+  function pingLoop(send) {
+    clearInterval(net.pingT);
+    net.pingT = setInterval(function () { send({ t: 'ping', ts: performance.now() }); }, 2000);
+  }
+  function onRtt(ms) { net.rtt = net.rtt ? net.rtt * 0.7 + ms * 0.3 : ms; }
+
+  /* ======================================================================
      화면(UI)
      ====================================================================== */
   var ui = {};
@@ -157,7 +216,7 @@
   /* '친구와 함께' 버튼을 각 페이지의 에뮬레이터 상단 메뉴에 넣습니다.
      (메뉴가 다시 만들어져도 0.5초마다 확인해서 다시 붙여 줍니다) */
   function labelText(kind) {
-    var t = host.active && host.code ? '🟢 방 ' + host.code + (connectedCount() ? ' · ' + connectedCount() + '명' : '') : '👥 친구와 함께';
+    var t = guest.local ? '🟢 ' + guest.player + 'P · ' + Math.round(net.rtt) + 'ms' : host.active && host.code ? '🟢 방 ' + host.code + (connectedCount() ? ' · ' + connectedCount() + '명' : '') : '👥 친구와 함께';
     return kind === 'br' ? '[' + t + ']' : t;
   }
   function makeBtn(kind, cls) {
@@ -179,6 +238,25 @@
   }
   function buildPill() { ensureBtn(); setInterval(ensureBtn, 500); }
 
+  function toast(msg) {
+    try {
+      var t = el('div', css + 'position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:2147483200;background:rgba(20,24,48,.92);color:#fff;font-size:14px;font-weight:700;padding:11px 18px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,.5);max-width:88vw;text-align:center;pointer-events:none', msg, document.body);
+      setTimeout(function () { t.remove(); }, 3500);
+    } catch (e) {}
+  }
+  function statsHTML() {
+    var l = [];
+    if (net.on) {
+      l.push('📶 지연 ' + Math.round(net.rtt) + 'ms (입력 보정 ' + net.D + 'ms)');
+      l.push('🎮 보낸 입력 ' + net.sent + ' · 받은 입력 ' + net.recv);
+      l.push('🔄 마지막 동기화 ' + (net.lastSync ? Math.round((Date.now() - net.lastSync) / 1000) + '초 전' : '-') + (net.stateKB ? ' (' + net.stateKB + 'KB)' : ''));
+    }
+    return l.join('<br>');
+  }
+  setInterval(function () {
+    refreshPill();
+    if (ui.statEl && ui.statEl.isConnected && ui.bg && ui.bg.style.display === 'flex') ui.statEl.innerHTML = statsHTML();
+  }, 1000);
   function buildPanel() {
     var bg = el('div', css + 'position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box', null, document.body);
     var box = el('div', 'width:100%;max-width:380px;max-height:92vh;overflow:auto;background:#151a35;color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:18px;padding:18px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.6)', null, bg);
@@ -199,11 +277,15 @@
   var view = 'home'; /* home | host | join */
   function renderPanel() {
     var b = ui.body; b.innerHTML = '';
-    if (host.active) view = 'host';
+    if (guest.local) view = 'glocal'; else if (host.active) view = 'host';
     if (view === 'home') {
       el('div', 'font-size:13px;line-height:1.55;color:#cdd3f5', '같은 사이트에 접속한 친구와 연결코드(번호)로 바로 함께 할 수 있어요.<br>방장만 게임 ROM 이 있으면 돼요.', b);
       btn(b, '🏠 방 만들기 (내가 방장)', '#4b6bff', function () { view = 'host'; hostStart(); renderPanel(); });
       btn(b, '🔑 코드로 참가하기', '#2fa36b', function () { view = 'join'; renderPanel(); });
+      el('div', 'margin-top:12px;font-size:12px;line-height:1.55;color:#9aa3d8', '💡 같은 ROM 방식 : 방장과 친구가 <b>둘 다 같은 게임을 먼저 실행</b>한 뒤 연결하면, 각자 기기에서 게임이 돌아가서 속도가 빨라요.<br>친구가 게임 없이 참가하면 방장의 화면을 받아 보는 화면 중계 방식으로 연결돼요.', b);
+    } else if (view === 'glocal') {
+      ui.gBox = el('div', '', null, b);
+      renderGuestLocal();
     } else if (view === 'host') {
       ui.hostBox = el('div', '', null, b);
       renderHost();
@@ -222,6 +304,13 @@
       setTimeout(function () { try { inp.focus(); } catch (e) {} }, 50);
     }
   }
+  function renderGuestLocal() {
+    var b = ui.gBox; if (!b) return; b.innerHTML = '';
+    el('div', 'font-size:15px;font-weight:700;margin-bottom:6px', '✅ 같은 ROM 방식으로 연결됨', b);
+    el('div', 'font-size:13px;color:#cdd3f5;line-height:1.6', '나는 <b>' + guest.player + 'P</b> 로 들어왔어요.<br>내 기기에서 게임이 실행되고, 버튼 입력만 서로 주고받아요.', b);
+    ui.statEl = el('div', 'margin-top:10px;font-size:13px;line-height:1.6;color:#cdd3f5;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 12px', statsHTML(), b);
+    btn(b, '🚪 연결 끊기', '#c0392b', function () { guestStop(); view = 'home'; renderPanel(); });
+  }
   function renderHost() {
     var b = ui.hostBox; if (!b) return; b.innerHTML = '';
     if (!host.code) {
@@ -235,14 +324,18 @@
       var t = host.code, me = e.target;
       try { navigator.clipboard.writeText(t); me.textContent = '✅ 복사됨'; setTimeout(function () { me.textContent = '📋 코드 복사'; }, 1500); } catch (x) { me.textContent = t; }
     });
-    var n = connectedCount();
+    var n = connectedCount(), nl = localGuests().length, ns = n - nl;
     var st = el('div', 'margin-top:12px;font-size:13px;line-height:1.6;color:#cdd3f5;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 12px', '', b);
     var lines = [];
     var info = findEmu();
     lines.push(info ? '🎮 게임 실행 중' : '📂 게임 ROM 을 불러오면 친구 화면에 나와요');
-    lines.push(n ? '👥 연결된 친구 ' + n + '명 (2P' + (n > 1 ? '~' + (n + 1) + 'P' : '') + ')' : '⏳ 친구를 기다리는 중…');
+    lines.push(n ? '👥 연결된 친구 ' + n + '명 (같은 ROM ' + nl + ' · 화면중계 ' + ns + ')' : '⏳ 친구를 기다리는 중…');
     st.innerHTML = lines.join('<br>');
-    el('div', 'margin-top:8px;font-size:12px;color:#9aa3d8;line-height:1.5', '※ 친구는 2P 조작으로 들어와요. 2인 플레이가 되는 게임에서 사용하세요. 이 창은 닫아도 방은 유지돼요.', b);
+    if (nl) {
+      ui.statEl = el('div', 'margin-top:8px;font-size:13px;line-height:1.6;color:#cdd3f5;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 12px', statsHTML(), b);
+      btn(b, '🔄 지금 동기화', 'rgba(255,255,255,.16)', function () { sendState(localGuests()); toast('동기화했어요'); });
+    }
+    el('div', 'margin-top:8px;font-size:12px;color:#9aa3d8;line-height:1.5', '※ 친구는 2P 조작으로 들어와요. 2인 플레이가 되는 게임에서 사용하세요. 같은 ROM 방식은 친구도 같은 게임 파일을 먼저 실행해야 해요. 이 창은 닫아도 방은 유지돼요.', b);
     btn(b, '🚪 방 닫기', '#c0392b', function () { hostStop(); view = 'home'; renderPanel(); });
   }
   function refreshPill() {
@@ -281,9 +374,8 @@
     for (var i = 0; i < MAX_GUESTS; i++) if (!host.guests[i] || !host.guests[i].open) { slot = i; break; }
     conn.on('open', function () {
       if (slot < 0) { try { conn.send({ t: 'full' }); } catch (e) {} setTimeout(function () { try { conn.close(); } catch (e) {} }, 300); return; }
-      var g = { conn: conn, id: conn.peer, slot: slot + 1, open: true, down: {}, call: null, sig: '' };
+      var g = { conn: conn, id: conn.peer, slot: slot + 1, open: true, down: {}, call: null, sig: '', mode: null, rtt: 0 };
       host.guests[slot] = g;
-      try { conn.send({ t: 'hi', player: g.slot + 1 }); } catch (e) {}
       renderHost(); refreshPill();
     });
     conn.on('data', function (d) {
@@ -291,6 +383,17 @@
       if (d.t === 'b' && d.i >= 0 && d.i < 16) {
         g.down[d.i] = d.v ? 1 : 0;
         var info = findEmu(); if (info) simulate(info, g.slot, d.i, d.v ? 1 : 0);
+      } else if (d.t === 'hello') {
+        onHello(g, d);
+      } else if (d.t === 'in' && g.mode === 'local') {
+        var inf = findEmu(); if (!inf) return;
+        if (d.i < 16) g.down[d.i] = d.v ? 1 : 0;
+        simulate(inf, g.slot, d.i, d.v); net.recv++;
+        hostBroadcast({ t: 'in', p: g.slot, i: d.i, v: d.v }, g);
+      } else if (d.t === 'ping') {
+        try { conn.send({ t: 'pong', ts: d.ts }); } catch (e) {}
+      } else if (d.t === 'pong') {
+        var ms = performance.now() - d.ts; g.rtt = g.rtt ? g.rtt * 0.7 + ms * 0.3 : ms; hostNetUpdate();
       }
     });
     function gone() {
@@ -300,11 +403,58 @@
       if (info) Object.keys(g.down).forEach(function (k) { if (g.down[k]) simulate(info, g.slot, +k, 0); });
       try { g.call && g.call.close(); } catch (e) {}
       host.guests[slot] = null;
+      hostNetUpdate();
       renderHost(); refreshPill();
     }
     conn.on('close', gone); conn.on('error', gone);
   }
+  /* ----- 같은 ROM 방식 : 방장 쪽 ----- */
+  function localGuests() { return host.guests.filter(function (g) { return g && g.open && g.mode === 'local'; }); }
+  function hostBroadcast(msg, except) {
+    host.guests.forEach(function (g) { if (g && g.open && g.mode === 'local' && g !== except) { try { g.conn.send(msg); } catch (e) {} } });
+  }
+  function hostNetUpdate() {
+    var L = localGuests();
+    if (L.length && !(net.on && net.role === 'host')) {
+      netStart('host');
+      pingLoop(function (m) { hostBroadcast(m); });
+      scheduleResync(3000);
+    } else if (!L.length && net.on && net.role === 'host') netStop();
+    var mx = 0; L.forEach(function (g) { mx = Math.max(mx, g.rtt || 0); });
+    net.rtt = mx; net.D = Math.min(100, Math.round(mx / 2));
+  }
+  function sendState(targets) {
+    var info = findEmu(); if (!info || !targets.length) return;
+    var st; try { st = info.gm.getState(); } catch (e) { return; }
+    var u = new Uint8Array(toU8(st));          /* 복사본 */
+    net.stateKB = Math.round(u.length / 1024); net.lastSync = Date.now();
+    targets.forEach(function (g) { try { g.conn.send({ t: 'state', d: u }); } catch (e) {} });
+  }
+  function scheduleResync(ms) {
+    clearTimeout(net.resyncT);
+    net.resyncT = setTimeout(function () {
+      if (!(net.on && net.role === 'host')) return;
+      sendState(localGuests());
+      var kb = net.stateKB;
+      scheduleResync(kb < 512 ? 5000 : kb < 2048 ? 8000 : kb < 8192 ? 15000 : 30000);
+    }, ms);
+  }
+  function onHello(g, d) {
+    if (d.mode === 'stream') { g.mode = 'stream'; try { g.conn.send({ t: 'hi', player: g.slot + 1 }); } catch (e) {} renderHost(); refreshPill(); return; }
+    var info = findEmu();
+    if (!info) { try { g.conn.send({ t: 'nohost' }); } catch (e) {} return; }
+    romSig(info).then(function (my) {
+      var ok = my && d.sig && my.hash === d.sig.hash && my.size === d.sig.size && (!d.core || !my.core || d.core === my.core);
+      if (!ok) { try { g.conn.send({ t: 'mismatch' }); } catch (e) {} return; }
+      g.mode = 'local';
+      try { g.conn.send({ t: 'ok', mode: 'local', player: g.slot + 1 }); } catch (e) {}
+      hostNetUpdate(); sendState([g]);
+      toast('✅ 친구가 연결됐어요 (' + (g.slot + 1) + 'P) · 같은 게임 확인됨');
+      renderHost(); refreshPill();
+    });
+  }
   function hostStop() {
+    netStop();
     host.guests.forEach(function (g) { if (g) { try { g.call && g.call.close(); } catch (e) {} try { g.conn.close(); } catch (e) {} } });
     host.guests = [];
     try { host.peer && host.peer.destroy(); } catch (e) {}
@@ -324,24 +474,27 @@
     if (at) ms.addTrack(at);
     return { stream: ms, sig: (info.canvas.__npid || (info.canvas.__npid = Math.random().toString(36).slice(2))) + ':' + (at ? at.id : 'na') };
   }
-  function tune(call) {
+  function tune(call, info) {
     setTimeout(function () {
       try {
+        var cw = (info && info.canvas && info.canvas.width) || 0;
         call.peerConnection.getSenders().forEach(function (s) {
           if (!s.track || s.track.kind !== 'video') return;
           var p = s.getParameters(); if (!p.encodings || !p.encodings.length) p.encodings = [{}];
-          p.encodings[0].maxBitrate = 5000000; p.encodings[0].maxFramerate = 60;
+          p.encodings[0].maxBitrate = 8000000; p.encodings[0].maxFramerate = 60;
+          /* 큰 화면(PS1 고해상도 등)은 방장 컴퓨터가 영상 압축하느라 느려지지 않게 가로 960 이하로 줄여서 보냄 */
+          if (cw > 960) p.encodings[0].scaleResolutionDownBy = cw / 960;
           p.degradationPreference = 'maintain-framerate';
           s.setParameters(p).catch(function () {});
         });
       } catch (e) {}
-    }, 1200);
+    }, 600);
   }
   setInterval(function () {
     if (!host.active || !host.peer) return;
     var info = findEmu(), any = false;
     host.guests.forEach(function (g) {
-      if (!g || !g.open) return;
+      if (!g || !g.open || g.mode !== 'stream') return;
       any = true;
       if (!info) {
         if (g.call) { try { g.call.close(); } catch (e) {} g.call = null; g.sig = ''; try { g.conn.send({ t: 'wait' }); } catch (e) {} }
@@ -350,7 +503,7 @@
       var ms = makeStream(info); if (!ms) return;
       if (g.call && g.call.open !== false && g.sig === ms.sig) return;
       try { g.call && g.call.close(); } catch (e) {}
-      try { g.call = host.peer.call(g.id, ms.stream); g.sig = ms.sig; tune(g.call); } catch (e) {}
+      try { g.call = host.peer.call(g.id, ms.stream); g.sig = ms.sig; tune(g.call, info); } catch (e) {}
     });
     var sig = (host.code || '') + '|' + connectedCount() + '|' + (info ? 1 : 0);
     if (sig !== host.lastSig) { host.lastSig = sig; if (view === 'host') renderHost(); refreshPill(); }
@@ -373,6 +526,58 @@
   }
   function releaseAll() { for (var s in guest.src) for (var i in guest.src[s]) if (guest.src[s][i]) gset(s, +i, 0); }
 
+  /* 영상 속도 개선 : 시작부터 높은 화질/속도로 받도록 요청하고, 받는 쪽 대기시간을 최소로 */
+  function boostSdp(sdp) {
+    try {
+      var lines = sdp.split('\r\n'), out = [], inVideo = false, pts = {}, has = {};
+      lines.forEach(function (l) {
+        if (l.indexOf('m=') === 0) inVideo = l.indexOf('m=video') === 0;
+        var m = inVideo && l.match(/^a=rtpmap:(\d+) (VP8|VP9|H264|AV1)\//);
+        if (m) pts[m[1]] = 1;
+        var f = inVideo && l.match(/^a=fmtp:(\d+) /);
+        if (f) has[f[1]] = 1;
+      });
+      var X = 'x-google-min-bitrate=3000;x-google-start-bitrate=6000;x-google-max-bitrate=8000';
+      inVideo = false;
+      lines.forEach(function (l) {
+        if (l.indexOf('m=') === 0) inVideo = l.indexOf('m=video') === 0;
+        var f = inVideo && l.match(/^a=fmtp:(\d+) /);
+        if (f && pts[f[1]]) l = l + ';' + X;
+        out.push(l);
+        var m = inVideo && l.match(/^a=rtpmap:(\d+) /);
+        if (m && pts[m[1]] && !has[m[1]]) out.push('a=fmtp:' + m[1] + ' ' + X);
+      });
+      return out.join('\r\n');
+    } catch (e) { return sdp; }
+  }
+  function lowLatency(call) {
+    function go() {
+      try {
+        call.peerConnection.getReceivers().forEach(function (r) {
+          if (!r.track || r.track.kind !== 'video') return;
+          try { r.playoutDelayHint = 0; } catch (e) {}
+          try { r.jitterBufferTarget = 0; } catch (e) {}
+        });
+      } catch (e) {}
+    }
+    go(); setTimeout(go, 1500);
+    /* 화면 위 작은 표시: 초당 프레임 / 지연 */
+    clearInterval(guest.statT);
+    guest.statT = setInterval(function () {
+      try {
+        if (!guest.statEl || !call.peerConnection) return;
+        call.peerConnection.getStats().then(function (rep) {
+          var fps = 0, rtt = 0;
+          rep.forEach(function (r) {
+            if (r.type === 'inbound-rtp' && r.kind === 'video' && r.framesPerSecond) fps = Math.round(r.framesPerSecond);
+            if (r.type === 'candidate-pair' && r.nominated && r.currentRoundTripTime != null) rtt = Math.round(r.currentRoundTripTime * 1000);
+          });
+          guest.statEl.textContent = fps ? '📶 ' + fps + 'fps · ' + rtt + 'ms' : '';
+        });
+      } catch (e) {}
+    }, 1000);
+  }
+
   function guestStart(code, report) {
     guestStop(true);
     loadPeer().then(function () {
@@ -387,33 +592,68 @@
         if (!done) guestStop(true);
       });
       p.on('call', function (call) {
-        call.answer();
+        try { call.answer(undefined, { sdpTransform: boostSdp }); } catch (e) { call.answer(); }
         guest.call = call;
-        call.on('stream', function (s) { showStream(s); });
+        call.on('stream', function (s) { showStream(s); lowLatency(call); });
       });
       p.on('open', function () {
         var conn = p.connect(PREFIX + code, { reliable: true });
         guest.conn = conn;
         conn.on('open', function () {
           done = true; clearTimeout(timer);
-          report('연결됐어요!', true);
-          closePanel();
-          openGuestUI();
+          var info = findEmu();
+          if (info) {
+            /* 게임을 이미 실행 중 → '같은 ROM 방식' : 방장과 같은 파일인지 확인 후 각자 실행 */
+            report('방장과 같은 게임 파일인지 확인 중…', true);
+            guest.pending = true;
+            romSig(info).then(function (sg) {
+              if (!guest.pending) return;
+              if (!sg) { report('게임 파일을 확인하지 못했어요.', false); guestStop(true); return; }
+              try { conn.send({ t: 'hello', mode: 'local', sig: { hash: sg.hash, size: sg.size }, core: sg.core }); } catch (e) {}
+              guest.helloT = setTimeout(function () { if (guest.pending) { report('방장의 응답이 없어요.', false); guestStop(true); } }, 25000);
+            });
+          } else {
+            /* 게임이 없으면 '화면 중계 방식' */
+            try { conn.send({ t: 'hello', mode: 'stream' }); } catch (e) {}
+            report('연결됐어요!', true);
+            closePanel();
+            openGuestUI();
+          }
         });
         conn.on('data', function (d) {
           if (!d) return;
           if (d.t === 'hi') { guest.player = d.player; setStatus('방장의 게임을 기다리는 중… (나는 ' + d.player + 'P)'); }
           else if (d.t === 'wait') { setStatus('방장이 게임을 불러오면 화면이 나와요…'); }
           else if (d.t === 'full') { report('방이 가득 찼어요.', false); guestStop(true); }
+          else if (d.t === 'ok') {
+            guest.pending = false; clearTimeout(guest.helloT);
+            guest.local = true; guest.player = d.player; net.slot = d.player - 1;
+            netStart('guest'); pingLoop(function (m) { try { conn.send(m); } catch (e) {} });
+            report('✅ 같은 게임이에요! 연결됐어요.', true);
+            setTimeout(closePanel, 900);
+            toast('✅ 방장과 연결됐어요 · 나는 ' + d.player + 'P');
+            refreshPill();
+          }
+          else if (d.t === 'mismatch') { guest.pending = false; report('방장과 게임 파일이 달라요. 같은 ROM 파일(같은 zip)로 실행해 주세요.', false); guestStop(true); }
+          else if (d.t === 'nohost') { guest.pending = false; report('방장이 아직 게임을 실행하지 않았어요. 방장이 게임을 켠 뒤 다시 시도해 주세요.', false); guestStop(true); }
+          else if (d.t === 'in') { var inf = findEmu(); if (inf) { simulate(inf, d.p, d.i, d.v); net.recv++; } }
+          else if (d.t === 'state') { loadSyncState(d.d); }
+          else if (d.t === 'ping') { try { conn.send({ t: 'pong', ts: d.ts }); } catch (e) {} }
+          else if (d.t === 'pong') { onRtt(performance.now() - d.ts); net.D = Math.min(100, Math.round(net.rtt / 2)); }
         });
-        conn.on('close', function () { setStatus('방장과 연결이 끊어졌어요.'); releaseAll(); });
+        conn.on('close', function () {
+          setStatus('방장과 연결이 끊어졌어요.'); releaseAll();
+          if (guest.local) { guest.local = false; netStop(); toast('방장과 연결이 끊어졌어요'); refreshPill(); if (view === 'glocal') { view = 'home'; renderPanel(); } }
+        });
         conn.on('error', function () { setStatus('연결 오류가 발생했어요.'); });
       });
     }, function (e) { report(e.message, false); });
   }
   function guestStop(silent) {
+    clearTimeout(guest.helloT); guest.pending = false;
+    if (guest.local || net.role === 'guest') { guest.local = false; netStop(); }
     try { releaseAll(); } catch (e) {}
-    cancelAnimationFrame(guest.raf);
+    cancelAnimationFrame(guest.raf); clearInterval(guest.statT);
     try { guest.call && guest.call.close(); } catch (e) {}
     try { guest.conn && guest.conn.close(); } catch (e) {}
     try { guest.peer && guest.peer.destroy(); } catch (e) {}
@@ -421,6 +661,7 @@
     if (guest.ov) { guest.ov.remove(); guest.ov = null; }
     window.removeEventListener('keydown', onKey, true);
     window.removeEventListener('keyup', onKey, true);
+    refreshPill();
   }
   function setStatus(t) { if (guest.st) { guest.st.textContent = t; guest.st.style.display = t ? 'block' : 'none'; } }
 
@@ -454,6 +695,7 @@
     var top = el('div', 'position:absolute;left:8px;top:calc(8px + env(safe-area-inset-top,0px));display:flex;gap:6px;z-index:3', null, ov);
     var q = el('button', 'border:0;border-radius:18px;padding:8px 12px;font-size:13px;font-weight:700;color:#fff;background:rgba(200,50,50,.85)', '✕ 나가기', top);
     q.onclick = function () { guestStop(); };
+    guest.statEl = el('span', 'align-self:center;color:#fff;font-size:12px;text-shadow:0 1px 3px #000;opacity:.85', '', top);
     var tp = el('button', 'border:0;border-radius:18px;padding:8px 12px;font-size:13px;font-weight:700;color:#fff;background:rgba(40,50,100,.8)', '🎮 버튼', top);
     var padOn = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
     var pad = buildPad(ov);
