@@ -58,6 +58,14 @@
  box-shadow:0 8px 24px rgba(0,0,0,.55);transition:transform .28s cubic-bezier(.2,.9,.3,1),visibility 0s .28s}
 #emu.nobar.barshow #bar{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.9,.3,1),visibility 0s}
 #emu.nobar.barshow.barlive #bar{pointer-events:auto}
+/* PC·태블릿(body.wide): 메뉴 항목 정리 + 메뉴숨김 후 다시 나타나지 않도록 '메뉴표시' 버튼 사용 */
+body.wide #bSave,body.wide #bRest,body.wide #bRes,body.wide #bCore{display:none!important}
+body.wide #bar #bHome{order:0}body.wide #bar .t{order:1}body.wide #bar #bLoad{order:2}body.wide #bar #npBtn{order:3}
+body.wide #bar #bFs{order:4}body.wide #bar #bCtl{order:5}body.wide #bar #bHide{order:6}
+body.wide #topzone{display:none!important}
+#barShow{display:none;position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:9;border:1px solid var(--line);background:rgba(14,13,12,.72);color:var(--acc2);padding:7px 14px;border-radius:99px;font:600 12px var(--sans);cursor:pointer;opacity:.55;backdrop-filter:blur(8px);transition:opacity .2s}
+#barShow:hover,#barShow:active{opacity:1}
+body.wide #emu.nobar #barShow{display:block}
 #topzone{display:none;position:absolute;left:0;right:0;top:0;height:calc(36px + env(safe-area-inset-top));z-index:7;background:transparent;touch-action:manipulation}
 #emu.nobar:not(.barshow) #topzone{display:block}
 #bar .t{flex:1;min-width:90px;font:600 18px var(--serif);letter-spacing:.04em;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -435,6 +443,7 @@ html.emuopen #rp{display:none}
     <div id="rot">가로로 돌려주세요.<button type="button">확인</button></div>
   </div>
   <div id="topzone" aria-hidden="true"></div>
+  <button id="barShow" type="button">▼ 메뉴표시</button>
   <button id="fab" hidden>☰</button>
 </section>
 <section id="pc">
@@ -528,6 +537,9 @@ addEventListener('keydown',e=>{if(e.key==='Escape')$('#ioa').classList.remove('o
 /* ---------- 에뮬레이터 ---------- */
 const mob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&innerWidth<1100);
 if(mob)document.body.classList.add('mob');
+/* 폰이 아닌 PC·태블릿 */
+const phone=mob&&Math.min(screen.width,screen.height)<600;
+if(!phone){document.body.classList.add('wide');const _bl=document.getElementById('bLoad');if(_bl)_bl.textContent='📂 게임불러오기'}
 let lastFile=null,coreIdx=0;
 let cur=null,gameName='',ctlOn=true,started=false;
 const emu=$('#emu'),fr=$('#fr');
@@ -694,7 +706,7 @@ function setBarHidden(h){
  barPeek(false);
  emu.classList.toggle('nobar',!!h);
  $('#bar').classList.remove('hide');
- $('#bHide').textContent=h?'▼ 메뉴고정':'▲ 메뉴숨김';
+ $('#bHide').textContent=(h&&!document.body.classList.contains('wide'))?'▼ 메뉴고정':'▲ 메뉴숨김';
  /* 게임 화면 크기를 새로 맞춤 */
  setTimeout(()=>{try{fr.contentWindow.dispatchEvent(new Event('resize'))}catch(e){}},80);
  setTimeout(()=>{try{fr.contentWindow.dispatchEvent(new Event('resize'))}catch(e){}},400);
@@ -702,7 +714,9 @@ function setBarHidden(h){
 $('#bHide').onclick=()=>{
  const h=!emu.classList.contains('nobar');
  setBarHidden(h);
- if(h)toast('화면 맨 위를 터치하면 메뉴가 나타나요');
+ if(h)toast(document.body.classList.contains('wide')?'오른쪽 위 [메뉴표시] 버튼을 누르면 메뉴가 다시 나타나요':'화면 맨 위를 터치하면 메뉴가 나타나요');
+};
+$('#barShow').onclick=e=>{e.preventDefault();e.stopPropagation();setBarHidden(false);
 };
 (()=>{
  const tz=$('#topzone');
@@ -1660,6 +1674,6 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
 })();
 </script>
 <script src="pcnotice.js?v=2"></script>
-<script src="netplay.js?v=4"></script>
+<script src="netplay.js?v=5"></script>
 </body>
 </html>

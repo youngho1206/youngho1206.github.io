@@ -216,7 +216,7 @@
   /* '친구와 함께' 버튼을 각 페이지의 에뮬레이터 상단 메뉴에 넣습니다.
      (메뉴가 다시 만들어져도 0.5초마다 확인해서 다시 붙여 줍니다) */
   function labelText(kind) {
-    var t = guest.local ? '🟢 ' + guest.player + 'P · ' + Math.round(net.rtt) + 'ms' : host.active && host.code ? '🟢 방 ' + host.code + (connectedCount() ? ' · ' + connectedCount() + '명' : '') : '👥 친구와 함께';
+    var t = guest.local ? '🟢 ' + guest.player + 'P · ' + Math.round(net.rtt) + 'ms' : host.active && host.code ? '🟢 방 ' + host.code + (connectedCount() ? ' · ' + connectedCount() + '명' : '') : (document.body && document.body.classList.contains('wide') ? '👥 친구와 같이하기' : '👥 친구와 함께');
     return kind === 'br' ? '[' + t + ']' : t;
   }
   function makeBtn(kind, cls) {
