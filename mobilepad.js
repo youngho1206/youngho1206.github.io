@@ -384,6 +384,7 @@
     var w = frWin(); if (!w || w.__gpHook) return;
     try {
       w.__gpHook = 1;
+      w.addEventListener('resize', centerSoon);
       w.addEventListener('keydown', onKey, true);
       w.addEventListener('pointerdown', onTouch, true);
       w.addEventListener('gamepadconnected', function () { checkExt(); sync(); });
@@ -495,8 +496,25 @@
 
   /* ---------------- 상태 감시 ---------------- */
   var wasOn = false, seenCur = null, seenFile = null;
-  function nudge() { [80, 400].forEach(function (t) { setTimeout(function () { try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (x) {} }, t); }); }
+  function nudge() { [80, 400].forEach(function (t) { setTimeout(function () { try { fr.contentWindow.dispatchEvent(new Event('resize')); } catch (x) {} }, t); }); centerSoon(); }
   var STY = '.ejs_virtualGamepad_parent,.ejs_virtualGamepad_open,.ejs_virtualGamepad_button{display:none!important}body.gpnobar .ejs_menu_bar{display:none!important}';
+
+  /* 게임 화면을 영역 세로 정중앙에 맞춤 — 에뮬레이터 화면 위치를 직접 재서 남는 위·아래 여백을 같게 만듦.
+     (패드를 숨기면 영역이 커지는데, 에뮬레이터가 화면을 위쪽에 붙여 두기 때문) '화면속 버튼'(메뉴바)을 켠 동안은 이동하지 않음 */
+  var shiftY = 0, shiftDoc = null;
+  function centerGame() {
+    var d = frDoc(), w = frWin(); if (!d || !d.body || !w) return;
+    var g = d.getElementById('game'); if (!g) return;
+    if (shiftDoc !== d) { shiftDoc = d; shiftY = 0; }          /* 게임 화면이 새로 만들어졌으면 처음부터 */
+    var cs = d.querySelectorAll('canvas'), c = null, ba = 0;
+    for (var i = 0; i < cs.length; i++) { var q = cs[i].getBoundingClientRect(), a = q.width * q.height; if (a > ba) { ba = a; c = cs[i]; } }
+    if (!c || ba < 400) return;
+    var r = c.getBoundingClientRect(), H = w.innerHeight;
+    var want = inBar ? 0 : Math.max(0, Math.round((H - r.height) / 2 - (r.top - shiftY)));
+    if (Math.abs(want - shiftY) < 2) return;
+    shiftY = want; g.style.transform = want ? 'translateY(' + want + 'px)' : '';
+  }
+  function centerSoon() { [60, 250, 600].forEach(function (t) { setTimeout(centerGame, t); }); }
 
   function sync() {
     try {
@@ -514,6 +532,7 @@
         var d = frDoc();
         if (d && d.body) {
           d.body.classList.add('gphide'); d.body.classList.toggle('gpnobar', !inBar);
+          centerGame();
           if (d.head && !d.getElementById('gpHide')) { var s = d.createElement('style'); s.id = 'gpHide'; s.textContent = STY; d.head.appendChild(s); }
         }
       }
