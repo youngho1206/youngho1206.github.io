@@ -47,6 +47,9 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavi
  -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 #game{position:fixed;left:0;top:0;width:100%;height:100%}
 .hidectl .ejs_virtualGamepad_parent,.hidectl .ejs_menu_bar{display:none!important}
+/* 스마트폰(mobilepad.js 하단 패드 사용): 화면 속 가상 버튼은 처음부터 표시하지 않고, 메뉴바(화면속 버튼)는 상단 메뉴에서 켜고 끔 */
+.gphide .ejs_virtualGamepad_parent,.gphide .ejs_virtualGamepad_open,.gphide .ejs_virtualGamepad_button{display:none!important}
+.gpnobar .ejs_menu_bar{display:none!important}
 </style>
 </head>
 <body>
@@ -64,6 +67,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavi
 
  window.startEmu=function(c){
   var W=window;
+  if(c.hideVpad){document.body.classList.add('gphide','gpnobar')}
   /* 아이폰 무음 스위치가 켜져 있어도 소리가 나게 (iOS 17+) */
   try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
 

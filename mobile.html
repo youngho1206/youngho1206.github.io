@@ -555,7 +555,7 @@ function startGame(file,ci=0,lvl){
   $('#drop').classList.add('hidden');
   biosP.then(bios=>{if(seq!==gameSeq)return;try{
    w.startEmu({
-    bios,file,core:coreName,name:gameName,color:sys.a,spoofMobile:IOS_DESKTOP_UA,psxOpts:isPs?LoadGame.psxOptions(psxLvl):null,
+    bios,file,core:coreName,name:gameName,color:sys.a,spoofMobile:IOS_DESKTOP_UA,hideVpad:document.body.classList.contains('gp'),psxOpts:isPs?LoadGame.psxOptions(psxLvl):null,
     onScript:()=>{if(seq===gameSeq&&!started)loadProgress(60,'에뮬레이터 엔진 다운로드 완료 · 게임 코어 준비 중…')},
     onScriptError:()=>giveUp('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.','연결 오류'),
     onFail:m=>{
@@ -1243,7 +1243,7 @@ ICONS_READY.then(()=>{
 (function(){
  var FILES=['./','index.html','index-select.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','pcgameemulator.html','dosplayer.html','dos.html','emuhost.html',
   'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
-  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','mobilemenu.js','mobilemenu.css','mobilepref.js','mobilebg/sunset.jpg','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
+  'retro.js','retro.css','perf.css','mamegame.js','loadgame.js','arcade.js','arcade.css','dock.js','mobilemenu.js','mobilemenu.css','mobilepref.js','mobilepad.js','netplay.js','mobilebg/sunset.jpg','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
   'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
   'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
  var busy=false;
@@ -1324,7 +1324,7 @@ ICONS_READY.then(()=>{
 })();
 </script>
 <script src="pcnotice.js?v=2"></script>
-<script src="netplay.js?v=5"></script>
-<script src="mobilepad.js?v=1"></script>
+<script src="netplay.js?v=6"></script>
+<script src="mobilepad.js?v=2"></script>
 </body>
 </html>

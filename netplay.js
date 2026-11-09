@@ -271,7 +271,11 @@
     var b = el('button', 'display:block;width:100%;border:0;border-radius:12px;padding:14px;margin:8px 0 0;font-size:15px;font-weight:700;color:#fff;cursor:pointer;background:' + bgc, text, parent);
     b.onclick = fn; return b;
   }
-  function openPanel() { ui.bg.style.display = 'flex'; renderPanel(); }
+  /* 전체화면 중에는 전체화면 요소 안에 있는 것만 보이므로, 창을 전체화면 요소 안으로 옮겨서 보여줍니다 */
+  function panelHost() { return document.fullscreenElement || document.webkitFullscreenElement || document.body; }
+  function rehostPanel() { try { var h = panelHost(); if (ui.bg && ui.bg.parentNode !== h) h.appendChild(ui.bg); } catch (e) {} }
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, rehostPanel); });
+  function openPanel() { rehostPanel(); ui.bg.style.display = 'flex'; renderPanel(); }
   function closePanel() { ui.bg.style.display = 'none'; }
 
   var view = 'home'; /* home | host | join */
@@ -776,5 +780,25 @@
   }
   init();
 
-  window.NetPlay = { open: function () { openPanel(); }, host: host };
+  /* 다른 스크립트(mobilepad.js 의 상단 아이콘 메뉴)에서 쓰는 연결부 */
+  window.NetPlay = {
+    open: function () { openPanel(); },
+    host: host,
+    /* 게임방 만들기 : 내가 방장이 되어 6자리 코드를 만듭니다 */
+    createRoom: function () { if (!guest.local && !host.active) { view = 'host'; hostStart(); } openPanel(); },
+    /* 게임코드 입력 : 친구에게 받은 코드를 넣는 화면을 엽니다 */
+    joinRoom: function () { if (!guest.local && !host.active) view = 'join'; openPanel(); },
+    /* 방 닫기 : 같이 하기를 끊습니다 (방장이면 방 닫기, 친구면 연결 끊기) */
+    closeRoom: function () {
+      var was = !!(host.active || guest.local || guest.pending);
+      if (host.active) hostStop();
+      if (guest.local || guest.pending || guest.peer) guestStop(true);
+      view = 'home';
+      if (ui.bg && ui.bg.style.display === 'flex') renderPanel();
+      refreshPill();
+      return was;
+    },
+    /* 같이 하는 중(방을 열었거나 방에 들어가 있음)인지 */
+    active: function () { return !!(host.active || guest.local || guest.pending); }
+  };
 })();
