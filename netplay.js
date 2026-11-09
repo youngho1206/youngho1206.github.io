@@ -154,43 +154,30 @@
   var ui = {};
   var css = 'font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;';
 
-  function buildPill() {
-    var p = el('button',
-      css + 'position:fixed;right:8px;top:38%;z-index:2147482000;border:1px solid rgba(255,255,255,.35);' +
-      'background:rgba(20,24,48,.72);color:#fff;font-size:13px;font-weight:700;padding:9px 12px;border-radius:22px;' +
-      'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.35);' +
-      'cursor:pointer;touch-action:none;opacity:.82;max-width:70vw;white-space:nowrap',
-      '👥 친구와 함께', document.body);
-    p.id = 'npPill';
-    /* 끌어서 위치 옮기기 */
-    try {
-      var sv = JSON.parse(localStorage.getItem('np_pos') || 'null');
-      if (sv) { p.style.left = sv.x + 'px'; p.style.top = sv.y + 'px'; p.style.right = 'auto'; }
-    } catch (e) {}
-    var sx, sy, ox, oy, drag = false, down = false;
-    p.addEventListener('pointerdown', function (e) {
-      down = true; drag = false; sx = e.clientX; sy = e.clientY;
-      var r = p.getBoundingClientRect(); ox = r.left; oy = r.top;
-      try { p.setPointerCapture(e.pointerId); } catch (x) {}
-    });
-    p.addEventListener('pointermove', function (e) {
-      if (!down) return;
-      var dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!drag && Math.abs(dx) + Math.abs(dy) < 8) return;
-      drag = true;
-      var x = Math.max(0, Math.min(innerWidth - p.offsetWidth, ox + dx));
-      var y = Math.max(0, Math.min(innerHeight - p.offsetHeight, oy + dy));
-      p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.right = 'auto';
-    });
-    function up() {
-      if (!down) return; down = false;
-      if (drag) { try { var r = p.getBoundingClientRect(); localStorage.setItem('np_pos', JSON.stringify({ x: r.left, y: r.top })); } catch (e) {} }
-      else openPanel();
-    }
-    p.addEventListener('pointerup', up);
-    p.addEventListener('pointercancel', function () { down = false; });
-    ui.pill = p;
+  /* '친구와 함께' 버튼을 각 페이지의 에뮬레이터 상단 메뉴에 넣습니다.
+     (메뉴가 다시 만들어져도 0.5초마다 확인해서 다시 붙여 줍니다) */
+  function labelText(kind) {
+    var t = host.active && host.code ? '🟢 방 ' + host.code + (connectedCount() ? ' · ' + connectedCount() + '명' : '') : '👥 친구와 함께';
+    return kind === 'br' ? '[' + t + ']' : t;
   }
+  function makeBtn(kind, cls) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.id = 'npBtn'; b.setAttribute('data-np', kind);
+    if (cls) b.className = cls;
+    b.textContent = labelText(kind);
+    b.addEventListener('click', function (e) { e.preventDefault(); openPanel(); });
+    return b;
+  }
+  function ensureBtn() {
+    if (document.getElementById('npBtn')) return;
+    var bar = document.getElementById('bar'), hide = document.getElementById('bHide');
+    if (bar && hide) { bar.insertBefore(makeBtn('plain'), hide); return; }          /* emulator · mobile · classic · lowend */
+    var full = document.getElementById('mFull');
+    if (full && full.parentNode) { var shot = document.getElementById('mShot'); (shot || full).parentNode.insertBefore(makeBtn('plain'), (shot || full).nextSibling); return; } /* pcgameemulator */
+    var eb = document.getElementById('ebar');
+    if (eb && eb.children.length) { eb.appendChild(makeBtn('br', 'btn')); return; }  /* tablet */
+  }
+  function buildPill() { ensureBtn(); setInterval(ensureBtn, 500); }
 
   function buildPanel() {
     var bg = el('div', css + 'position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box', null, document.body);
@@ -259,9 +246,8 @@
     btn(b, '🚪 방 닫기', '#c0392b', function () { hostStop(); view = 'home'; renderPanel(); });
   }
   function refreshPill() {
-    if (!ui.pill) return;
-    var n = connectedCount();
-    ui.pill.innerHTML = host.active && host.code ? '🟢 방 ' + host.code + (n ? ' · ' + n + '명' : '') : '👥 친구와 함께';
+    var list = document.querySelectorAll('[data-np]');
+    for (var i = 0; i < list.length; i++) list[i].textContent = labelText(list[i].getAttribute('data-np'));
   }
 
   /* ======================================================================
@@ -433,7 +419,6 @@
     try { guest.peer && guest.peer.destroy(); } catch (e) {}
     guest.call = guest.conn = guest.peer = null; guest.cur = {}; guest.src = { k: {}, t: {}, g: {} };
     if (guest.ov) { guest.ov.remove(); guest.ov = null; }
-    ui.pill && (ui.pill.style.display = '');
     window.removeEventListener('keydown', onKey, true);
     window.removeEventListener('keyup', onKey, true);
   }
@@ -459,7 +444,6 @@
   }
 
   function openGuestUI() {
-    ui.pill && (ui.pill.style.display = 'none');
     var ov = el('div', css + 'position:fixed;inset:0;z-index:2147483500;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;overflow:hidden', null, document.body);
     guest.ov = ov;
     var v = el('video', 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000', null, ov);
