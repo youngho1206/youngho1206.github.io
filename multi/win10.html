@@ -1690,15 +1690,15 @@ function gameworld(b,w){
  const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
  const CAT=[["게임세상","🎮",()=>true],["콘솔 오락기","📁",(id,a)=>!a.os&&!TV.includes(id)&&id!=="mamegame"],["텔레비전 게임","📁",(id,a)=>!a.os&&TV.includes(id)],["아케이드 캐비닛","📁",id=>id==="mamegame"],["PC · DOS · 윈도우","📁",(id,a)=>!!a.os]];
  let ci=0,H=[0],hi=0,q="",sel=null,pane=w.offsetWidth>=560;
- const list=()=>Object.keys(APPS).filter(k=>/^(emu|os)_/.test(k)).map(k=>({k,id:k.replace(/^(emu|os)_/,""),a:APPS[k]})).filter(x=>CAT[ci][2](x.id,x.a)&&(!q||(x.a.n+" "+(x.a.kw||"")).toLowerCase().includes(q))).sort((x,y)=>(x.a.y-y.a.y)||x.a.n.localeCompare(y.a.n));
+ const list=()=>Object.keys(APPS).filter(k=>/^(emu|os)_/.test(k)).map(k=>({k,id:k.replace(/^(emu|os)_/,""),a:APPS[k]})).filter(x=>q?(x.a.n+" "+(x.a.kw||"")).toLowerCase().includes(q):CAT[ci][2](x.id,x.a)).sort((x,y)=>(x.a.y-y.a.y)||x.a.n.localeCompare(y.a.n));
  b.innerHTML=`<div class="gxw" tabindex="0"><div class="gxt"><button data-a="bk"><i>◀</i><span>뒤로</span></button><button data-a="fw"><i>▶</i><span>앞으로</span></button><button data-a="up"><i>⬆</i><span>위로</span></button><div class="sp"></div><button data-a="fd"><i>🗂</i><span>폴더</span></button><label class="gxq">🔍<input placeholder="찾기..." spellcheck="false"></label></div><div class="gxa"><span>주소(D)</span><div class="gxad"></div></div><div class="gxm"><div class="gxp"></div><div class="gxg"></div></div><div class="gxb"></div></div>`;
  const Q=s=>b.querySelector(s),root=Q(".gxw"),G=Q(".gxg"),P=Q(".gxp");
  function marks(){G.querySelectorAll(".gxi").forEach(e=>e.classList.toggle("on",e.dataset.k===sel))}
  function paint(){
   Q('[data-a="bk"]').disabled=hi<=0;Q('[data-a="fw"]').disabled=hi>=H.length-1;Q('[data-a="up"]').disabled=ci===0;
   Q('[data-a="fd"]').classList.toggle("on",pane);P.classList.toggle("on",pane);
-  P.innerHTML=`<div class="gxh">폴더</div><div class="gxtr">${CAT.map((c,i)=>`<div class="gxn${i?" ch":""}${i===ci?" on":""}" data-c="${i}">${c[1]} ${E(c[0])}</div>`).join("")}</div>`;
-  Q(".gxad").textContent="바탕 화면 \\ 내 컴퓨터 \\ 게임세상"+(ci?" \\ "+CAT[ci][0]:"");
+  P.innerHTML=`<div class="gxh">폴더</div><div class="gxtr">${CAT.map((c,i)=>`<div class="gxn${i?" ch":""}${i===ci&&!q?" on":""}" data-c="${i}">${c[1]} ${E(c[0])}</div>`).join("")}</div>`;
+  Q(".gxad").textContent=q?"검색 결과 \\ 게임세상 (모든 폴더) \\ \""+q+"\"":"바탕 화면 \\ 내 컴퓨터 \\ 게임세상"+(ci?" \\ "+CAT[ci][0]:"");
   const L=list();
   G.innerHTML=L.length?L.map(x=>`<div class="gxi${x.a.s?" soon":""}" data-k="${x.k}" title="${E(x.a.n)}${x.a.s?" (준비 중)":""}"><i>${x.a.e}</i><span>${E(x.a.n)}</span>${x.a.s?"<small>준비 중</small>":""}</div>`).join(""):`<div class="gxem">검색 결과가 없습니다.</div>`;
   Q(".gxb").textContent=L.length+"개 항목";
