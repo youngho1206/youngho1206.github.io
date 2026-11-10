@@ -1647,9 +1647,9 @@ function ytube(b,w){
  q(".big").onclick=()=>{if(inp.value.trim())go();else{const e=V[vi];if(e.v=="res"&&e.items&&sel>=0)watch(e.items[sel]);else inp.focus()}};
  push({v:"home"});
 }
-// 앱: 게임공략 (인터넷 익스플로러 스타일 웹브라우저 · 다음/티스토리 검색)
+// 앱: 게임공략 (인터넷 익스플로러 스타일 웹브라우저 · 구글/티스토리 검색)
 function guide(b,w){
- const ENG={daum:["다음",t=>"https://search.daum.net/search?w=tot&q="+encodeURIComponent(t)],tistory:["티스토리",t=>"https://www.tistory.com/search?keyword="+encodeURIComponent(t)]};
+ const ENG={google:["구글",t=>"https://www.google.com/search?igu=1&q="+encodeURIComponent(t)],tistory:["티스토리",t=>"https://www.tistory.com/search?keyword="+encodeURIComponent(t)]};
  const CON=[
   ["패미컴",'<svg viewBox="0 0 48 48"><rect x="4" y="14" width="40" height="22" rx="3" fill="#efe9da" stroke="#b9b09a"/><rect x="4" y="14" width="40" height="8" rx="3" fill="#b3202a"/><rect x="9" y="26" width="12" height="6" rx="1" fill="#7a1a20"/><rect x="26" y="26" width="13" height="6" rx="1" fill="#555"/></svg>'],
   ["슈퍼패미컴",'<svg viewBox="0 0 48 48"><rect x="3" y="14" width="42" height="20" rx="10" fill="#dcdce1" stroke="#8c8c96" stroke-width="1.5"/><path d="M13 18v12M8 24h10" stroke="#555" stroke-width="3.5" stroke-linecap="round"/><circle cx="33" cy="19.5" r="3" fill="#e0a31c"/><circle cx="39" cy="24.5" r="3" fill="#2f8f3a"/><circle cx="27" cy="24.5" r="3" fill="#2b5fc4"/><circle cx="33" cy="29.5" r="3" fill="#c93030"/></svg>'],
@@ -1665,14 +1665,14 @@ function guide(b,w){
  const HOME="http://www.happy-game.co.kr";
  w.classList.add("iew");
  w.querySelector(".t").textContent="게임공략 - Microsoft Internet Explorer";
- let eng="daum",H=[],hi=-1;
+ let eng="tistory",H=[],hi=-1;
  const btn=(c,i,t,x)=>`<button class="ib ${c}"><i${x||""}>${i}</i><span>${t}</span></button>`;
  b.innerHTML=`<div class="iex"><div class="im"><span>파일(F)</span><span>편집(E)</span><span>보기(V)</span><span>즐겨찾기(A)</span><span>도구(T)</span><span>도움말(H)</span><span class="fl"><b></b><b></b><b></b><b></b></span></div><div class="itb">${btn("bk",'←',"뒤로",' class="gc"')}${btn("fw",'→',"앞으로",' class="gc g"')}${btn("st","❌","중지")}${btn("rf","🔄","새로고침")}${btn("hm","🏠","홈")}<div class="sep"></div>${btn("sr","🔍","검색")}${btn("fv","⭐","즐겨찾기")}<div class="sep"></div>${btn("ml","✉️","메일")}${btn("pr","🖨️","인쇄")}</div><div class="iad"><span>주소(D)</span><label>🌐<input spellcheck="false"></label><button class="go"><b>➜</b>이동</button></div><div class="ipg"></div><div class="ist"><span>완료</span><span class="r">🌐 인터넷</span></div></div>`;
  const q=s=>b.querySelector(s),pg=q(".ipg"),adr=q(".iad input");
  const paint=()=>{const c=H[hi],e=c&&!c.h?c.e:eng;pg.querySelectorAll(".eg").forEach(x=>x.classList.toggle("on",x.dataset.e===e))};
  const egs=()=>`<span class="sw">${Object.keys(ENG).map(k=>`<span class="eg" data-e="${k}">${ENG[k][0]}</span>`).join("")}</span>`;
  function home(){
-  pg.innerHTML=`<div class="ihp"><div class="bt"></div><div class="bb"></div><div class="tg">게임과 함께하는<b>더 즐거운 콘솔 세상 ♥</b></div><div class="cn"><div class="lc"><div class="sbx">${egs()}<input spellcheck="false" placeholder="기종이나 게임 이름을 입력하세요"><button class="sgo">검색 🔍</button></div><div class="ip">${CON.map((c,i)=>`<div class="ci" data-i="${i}"><i>${c[1]}</i>${c[0]}</div>`).join("")}</div></div><div class="nw"><h4>🔊 오늘의 소식</h4><ul><li>추억의 콘솔 게임을 만나보세요!</li><li>기종 아이콘을 누르면 공략을 찾아요</li><li>다음 · 티스토리에서 검색합니다</li><li>더 쉽게, 더 재미있게!</li></ul></div></div></div>`;
+  pg.innerHTML=`<div class="ihp"><div class="bt"></div><div class="bb"></div><div class="tg">게임과 함께하는<b>더 즐거운 콘솔 세상 ♥</b></div><div class="cn"><div class="lc"><div class="sbx">${egs()}<input spellcheck="false" placeholder="기종이나 게임 이름을 입력하세요"><button class="sgo">검색 🔍</button></div><div class="ip">${CON.map((c,i)=>`<div class="ci" data-i="${i}"><i>${c[1]}</i>${c[0]}</div>`).join("")}</div></div><div class="nw"><h4>🔊 오늘의 소식</h4><ul><li>추억의 콘솔 게임을 만나보세요!</li><li>기종 아이콘을 누르면 공략을 찾아요</li><li>구글 · 티스토리에서 검색합니다</li><li>더 쉽게, 더 재미있게!</li></ul></div></div></div>`;
   adr.value=HOME;
  }
  function result(e){
