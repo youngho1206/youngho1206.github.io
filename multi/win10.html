@@ -713,24 +713,6 @@ html.notr #sp{backdrop-filter:none}
 </style>
 <style id="w11css">
 /* ── Windows 11 스타일 작업표시줄 · 시작 메뉴 ── */
-#sm{display:none!important}
-#tb{justify-content:flex-start}
-#tb::before{content:"";flex:1 1 0;min-width:0}
-#tb .st,.srch,#tb .ta{border-radius:6px;margin:4px 1px;height:auto!important;align-self:stretch}
-#tb .st{width:42px}
-.logo{width:19px;height:19px;gap:2px}.logo b{background:#00adef}
-#tb .st:hover,#tb .st.on{background:rgba(255,255,255,.14)}
-.srch{width:42px!important;padding:0!important;justify-content:center;background:transparent!important;box-shadow:none!important;cursor:default}
-.srch input{display:none!important}
-.srch:hover,.srch.on{background:rgba(255,255,255,.14)!important}
-.srch .mg{stroke:#fff!important;width:20px!important;height:20px!important}
-#pins,#apps{display:flex;flex:0 1 auto}
-#tb .ta{min-width:42px;padding:0 9px;border-bottom:0!important;border-color:transparent!important;background:transparent}
-#tb .ta:hover{background:rgba(255,255,255,.14)}#tb .ta.on{background:rgba(255,255,255,.1)}
-#tb .ta::after{content:"";position:absolute;left:50%;bottom:2px;width:0;height:3px;border-radius:2px;background:#9aa0a6;transform:translateX(-50%);transition:width .15s}
-#tb .ta.run::after{width:6px}#tb .ta.on::after{width:16px;background:#4cc2ff}
-.ta.dup{display:none!important}
-#tray{flex:1 1 0;justify-content:flex-end}
 .px{image-rendering:pixelated}
 #w11{position:fixed;left:50%;bottom:calc(var(--tbh,40px) + 10px);transform:translateX(-50%);width:min(640px,calc(100vw - 16px));height:min(690px,calc(100% - var(--tbh,40px) - 20px));display:none;flex-direction:column;color:#fff;background:rgba(var(--tbc,32,32,36),var(--tba,.95));backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:10px;box-shadow:0 10px 40px #000a;z-index:9998;overflow:hidden;user-select:none}
 #w11.vis{display:flex;animation:w11up .18s ease-out}
@@ -2748,7 +2730,6 @@ function draw(){let h="";const C=CATS();
  B.innerHTML=h;B.scrollTop=0}
 function hide(){W.classList.remove("vis");sb.classList.remove("on");Q.value="";D("#w11p").classList.remove("on")}
 function show(){try{window.closeSP&&window.closeSP()}catch(e){}try{hideCal()}catch(e){}view=null;all=false;draw();W.classList.add("vis");sb.classList.add("on")}
-sb.onclick=e=>{e.stopPropagation();W.classList.contains("vis")?hide():show()};
 const _c=window.closeSM;window.closeSM=function(){_c.apply(this,arguments);hide()};
 // 검색: 시작 메뉴 검색창을 누르거나 입력하면 같은 자리에서 검색 패널(게임·앱·설정·파일)로 이어짐
 function go(v){hide();SEARCH.open();const f=D("#sqf");f.value=v;f.dispatchEvent(new Event("input"));f.focus();try{f.setSelectionRange(v.length,v.length)}catch(e){}}
@@ -2763,7 +2744,7 @@ W.onclick=e=>{e.stopPropagation();const t=e.target,p=D("#w11p");
  const c=t.closest("[data-c]");if(c){view=+c.dataset.c;draw();return}
  const k=t.closest("[data-k]");if(k&&APPS[k.dataset.k]){hide();open(k.dataset.k)}};
 // 작업표시줄: 고정 아이콘(내 PC · 인터넷 · 설정) — 실행 중이면 표시줄 표시, 누르면 열기/최소화
-const PT=["pc","web","set"],pins=document.createElement("div");pins.id="pins";
+const PT=[],pins=document.createElement("div");pins.id="pins";
 PT.forEach(k=>pins.insertAdjacentHTML("beforeend",`<div class="ta pin" data-k="${k}" title="${E(APPS[k].n)}">${APPS[k].e}</div>`));
 D("#apps").before(pins);window.PINK=new Set(PT);Object.keys(wins).forEach(i=>{const k=PT.find(k=>APPS[k].n===wins[i].ta.title);if(k){wins[i].k=k;wins[i].ta.classList.add("dup")}});
 pins.onclick=e=>{const t=e.target.closest(".pin");if(!t)return;const k=t.dataset.k,id=Object.keys(wins).find(i=>wins[i].k===k);id?wins[id].ta.click():open(k)};
@@ -2835,7 +2816,7 @@ document.addEventListener("keydown",e=>{if(!A.classList.contains("vis"))return;
 // 시작 메뉴에서 다시 열 수 있는 단추
 const wq=D("#w11 .wq");if(wq){wq.insertAdjacentHTML("afterbegin",`<button data-a="arc" title="게임 선택 화면"><svg viewBox="0 0 18 18"><rect x="1.5" y="5" width="15" height="8" rx="3"/><path d="M5 7.5v3M3.5 9h3M11.5 8h.1M13.5 10h.1"/></svg></button>`)}
 const _o2=window.open;window.open=function(k){if(k==="game"){ARC.show();return}return _o2.apply(this,arguments)};
-paint();A.classList.add("vis");
+paint();
 })();
 </script>
 <script id="exitjs">
