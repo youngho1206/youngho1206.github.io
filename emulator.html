@@ -470,6 +470,7 @@ html.emuopen #rp{display:none}
 <input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
 
 
+<script src="savebridge.js?v=1"></script>
 <script src="emudata.js?v=mg2"></script>
 <script src="mamegame.js?v=1"></script>
 <script src="loadgame.js?v=2"></script>
@@ -670,21 +671,8 @@ $('#bCore').onclick=()=>{
 };
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
-$('#bSave').onclick=()=>{
- try{
-  const st=fr.contentWindow.EJS_emulator.gameManager.getState();
-  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
-  const name=`${cur.fn}${g}_${stamp()}.GSV`;
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
-  document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
- }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
-};
-$('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
-$('#gsvIn').onchange=async e=>{
- const f=e.target.files[0];if(!f)return;
- try{fr.contentWindow.EJS_emulator.gameManager.loadState(new Uint8Array(await f.arrayBuffer()));toast('📥 불러옴: '+f.name)}
- catch(err){toast('불러오기 실패: 같은 게임·기종의 GSV인지 확인하세요')}
-};
+$('#bSave').onclick=()=>{SaveBridge.openSave({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
+$('#bRest').onclick=()=>{SaveBridge.openLoad({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
 
 /* 조작버튼 / 메뉴 숨김 */
 $('#bCtl').onclick=()=>{

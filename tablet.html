@@ -80,7 +80,7 @@ html,body{margin:0;height:100%;background:#111;font:var(--fs)/1.3 "Malgun Gothic
 <div id="menu"></div><div class="pop" id="pDev"></div><div class="pop" id="pSnd"></div>
 <div class="dlg" id="dlg"><div id="dlgb"></div></div>
 <input type="file" id="fi" hidden>
-<script src="emudata.js?v=mg2"></script><script src="mamegame.js?v=1"></script><script src="pcnotice.js?v=2"></script>
+<script src="savebridge.js?v=1"></script><script src="emudata.js?v=mg2"></script><script src="mamegame.js?v=1"></script><script src="pcnotice.js?v=2"></script>
 <script>
 (function(){
 var $=function(s,r){return(r||document).querySelector(s)},L=localStorage;
@@ -180,8 +180,10 @@ async function launch(c,f){try{if(MG.is(c)&&/\.zip$/i.test(f.name)&&MG.prepare)f
 function buildBar(){var b=$('#ebar')||el('div',null,null,stage);b.id='ebar';b.innerHTML='';
  [['load',function(){openFile(cs)}],['save',saveMenu],['full',function(){fs(stage)}],['hide',function(){try{fr.contentDocument.body.classList.toggle('hidectl')}catch(e){}}],['back',quit]].forEach(function(a){var x=el('button','btn','['+t(a[0])+']',b);x.onclick=a[1]})}
 function stamp(){var n=new Date(),p=function(v){return('0'+v).slice(-2)};return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
-function saveMenu(){dlg('세이브파일',[['세이브파일 열기','저장된 게임의 세이브파일을 불러옵니다.',function(){var f=$('#fi');f.accept='.wes,.gsv';f.value='';f.onchange=async function(){try{emuWin().EJS_emulator.gameManager.loadState(new Uint8Array(await f.files[0].arrayBuffer()))}catch(e){alert('불러오기 실패: 같은 게임의 WES 파일인지 확인하세요')}};f.click()}],
- ['세이브저장','현재 게임내용을 세이브파일로 저장합니다. (.WES)',function(){try{var st=emuWin().EJS_emulator.gameManager.getState(),g=gname.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME',a=el('a');a.href=URL.createObjectURL(new Blob([st]));a.download=((cs&&cs.fn)||'')+g+'_'+stamp()+'.WES';a.click()}catch(e){alert('게임이 시작된 후 다시 시도하세요')}}]])}
+function saveMenu(){var w=null;try{w=emuWin()}catch(e){}
+ var x={win:w,id:cs&&cs.id,fn:cs&&cs.fn,name:gname};
+ dlg('세이브파일',[['세이브 저장','게임 내 저장(.sav/.srm 등)·즉시저장(.state) — 다른 에뮬레이터와도 호환됩니다.',function(){SaveBridge.openSave(x)}],
+  ['세이브 불러오기','다른 에뮬레이터에서 만든 세이브(zip 포함)도 자동으로 알아봅니다.',function(){SaveBridge.openLoad(x)}]])}
 function quit(){if(fr)fr.src='about:blank';started=false;backToGrid()}
 /* ---------- 설정 / 테마 ---------- */
 function opt(lbl,id,vals,cur_,fn){var r=el('div','row','<b style="width:100px">'+lbl+'</b>',$('#sb'));var s=el('select',null,vals.map(function(v){return'<option value="'+v[0]+'"'+(String(v[0])===String(cur_)?' selected':'')+'>'+v[1]+'</option>'}).join(''),r);s.onchange=function(){fn(s.value)}}

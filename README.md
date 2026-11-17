@@ -25,3 +25,8 @@
 - emudata.js 항목의 pc:1 = PC용 안내·PC 옵션 적용, soon:1 = 준비중. (공통 코드: pcnotice.js)
 - BIOS/ 폴더에 바이오스를 올려 두면 자동으로 사용합니다. (BIOS/README.txt)
 - 저사양 전용 화면(lowend.html)에는 PC용·준비중 기종이 나오지 않습니다.
+
+[세이브 호환] (savebridge.js)
+- 💾 저장 / 📥 불러오기가 다른 에뮬레이터와 세이브를 주고받을 수 있게 개편: 게임 내 저장(.sav .srm .mcr .mcd + N64 .eep .sra .fla .mpk)과 즉시저장(.state)을 지원, 불러올 때 종류 자동 판별(zip·여러 파일 가능)
+- 자세한 사용법·한계: SAVE-GUIDE.md
+- 적용 페이지: emulator · classic · lowend · mobile · tablet · dex · webthema/thema01

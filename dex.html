@@ -359,6 +359,7 @@ html.ds-saver .sp{border-top-color:#ddd}
   </div>
 </div>
 
+<script src="savebridge.js?v=1"></script>
 <script src="emudata.js?v=mg1"></script>
 <script src="mamegame.js?v=1"></script>
 <script src="loadgame.js?v=2"></script>
@@ -795,13 +796,14 @@ function buildEmu(w,body,a,id){
  }
 
  /* 세이브 */
+ function sbCtx(){return{win:S.gw,id:c.id,fn:c.fn,name:S.name,toast:say,verifyMeta:function(m){return S.keyP.then(function(k){return m.sys===c.id&&m.key===k})}}}
  function openSave(){
   if(!S.file||!S.started){say('게임을 시작한 뒤에 사용할 수 있어요');return}
   function op(label,desc,fn){var b=h('button','op');b.type='button';b.append(h('b',null,label),document.createTextNode(' : '+desc));b.onclick=function(){closeDlg();fn()};return b}
   var cl=h('button','cl','닫기');cl.type='button';cl.onclick=closeDlg;
   showDlg('세이브',[
-   op('세이브파일 열기','저장된 게임세이브파일을 불러옵니다.',function(){svIn.value='';svIn.click()}),
-   op('세이브파일 저장','현재 진행중인 게임부분을 세이브파일로 저장합니다.',saveFile),
+   op('세이브파일 열기','다른 에뮬레이터의 세이브(.sav .srm .state zip 등)도 자동으로 알아보고 불러옵니다.',function(){SaveBridge.openLoad(sbCtx())}),
+   op('세이브파일 저장','게임 내 저장(.sav/.srm 등)·즉시저장(.state)을 다른 에뮬레이터와 호환되는 형식으로 저장합니다.',function(){SaveBridge.openSave(sbCtx())}),
    op('☁ 클라우드 저장','구글 계정(구글 드라이브)에 현재 게임 진행 상황을 저장합니다.',cloudSave),
    op('☁ 클라우드 불러오기','구글 계정에 저장된 이 게임의 세이브를 불러옵니다.',cloudLoad),
    cl]);
