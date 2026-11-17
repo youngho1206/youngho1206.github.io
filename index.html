@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="게임에뮬레이터">
-<title>영호의 게임에뮬레이터</title>
+<title>영호의 게임세상</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
 var T={m:'mobile.html',d:'dex.html',e:'emulator.html',t:'tablet.html',v:'videos.html',c:'classic.html',x:'multi/win10.html'};
@@ -31,69 +31,69 @@ function go(k,keep){
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
-:root{
- /* 데스크톱 화면에서 16:9 포스터 크기에 맞춰 모든 글자·간격이 같이 커지고 작아집니다 (1456px 기준 1단위) */
- --u:calc(min(100vw,177.7778vh) / 1456);
- --cy:#35e6ff;--bl:#3b6bff;--vi:#8b5cff;--mg:#e040fb;--pk:#ff4fa8;
- --kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
- --han:"Black Han Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-}
+:root{--cy:#35e6ff;--vi:#8b5cff;--mg:#e040fb;--pk:#ff4fa8;
+ --kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#050035}
 html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
-body{min-height:100vh;min-height:100dvh;overflow-x:hidden;background:transparent;display:flex;justify-content:center;align-items:center}
+body{min-height:100dvh;overflow-x:hidden;background:transparent}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
+#skyBg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#skyP{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+html.ds-saver #skyBg,html.ds-saver #skyP{opacity:.6}
 
-/* ───────── 포스터(첫 화면) ───────── */
-.poster{position:relative;width:100%;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;
- padding:max(22px,env(safe-area-inset-top)) 14px max(26px,env(safe-area-inset-bottom));
- display:flex;flex-direction:column;align-items:center;gap:16px;
- background:#050138 url(menuicons/bg.jpg) center bottom/cover no-repeat}
-.deco,.floor,.sp{display:none}
-.topline{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin-top:4px}
-.topline i{flex:1;max-width:120px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--cy));box-shadow:0 0 8px var(--cy)}
-.topline i+svg+i{background:linear-gradient(90deg,var(--pk),transparent);box-shadow:0 0 8px var(--pk)}
-.topline svg{width:46px;height:auto;flex:none;fill:var(--pk);filter:drop-shadow(0 0 8px rgba(255,79,168,.9));shape-rendering:crispEdges}
+.poster{position:relative;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:clamp(10px,2.4vh,24px);padding:max(18px,env(safe-area-inset-top)) 14px max(58px,env(safe-area-inset-bottom));
+ background:#050138 url(menuicons/n-bg.webp) center bottom/cover no-repeat}
+h1.title{margin:0;line-height:0}
+h1.title img{display:block;height:auto;width:min(92vw,880px,calc(34vh*2.886));filter:drop-shadow(0 0 14px rgba(150,110,255,.55));animation:logoGlow 4s ease-in-out infinite alternate}
+@keyframes logoGlow{from{filter:drop-shadow(0 0 8px rgba(120,160,255,.4))}to{filter:drop-shadow(0 0 20px rgba(255,130,235,.75))}}
 
-h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em;font:400 min(12.4vw,86px)/1.08 var(--han);letter-spacing:.01em;text-align:center}
-.title span{position:relative;display:inline-block;color:transparent;-webkit-text-fill-color:transparent}
-.title span:before,.title span:after{content:attr(data-t);position:absolute;left:0;top:0;white-space:nowrap}
-.title span:before{z-index:0;color:#1a0a66;-webkit-text-fill-color:#1a0a66;-webkit-text-stroke:.07em #2b1692;
- text-shadow:0 .02em 0 #2b1692,0 .04em 0 #2b1692,0 .06em 0 #241383,0 .08em 0 #241383,0 .1em 0 #1d0f75,0 .12em 0 #1d0f75}
-.title span:after{z-index:1;background-image:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:.025em rgba(255,255,255,.6)}
-.title .t1{--g:linear-gradient(180deg,#d7fbff 0%,#5de8ff 38%,#1c9dff 100%);filter:drop-shadow(0 0 .18em rgba(53,230,255,.55))}
-.title .t1:before{-webkit-text-stroke-color:#0b3f9e;text-shadow:0 .02em 0 #0b3f9e,0 .04em 0 #0b3f9e,0 .06em 0 #0a3a93,0 .08em 0 #0a3a93,0 .1em 0 #082f7a,0 .12em 0 #082f7a}
-.title .t2{--g:linear-gradient(180deg,#ffe3fb 0%,#ff7ee9 38%,#a63dff 100%);transform:skewX(-7deg);filter:drop-shadow(0 0 .18em rgba(224,64,251,.55))}
-
-.infobar{max-width:min(100%,760px);padding:11px 18px;border:2px solid transparent;border-radius:16px;text-align:center;font:500 clamp(12.5px,3.5vw,17px)/1.5 var(--kr);word-break:keep-all;
- background:linear-gradient(rgba(8,10,70,.82),rgba(8,10,70,.82)) padding-box,linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--pk)) border-box;
+.infobar{max-width:min(94vw,860px);padding:11px 20px;border:2px solid transparent;border-radius:14px;text-align:center;font:500 clamp(12px,3.3vw,19px)/1.5 var(--kr);word-break:keep-all;
+ background:linear-gradient(rgba(8,10,70,.85),rgba(8,10,70,.85)) padding-box,linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--pk)) border-box;
  box-shadow:0 0 14px rgba(53,230,255,.35),0 0 22px rgba(255,79,168,.22)}
-.pick{margin:2px 0 0;font:500 clamp(16px,4.6vw,22px) var(--kr);letter-spacing:.02em;text-shadow:0 2px 10px rgba(0,0,40,.7)}
+.pick{display:flex;align-items:center;gap:16px;width:min(94vw,820px);margin:0;font:500 clamp(15px,4.2vw,22px) var(--kr);text-shadow:0 2px 10px rgba(0,0,40,.8)}
+.pick:before,.pick:after{content:"";flex:1;height:2px;background:linear-gradient(90deg,transparent,var(--cy));box-shadow:0 0 8px var(--cy)}
+.pick:after{background:linear-gradient(270deg,transparent,var(--pk));box-shadow:0 0 8px var(--pk)}
+.pick span{white-space:nowrap}
 
-.menu{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 10px;width:100%;max-width:640px}
-.mi{flex:0 0 calc(33.333% - 7px);display:flex;flex-direction:column;align-items:center;text-align:center;padding:12px 6px 12px;border-radius:18px;
- background:rgba(30,25,120,.35);border:1px solid rgba(120,140,255,.28);transition:transform .18s,background .2s,box-shadow .2s}
-.mi:hover,.mi:focus-visible{transform:translateY(-4px);background:rgba(60,50,190,.45);box-shadow:0 0 20px rgba(80,140,255,.5);outline:none}
-.mi:active{transform:scale(.97)}
-.mi .ic{height:68px;width:100%;display:flex;align-items:center;justify-content:center}
-.mi img{display:block;max-height:100%;max-width:86%;object-fit:contain;filter:drop-shadow(0 0 8px rgba(70,130,255,.55))}
-.mi b{margin-top:8px;font:700 clamp(15px,4.2vw,20px) var(--kr);color:var(--c,#bfe3ff);text-shadow:0 0 10px rgba(80,150,255,.55)}
-.mi small{margin-top:3px;font:400 clamp(11.5px,3.1vw,13.5px)/1.35 var(--kr);color:#fff;opacity:.92;word-break:keep-all}
+.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 14px;width:min(92vw,470px)}
+@media(min-width:760px){.menu{grid-template-columns:repeat(4,1fr);width:min(94vw,1180px);gap:18px}}
+.bt{display:block;transition:transform .18s,filter .2s}
+.bt img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 8px rgba(80,120,255,.5))}
+.bt:hover,.bt:focus-visible{transform:translateY(-5px);filter:brightness(1.15);outline:none}
+.bt:active{transform:scale(.97)}
 
-.tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:440px;margin-top:4px}
-.tb{--c:var(--cy);appearance:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;padding:12px 8px 11px;color:#fff;border-radius:20px;
- border:3px solid var(--c);background:rgba(14,10,80,.72);box-shadow:0 0 12px var(--c),inset 0 0 14px rgba(80,110,255,.35);box-shadow:0 0 12px var(--c),inset 0 0 14px color-mix(in srgb,var(--c) 38%,transparent);
- transition:transform .18s,box-shadow .2s}
-.tb:hover,.tb:focus-visible{transform:translateY(-3px);box-shadow:0 0 22px var(--c),inset 0 0 18px rgba(80,110,255,.5);box-shadow:0 0 22px var(--c),inset 0 0 18px color-mix(in srgb,var(--c) 55%,transparent);outline:none}
+.mwrap{position:relative;margin-top:clamp(2px,1.5vh,14px);filter:drop-shadow(0 0 10px rgba(190,90,255,.75))}
+.mbtn{position:relative;appearance:none;border:0;cursor:pointer;display:block;width:min(56vw,300px);height:clamp(52px,7vh,70px);padding:0;color:#fff;
+ background:linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--pk));clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 50%,calc(100% - 16px) 100%,16px 100%,0 50%);transition:transform .18s}
+.mbtn:before{content:"";position:absolute;inset:3px;background:linear-gradient(180deg,#1a0d78,#0d0650);clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%)}
+.mbtn span{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;font:700 clamp(18px,2.2vw,26px) var(--kr);letter-spacing:.04em}
+.mbtn svg{width:28px;height:auto;fill:#fff}
+.mwrap:hover .mbtn{transform:translateY(-3px)}
+.mwrap .dot{display:none;position:absolute;top:-5px;right:10px;width:15px;height:15px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;box-shadow:0 0 8px #ff3b5c;z-index:3}
+body:has(#bNotice.new) .mwrap .dot{display:block}
+.ver{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:2;font:500 clamp(11px,1.2vw,15px) var(--kr);color:#ff7ee9;text-shadow:0 0 8px rgba(224,64,251,.7)}
+
+/* 메뉴 패널 */
+#mp{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,0,28,.72);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
+#mp.on{opacity:1;visibility:visible;transition-delay:0s}
+#mp .pn{width:min(100%,640px);max-height:90vh;max-height:90dvh;overflow:auto;padding:16px;border:2px solid var(--cy);border-radius:22px;background:linear-gradient(180deg,#14096a,#0a0540);box-shadow:0 0 22px rgba(53,230,255,.45),0 24px 60px rgba(0,0,30,.7)}
+.pn-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px}
+.pn-h b{font:900 20px var(--kr);color:var(--cy)}
+.pn-h button{border:0;border-radius:99px;background:linear-gradient(135deg,#ff6fb9,#c026d3);color:#fff;font:700 13.5px var(--kr);cursor:pointer;padding:7px 16px;box-shadow:0 0 12px rgba(224,64,251,.5)}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tb{appearance:none;background:none;border:0;padding:0;cursor:pointer;position:relative;transition:transform .18s,filter .2s}
+.tb img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 6px rgba(80,120,255,.45))}
+.tb:hover,.tb:focus-visible{transform:translateY(-3px);filter:brightness(1.15);outline:none}
 .tb:active{transform:scale(.97)}
-.tb img{height:46px;width:auto;max-width:70px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(70,130,255,.5))}
-.tb span{font:700 clamp(13.5px,3.7vw,16px) var(--kr);white-space:nowrap;letter-spacing:-.02em}
-.tb .dot{position:absolute;top:-6px;right:-5px;width:15px;height:15px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;display:none;box-shadow:0 0 8px #ff3b5c}
+.tb .dot{position:absolute;top:-4px;right:-3px;width:15px;height:15px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;display:none;box-shadow:0 0 8px #ff3b5c}
 .tb.new .dot{display:block}
-.tb.c2{--c:#7c7bff}.tb.c3{--c:#d946ef}.tb.c4{--c:#ff4fa8}
-
-.foot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;max-width:640px;margin-top:6px;font:400 12px var(--kr);color:#b9c3ff}
+.more{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.more a{flex:1 1 40%;text-align:center;padding:11px 8px;border-radius:12px;border:1px solid rgba(120,160,255,.45);background:rgba(60,50,190,.3);font:700 14px var(--kr)}
+.more a:hover{background:rgba(80,70,220,.5)}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;margin-top:14px;font:400 12px var(--kr);color:#b9c3ff}
 .foot b{color:#ffe08a;font-weight:700}
 .foot .vis{display:inline-flex;gap:10px;align-items:center}
 .foot .vis u{width:1px;height:11px;background:rgba(185,195,255,.45);text-decoration:none}
@@ -103,58 +103,6 @@ h1.title{margin:0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .22em
 .foot .lk a,.foot .lk button{appearance:none;background:none;border:0;border-bottom:1px dotted rgba(185,195,255,.6);padding:0 0 1px;color:#b9c3ff;font:inherit;cursor:pointer}
 .foot .lk a:hover,.foot .lk button:hover{color:#fff;border-color:#fff}
 .foot button:disabled{opacity:.6}
-
-/* ───────── 데스크톱: 참고 이미지와 같은 16:9 포스터 ───────── */
-@media (min-width:900px) and (min-aspect-ratio:13/10){
- body{overflow:hidden}
- .poster{width:calc(var(--u)*1456);height:calc(var(--u)*819);min-height:0;padding:0;display:block;
-  background:#050138 url(menuicons/bg.jpg) center/100% 100% no-repeat}
- .deco{display:block;position:absolute;top:0;height:100%;width:auto;pointer-events:none;z-index:0}
- .deco.l{left:0}.deco.r{right:0}
- .floor{display:none;position:absolute;left:calc(var(--u)*300);right:calc(var(--u)*300);bottom:0;height:calc(var(--u)*215);overflow:hidden;z-index:0;pointer-events:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
- .floor:before{content:"";position:absolute;left:-60%;right:-60%;top:0;bottom:-40%;
-  background:linear-gradient(rgba(90,120,255,.75) 2px,transparent 2px) 0 0/calc(var(--u)*90) calc(var(--u)*46),linear-gradient(90deg,rgba(160,90,255,.75) 2px,transparent 2px) 0 0/calc(var(--u)*90) calc(var(--u)*46);
-  transform:perspective(calc(var(--u)*330)) rotateX(58deg);transform-origin:50% 0;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 55%);mask-image:linear-gradient(180deg,transparent,#000 55%)}
- .sp{display:none;position:absolute;width:calc(var(--u)*18);height:calc(var(--u)*18);z-index:0;pointer-events:none;background:var(--c);
-  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);filter:drop-shadow(0 0 4px var(--c));animation:tw 3s ease-in-out infinite alternate}
- @keyframes tw{from{opacity:.45;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
-
- .topline{position:absolute;left:calc(var(--u)*430);width:calc(var(--u)*596);top:calc(var(--u)*34);margin:0;gap:calc(var(--u)*24);z-index:2}
- .topline i{max-width:none;height:calc(var(--u)*4)}
- .topline svg{width:calc(var(--u)*87)}
- h1.title{position:absolute;left:0;right:0;top:calc(var(--u)*96);margin:0;font-size:calc(var(--u)*150);gap:0 calc(var(--u)*30);z-index:2;flex-wrap:nowrap;white-space:nowrap}
- .infobar{position:absolute;left:calc(var(--u)*230);top:calc(var(--u)*284);width:calc(var(--u)*996);max-width:none;height:calc(var(--u)*62);padding:0;display:flex;align-items:center;justify-content:center;
-  border-width:calc(var(--u)*3);border-radius:calc(var(--u)*16);font-size:calc(var(--u)*25.5);white-space:nowrap;z-index:2}
- .pick{position:absolute;left:0;right:0;top:calc(var(--u)*364);margin:0;text-align:center;font-size:calc(var(--u)*33);z-index:2}
- .menu{position:absolute;left:calc(var(--u)*266);top:calc(var(--u)*428);width:calc(var(--u)*922);max-width:none;display:grid;grid-template-columns:repeat(5,1fr);gap:0;z-index:2}
- .mi{flex:none;padding:0 calc(var(--u)*6);height:calc(var(--u)*176);border:0;border-radius:calc(var(--u)*18);background:transparent;justify-content:flex-start;position:relative}
- .mi+.mi:before{content:"";position:absolute;left:0;top:calc(var(--u)*8);bottom:calc(var(--u)*10);width:1px;background:linear-gradient(180deg,transparent,rgba(190,205,255,.75) 15%,rgba(190,205,255,.75) 85%,transparent)}
- .mi:hover,.mi:focus-visible{background:rgba(80,100,255,.18);box-shadow:0 0 calc(var(--u)*26) rgba(90,140,255,.5)}
- .mi .ic{height:calc(var(--u)*92);margin-top:calc(var(--u)*4)}
- .mi img{max-width:calc(var(--u)*118)}
- .mi b{margin-top:calc(var(--u)*6);font-size:calc(var(--u)*26)}
- .mi small{margin-top:calc(var(--u)*4);font-size:calc(var(--u)*16.5)}
- .tools{position:absolute;left:0;right:0;top:calc(var(--u)*632);width:auto;max-width:none;margin:0 auto;display:flex;justify-content:center;gap:calc(var(--u)*16);z-index:2}
- .tb{min-width:calc(var(--u)*170);height:calc(var(--u)*108);padding:calc(var(--u)*8) calc(var(--u)*20);gap:calc(var(--u)*4);border-width:calc(var(--u)*3);border-radius:calc(var(--u)*24)}
- .tb img{height:calc(var(--u)*58);max-width:calc(var(--u)*80)}
- .tb span{font-size:calc(var(--u)*20)}
- .foot{position:absolute;left:calc(var(--u)*140);right:calc(var(--u)*140);top:calc(var(--u)*762);max-width:none;margin:0;gap:calc(var(--u)*6) calc(var(--u)*22);font-size:max(11px,calc(var(--u)*14));z-index:2}
-}
-
-
-/* ───────── 로고 이미지 + 별빛 밤하늘 ───────── */
-h1.title.logo{display:block;font-size:0;line-height:0}
-h1.title.logo img{display:block;width:min(92vw,560px);height:auto;margin:0 auto;filter:drop-shadow(0 0 10px rgba(120,160,255,.55));animation:logoGlow 4s ease-in-out infinite alternate}
-@keyframes logoGlow{from{filter:drop-shadow(0 0 6px rgba(120,160,255,.35))}to{filter:drop-shadow(0 0 16px rgba(255,130,235,.7))}}
-#skyBg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
-#skyP{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
-html.ds-saver #skyBg,html.ds-saver #skyP{opacity:.6}
-@media (min-width:900px) and (min-aspect-ratio:13/10){
- h1.title.logo{top:calc(var(--u)*70)}
- h1.title.logo img{width:calc(var(--u)*640)}
-}
 
 /* ───────── 안내 시트(공지·설치·게임방법) ───────── */
 #sh{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,0,28,.72);opacity:0;visibility:hidden;transition:opacity .25s,visibility 0s .25s}
@@ -213,41 +161,30 @@ html.ds-saver #skyBg,html.ds-saver #skyP{opacity:.6}
 <canvas id="skyBg" aria-hidden="true"></canvas>
 <div class="poster">
   <canvas id="skyP" aria-hidden="true"></canvas>
-  <img class="deco l" src="menuicons/deco-left.png" alt="" aria-hidden="true">
-  <img class="deco r" src="menuicons/deco-right.png" alt="" aria-hidden="true">
-  <div class="floor" aria-hidden="true"></div>
-  <i class="sp" style="--c:#35e6ff;left:calc(var(--u)*452);top:calc(var(--u)*118)" aria-hidden="true"></i>
-  <i class="sp" style="--c:#b07bff;left:calc(var(--u)*1125);top:calc(var(--u)*32);animation-delay:-1s" aria-hidden="true"></i>
-  <i class="sp" style="--c:#ff7ee9;left:calc(var(--u)*1170);top:calc(var(--u)*88);animation-delay:-2s" aria-hidden="true"></i>
-  <i class="sp" style="--c:#ffd84a;left:calc(var(--u)*300);top:calc(var(--u)*252);animation-delay:-.5s" aria-hidden="true"></i>
-  <i class="sp" style="--c:#35e6ff;left:calc(var(--u)*1190);top:calc(var(--u)*232);animation-delay:-1.5s" aria-hidden="true"></i>
-
-  <div class="topline" aria-hidden="true">
-    <i></i>
-    <svg viewBox="0 0 11 8"><path d="M2 0h1v1h1v1h3V1h1V0h1v1h-1v1h1v1h1v3h-1v1h-1V6h-1v1H8V6H3v1H2V6H1v1H0V3h1V2h1V1H1V0zm2 3v1h1V3zm3 0v1h1V3z" fill-rule="evenodd"/></svg>
-    <i></i>
-  </div>
-
-  <h1 class="title logo"><img src="menuicons/title-logo.webp" alt="영호의 게임에뮬레이터" width="1200" height="400" decoding="async"></h1>
-
+  <h1 class="title"><img src="menuicons/n-logo.webp" alt="영호의 게임세상" width="1100" height="381" decoding="async"></h1>
   <div class="infobar">이 사이트는 게임을 제공하는 사이트가 아닙니다. 콘솔게임 웹에뮬레이터 사이트입니다.</div>
-  <p class="pick">사용하시는 기종을 선택하세요.</p>
-
+  <p class="pick"><span>사용하시는 기종을 선택하세요.</span></p>
   <nav class="menu" aria-label="기종 선택">
-    <a class="mi" href="emulator.html" data-k="e" style="--c:#a9d8ff"><span class="ic"><img src="menuicons/pc.png" alt=""></span><b>PC</b><small>컴퓨터페이지로<br>접속하기</small></a>
-    <a class="mi" href="mobile.html" data-k="m" style="--c:#c9b2ff"><span class="ic"><img src="menuicons/mobile.png" alt=""></span><b>Mobile</b><small>휴대폰 사용자로<br>접속하기</small></a>
-    <a class="mi" href="romsite.html" style="--c:#7fe9ff"><span class="ic"><img src="menuicons/rom.png" alt=""></span><b>Rom Site</b><small>롬파일 찾기</small></a>
-    <a class="mi" href="gallery.html" style="--c:#d7b8ff"><span class="ic"><img src="menuicons/photo.png" alt=""></span><b>Photo</b><small>게임사진</small></a>
-    <a class="mi" href="music.html" style="--c:#9fe6ff"><span class="ic"><img src="menuicons/music.png" alt=""></span><b>Music</b><small>게임음악듣기</small></a>
+    <a class="bt" href="emulator.html" data-k="e"><img src="menuicons/n-pc.webp" alt="PC"></a>
+    <a class="bt" href="mobile.html" data-k="m"><img src="menuicons/n-mobile.webp" alt="Mobile"></a>
+    <a class="bt" href="gallery.html"><img src="menuicons/n-photo.webp" alt="Photo"></a>
+    <a class="bt" href="music.html"><img src="menuicons/n-music.webp" alt="Music"></a>
   </nav>
+  <div class="mwrap"><button type="button" class="mbtn" id="mBtn" aria-haspopup="dialog"><span><svg viewBox="0 0 28 20" aria-hidden="true"><rect width="6" height="4"/><rect x="9" width="19" height="4"/><rect y="8" width="6" height="4"/><rect x="9" y="8" width="19" height="4"/><rect y="16" width="6" height="4"/><rect x="9" y="16" width="19" height="4"/></svg>메뉴</span></button><i class="dot"></i></div>
+  <span class="ver">영호의 게임세상 &nbsp;v1.0</span>
+</div>
 
+<div id="mp" aria-hidden="true"><div class="pn" role="dialog" aria-modal="true" aria-label="메뉴">
+  <div class="pn-h"><b>메뉴</b><button type="button" id="mpX">닫기</button></div>
   <nav class="tools" aria-label="안내 메뉴">
-    <button type="button" class="tb" id="bInstall"><img src="menuicons/install.png" alt=""><span>어플 설치하기</span></button>
-    <button type="button" class="tb c2" id="bSave"><img src="menuicons/save.png" alt=""><span>세이브파일 저장방법</span></button>
-    <button type="button" class="tb c3" id="bHow"><img src="menuicons/howto.png" alt=""><span>에뮬레이터 사용법</span></button>
-    <button type="button" class="tb c4" id="bNotice"><img src="menuicons/notice.png" alt=""><span>공지사항</span><i class="dot"></i></button>
+    <button type="button" class="tb" id="bInstall"><img src="menuicons/n-install.webp" alt="어플 설치하기"></button>
+    <button type="button" class="tb" id="bSave"><img src="menuicons/n-save.webp" alt="세이브파일 저장방법"></button>
+    <button type="button" class="tb" id="bHow"><img src="menuicons/n-howto.webp" alt="에뮬레이터 사용법"></button>
+    <button type="button" class="tb" id="bNotice"><img src="menuicons/n-notice.webp" alt="공지사항"><i class="dot"></i></button>
   </nav>
-
+  <div class="more">
+    <a href="romsite.html">Rom Site · 롬파일 찾기</a>
+  </div>
   <div class="foot">
     <span class="vis"><span>오늘 방문 <b id="vToday">…</b></span><u></u><span>전체 방문 <b id="vTotal">…</b></span></span>
     <label class="keep"><input type="checkbox" id="keep">다음부터 이 화면으로 바로 접속</label>
@@ -259,7 +196,12 @@ html.ds-saver #skyBg,html.ds-saver #skyP{opacity:.6}
       <button type="button" class="js-wipe" id="bWipe"><span id="bWipeT">데이터삭제</span></button>
     </span>
   </div>
-</div>
+</div></div>
+<script>
+(function(){var p=document.getElementById('mp');function o(v){p.classList.toggle('on',v);p.setAttribute('aria-hidden',v?'false':'true')}
+document.getElementById('mBtn').onclick=function(){o(true)};document.getElementById('mpX').onclick=function(){o(false)};
+p.addEventListener('click',function(e){if(e.target===p)o(false)});addEventListener('keydown',function(e){if(e.key==='Escape')o(false)})})();
+</script>
 
 <div id="sh" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="sh-h"><b id="shT"></b><button type="button" id="shX">닫기</button></div><div class="sh-s" id="shS"></div><div class="sh-b" id="shB"></div></div></div>
 <div id="guideOv" aria-hidden="true"><div class="gv"><iframe id="guideFr" title="안내" referrerpolicy="no-referrer"></iframe><div class="gv-f"><button type="button" class="gv-close" id="guideX">닫기</button></div></div></div>
@@ -544,12 +486,22 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 
 var st=document.createElement('style');
 st.textContent=`
-#ds-bar{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:8px;padding:3px 10px;border-radius:12px;background:rgba(15,17,22,.8);color:#d8dde6;font:600 10.5px/1 system-ui,-apple-system,"Malgun Gothic",sans-serif;border:1px solid rgba(255,255,255,.14);-webkit-user-select:none;user-select:none;max-width:calc(100vw - 8px);white-space:nowrap;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-#ds-bar .it{display:flex;align-items:center;gap:3px;padding:3px 0}
+#ds-bar{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:0;padding:4px 8px;border-radius:99px;background:linear-gradient(180deg,rgba(32,32,34,.94),rgba(14,14,16,.94));color:#e4e6ea;font:500 12.5px/1 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;letter-spacing:.01em;border:1px solid rgba(255,255,255,.08);box-shadow:0 3px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);-webkit-user-select:none;user-select:none;max-width:calc(100vw - 8px);white-space:nowrap;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+#ds-bar .it{display:flex;align-items:center;gap:6px;padding:4px 11px;position:relative}
+#ds-bar .it+.it::before{content:"";position:absolute;left:0;top:50%;height:17px;transform:translateY(-50%);border-left:1.5px solid rgba(255,255,255,.2)}
 #ds-bar .it[data-act]{cursor:pointer}
-#ds-bar i{width:7px;height:7px;border-radius:50%;background:#6b7280;display:block;flex:none}
-#ds-bar .off{opacity:.55}
-#ds-bar .on i{background:#2bdc5b;box-shadow:0 0 5px 1px rgba(43,220,91,.85)}
+#ds-bar .it[data-act]:hover{color:#fff}
+#ds-bar i{width:9px;height:9px;border-radius:50%;background:#5b5f66;display:block;flex:none}
+#ds-bar .off{color:#b4b8bf}
+#ds-bar .off .ic{color:#8b9098}
+#ds-bar .on i{background:#22d83a;box-shadow:0 0 6px 1px rgba(34,216,58,.8)}
+#ds-bar .on .ic{color:#22d83a;filter:drop-shadow(0 0 4px rgba(34,216,58,.6))}
+#ds-bar .ic{display:block;width:19px;height:19px;flex:none}
+#ds-bar .ic svg{display:block;width:100%;height:100%}
+#ds-bar .bw{gap:7px}
+#ds-bar .bp{font-size:13px;font-weight:500;color:#e8eaee}
+#ds-bar .bz{display:none;width:12px;height:17px;flex:none;margin-right:-2px}
+#ds-bar .bz.on{display:block}
 #ds-sv{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-sv-top,var(--ds-top,6px)));left:calc(env(safe-area-inset-left,0px) + 10px);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;height:36px;margin:0;padding:0 16px 0 13px;border-radius:99px;border:2px solid #ffd0d6;background:linear-gradient(135deg,#ff8a96,#e8495b 70%);color:#fff;text-shadow:0 1px 2px rgba(120,20,40,.5);font:400 14.5px/1 Jua,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;letter-spacing:.03em;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box;box-shadow:0 4px 0 #a8263d,0 8px 18px rgba(232,73,91,.4);transition:transform .15s,box-shadow .15s,filter .2s}
 #ds-sv:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 6px 0 #a8263d,0 12px 22px rgba(232,73,91,.45)}
 #ds-sv:active{transform:translateY(3px);box-shadow:0 1px 0 #a8263d}
@@ -559,21 +511,26 @@ st.textContent=`
 #ds-sv.on:hover{box-shadow:0 6px 0 #1c6f4c,0 12px 22px rgba(47,158,110,.45)}
 #ds-sv.on:active{box-shadow:0 1px 0 #1c6f4c}
 #ds-sv:focus-visible{outline:3px solid #ffcf7d;outline-offset:3px}
-@media (max-width:560px){body{margin-top:42px}#ds-bar{top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px) + 9px);left:auto;right:4px;transform:none;max-width:calc(100vw - 134px);overflow-x:auto;scrollbar-width:none;gap:6px;padding:3px 8px}#ds-bar::-webkit-scrollbar{display:none}}
+@media (max-width:560px){body{margin-top:42px}#ds-bar{top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px) + 9px);left:auto;right:4px;transform:none;max-width:calc(100vw - 134px);overflow-x:auto;scrollbar-width:none;padding:3px 4px;font-size:11.5px}#ds-bar::-webkit-scrollbar{display:none}#ds-bar .it{padding:4px 8px}#ds-bar .ic{width:17px;height:17px}}
 html.ds-saver #ds-bar .on i{box-shadow:none}
-#ds-bar .bat{width:17px;height:9px;border:1px solid #9aa3b2;border-radius:2px;position:relative;display:block;padding:0;box-sizing:border-box}
-#ds-bar .bat::after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:3px;background:#9aa3b2;border-radius:0 1px 1px 0}
-#ds-bar .bat b{display:block;height:100%;width:0;background:#2bdc5b}
+#ds-bar .bat{width:25px;height:12px;border:1.5px solid #d3d6dc;border-radius:3.5px;position:relative;display:block;padding:1px;box-sizing:border-box;flex:none}
+#ds-bar .bat::after{content:"";position:absolute;right:-4px;top:2.5px;width:2.5px;height:4px;background:#d3d6dc;border-radius:0 1.5px 1.5px 0}
+#ds-bar .bat b{display:block;height:100%;width:0;background:#22d83a;border-radius:1.5px}
 #ds-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 32px);left:50%;transform:translateX(-50%);z-index:2147483001;display:none;background:rgba(15,17,22,.92);color:#fff;font:600 12px/1.3 system-ui,-apple-system,"Malgun Gothic",sans-serif;padding:7px 12px;border-radius:10px;max-width:90vw;text-align:center}
 html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation-duration:.001s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}
 `;
 document.head.appendChild(st);
 
-var items=[['bt','BT','블루투스','pair'],['usb','USB','USB','wired'],['otg','OTG','OTG','wired'],['kb','⌨','키보드'],['ms','🖱','마우스'],['pad','🎮','게임패드']];
+var IC={
+ kb:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5.5" width="20" height="13" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6.2 9.6h.01M9.7 9.6h.01M13.2 9.6h.01M16.7 9.6h.01M6.2 13.4h.01M17.8 13.4h.01M8.6 14h6.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+ ms:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="2.4" width="11.6" height="19.2" rx="5.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v7.2M6.4 10h11.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+ pad:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.6 6.8h8.8a5.2 5.2 0 0 1 5.1 4.2l.9 5.1a2.7 2.7 0 0 1-4.7 2.2l-2.3-2.4H8.6l-2.3 2.4a2.7 2.7 0 0 1-4.7-2.2l.9-5.1a5.2 5.2 0 0 1 5.1-4.2z" fill="currentColor"/><path d="M8 9.6v3.6M6.2 11.4h3.6" stroke="#141416" stroke-width="1.7" stroke-linecap="round"/><circle cx="15.7" cy="10.6" r="1" fill="#141416"/><circle cx="17.9" cy="12.6" r="1" fill="#141416"/></svg>'
+};
+var items=[['bt','BT','블루투스','pair'],['usb','USB','USB','wired'],['otg','OTG','OTG','wired'],['kb','','키보드'],['ms','','마우스'],['pad','','게임패드']];
 var bar=document.createElement('div');
 bar.id='ds-bar';
-bar.innerHTML='<span class="it bw" title="배터리"><span class="bat"><b></b></span><span class="bp">--</span></span>'
- +items.map(function(a){return '<span class="it off" data-k="'+a[0]+'"'+(a[3]?' data-act="'+a[3]+'"':'')+'><i></i><span>'+a[1]+'</span></span>'}).join('');
+bar.innerHTML='<span class="it bw" title="배터리"><span class="bat"><b></b></span><svg class="bz" viewBox="0 0 12 17" aria-hidden="true"><path d="M7.4 0 .6 9.6h4.5L4 17l7.4-10H6.7z" fill="#f5a623"/></svg><span class="bp">--</span></span>'
+ +items.map(function(a){return '<span class="it off" data-k="'+a[0]+'"'+(a[3]?' data-act="'+a[3]+'"':'')+'>'+(IC[a[0]]?'<span class="ic">'+IC[a[0]]+'</span>':'<i></i><span>'+a[1]+'</span>')+'</span>'}).join('');
 document.body.appendChild(bar);
 var svb=document.createElement('button');svb.type='button';svb.id='ds-sv';
 svb.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8.500 5-14 14-14 0 9-5.500 14-14 14z"/><path d="M5 19l7-7"/></svg><span>절전</span><span class="st">꺼짐</span>';
@@ -598,7 +555,7 @@ function paintBatt(){
   if(!batt){p.textContent='--';f.style.width='0';w.title='이 브라우저는 배터리 정보를 제공하지 않습니다';return}
   var l=Math.round(batt.level*100);
   f.style.width=l+'%';f.style.background=l<=20?'#ef4444':l<=50?'#f5b301':'#2bdc5b';
-  p.textContent=(batt.charging?'⚡':'')+l+'%';
+  p.textContent=l+'%';var z=bar.querySelector('.bz');if(z)z.classList.toggle('on',!!batt.charging);
   w.title='배터리 '+l+'%'+(batt.charging?' · 충전 중':'');
 }
 function onBatt(){

@@ -267,6 +267,21 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
 #ioa p{margin:0;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.88)}
 #ioa button{display:block;width:100%;border:0;border-top:.5px solid rgba(255,255,255,.25);background:none;color:#0a84ff;font-weight:600;font-size:17px;font-family:inherit;padding:12px 0;cursor:pointer}
 #ioa button:active{background:rgba(255,255,255,.12)}
+
+/* ===== PC 홈 화면과 같은 아이콘 스타일 ===== */
+#grid{grid-template-columns:repeat(auto-fill,minmax(clamp(148px,44vw,230px),1fr));align-items:start}
+.app.tile{background:none;border:0;box-shadow:none;padding:0;border-radius:clamp(14px,4vw,22px);filter:drop-shadow(0 5px 8px rgba(30,90,190,.4));transition:transform .2s,filter .2s}
+.app.tile img{display:block;width:100%;height:auto}
+.app.tile:hover{border:0;box-shadow:none;transform:translateY(-4px);filter:brightness(1.07) drop-shadow(0 8px 12px rgba(30,90,190,.5))}
+.app.tile:active{transform:scale(.97)}
+.app.card{background:linear-gradient(160deg,#f1f9ff,#cfe5fc);border:3px solid #77abf0;border-radius:20px;padding:12px 8px 12px;box-shadow:0 4px 12px rgba(30,90,190,.3)}
+.app.card:hover{background:linear-gradient(160deg,#fff,#dcecfd);border-color:#4d8fee;box-shadow:0 10px 22px rgba(30,90,190,.4)}
+.app.card .ico{max-width:96px;filter:drop-shadow(0 3px 4px rgba(60,120,200,.3))}
+.app.card .ico img{object-fit:contain}
+.app.card b{margin-top:8px;color:#1b3fb8;font:700 clamp(13px,3.6vw,15px) var(--sans);text-shadow:0 0 3px #fff,0 0 3px #fff;letter-spacing:0}
+.app.card small{display:none}
+.app.card .st{color:#4a78b0}
+.app.card .pb{background:rgba(60,120,200,.2)}
 </style>
 <link rel="stylesheet" href="mobilemenu.css?v=1">
 <link rel="stylesheet" href="cutegame.css?v=1">
@@ -362,7 +377,6 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
 <input type="file" id="romIn" hidden>
 <input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
 
-<script src="savebridge.js?v=1"></script>
 <script src="emudata.js?v=mg2"></script>
 <script src="mamegame.js?v=1"></script>
 <script src="loadgame.js?v=2"></script>
@@ -385,7 +399,7 @@ function render(){
  const eras=['전체','1980년대','1990년대','2000년대'];
  $('#tabs').innerHTML=eras.map(e=>`<button class="${e===filter?'on':''}" data-e="${e}">${e}</button>`).join('');
  $('#grid').innerHTML=C.filter(c=>filter==='전체'||era(c.y)===filter).map((c,i)=>
-  `<button class="app" data-id="${c.id}" style="--ac:${c.a||'#d4af6a'};animation-delay:${i*45}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small></button>`).join('');
+  `<button class="app tile" data-id="${c.id}" title="${c.n}" style="--ac:${c.a||'#d4af6a'};animation-delay:${i*45}ms"><img src="emuicons/${c.id}.webp" alt="${c.n}" draggable="false" decoding="async" onerror="this.outerHTML=icon(C.find(x=>x.id==='${c.id}'))"></button>`).join('');
 }
 $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b){filter=b.dataset.e;render()}};
 $('#grid').onclick=e=>{const b=e.target.closest('.app');if(b)openEmu(C.find(c=>c.id===b.dataset.id))};
@@ -409,12 +423,14 @@ const ETC=[
  {id:'wall',n:'배경화면',l:'WALLPAPER',a:'#8b5cf6',c:['#a78bfa','#5b34d6'],g:'<rect x="32" y="19" width="36" height="62" rx="8"/><path d="M36 66l9-10 7 6 6-5 6 8"/><circle cx="58" cy="38" r="4.5"/>',soon:1}
 ];
 const PCG={id:'pcgame',n:'PC게임 실행기',l:'PC GAME',a:'#5b5bd6',c:['#7a7aff','#3a3ab8'],g:'<rect x="22" y="27" width="56" height="36" rx="4"/><path d="M38 75h24M50 63v12M35 45h10M40 40v10M60 45h.1M67 40h.1"/>',href:'dosplayer.html'};
+const SKY={map:'skyicon/browser.png',memo:'skyicon/memo.png',calc:'skyicon/calc.png'};
 function etcIcon(e){
+ if(SKY[e.id])return `<img src="${SKY[e.id]}" alt="${e.n}" width="96" height="96" draggable="false">`;
  return `<svg viewBox="0 0 100 100" width="256" height="256" aria-hidden="true"><defs><linearGradient id="eg_${e.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${e.c[0]}"/><stop offset="1" stop-color="${e.c[1]}"/></linearGradient></defs><rect width="100" height="100" rx="22.5" fill="url(#eg_${e.id})"/><rect width="100" height="50" rx="22.5" fill="#fff" opacity=".10"/><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${e.g}</g></svg>`;
 }
 function renderEtc(){
  $('#etcgrid').innerHTML=ETC.map((e,i)=>
-  `<button class="app" data-etc="${e.id}" style="--ac:${e.a};animation-delay:${i*45}ms"><span class="ico">${etcIcon(e)}</span><b>${e.n}</b><small>${e.l}</small></button>`).join('');
+  `<button class="app card" data-etc="${e.id}" style="--ac:${e.a};animation-delay:${i*45}ms"><span class="ico">${etcIcon(e)}</span><b>${e.n}</b><small>${e.l}</small></button>`).join('');
 }
 renderEtc();
 function iosAlert(msg,title){
@@ -592,8 +608,21 @@ $('#bCore').onclick=()=>{
 };
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
-$('#bSave').onclick=()=>{SaveBridge.openSave({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
-$('#bRest').onclick=()=>{SaveBridge.openLoad({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
+$('#bSave').onclick=()=>{
+ try{
+  const st=fr.contentWindow.EJS_emulator.gameManager.getState();
+  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+  const name=`${cur.fn}${g}_${stamp()}.GSV`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
+ }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
+};
+$('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
+$('#gsvIn').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{fr.contentWindow.EJS_emulator.gameManager.loadState(new Uint8Array(await f.arrayBuffer()));toast('📥 불러옴: '+f.name)}
+ catch(err){toast('불러오기 실패: 같은 게임·기종의 GSV인지 확인하세요')}
+};
 
 /* 조작버튼 / 메뉴 숨김 */
 $('#bCtl').onclick=()=>{
@@ -664,7 +693,8 @@ function port(){
 addEventListener('resize',port);addEventListener('orientationchange',port);port();
 
 /* ================= PC 에뮬레이터 (v86 · DOS / Windows) ================= */
-ICONS_READY.then(()=>{$('#pcgrid').innerHTML=P.map((c,i)=>`<button class="app" data-id="${c.id}" style="animation-delay:${i*60}ms"><span class="ico">${icon(c)}</span><b>${c.n}</b><small>${c.y}</small><em class="st">눌러서 시작</em><i class="pb"><i></i></i></button>`).join('');});
+const PCI={dos:'msdos',win10:'windows1',win20:'windows2',win30:'windows3',win31:'windows31',win95:'windows95',win98:'windows98'};
+ICONS_READY.then(()=>{$('#pcgrid').innerHTML=P.map((c,i)=>`<button class="app card" data-id="${c.id}" style="animation-delay:${i*60}ms"><span class="ico"><img src="icons/${PCI[c.id]}.png?v=5" alt="${c.n}" width="256" height="256" draggable="false" decoding="async"></span><b>${c.n}</b><small>${c.y}</small><em class="st">눌러서 시작</em><i class="pb"><i></i></i></button>`).join('');});
 $('#pcgrid').onclick=e=>{const b=e.target.closest('.app');if(b)openPc(P.find(c=>c.id===b.dataset.id))};
 
 const store={},mb=b=>(b/1048576).toFixed(1)+'MB',fmt=s=>(isFinite(s)&&s>=0)?Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'):'--:--';

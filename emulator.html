@@ -275,6 +275,7 @@ html.emuopen .arc,html.emuopen #pagebg{visibility:hidden}
 <script src="pctheme.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style id="rpcss">
+
 /* ===== Retro PC Web Emulator · 새 홈 화면 디자인 (기능은 그대로, 겉모습만 교체) ===== */
 .arc,#pagebg{position:absolute!important;left:-99999px!important;top:0!important;opacity:0!important;pointer-events:none!important;width:1200px;height:800px;overflow:hidden}
 html.emuopen #rp{display:none}
@@ -351,6 +352,58 @@ html.emuopen #rp{display:none}
  .rp-nav{font-size:12px;padding:7px 9px}
  .rp-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:18px 12px}
 }
+
+/* ===== 시안(게임 에뮬레이터 선택) 디자인 : 16:9 배경 위에 실제 버튼·기종 타일을 올림 ===== */
+html #rp{--u:calc(min(100vw,177.7778vh) / 1672);--rpdef:url(emuicons/bg2.webp);background:#2f8ef0 var(--rpbg,var(--rpdef)) center/cover no-repeat;overflow:hidden}
+#rp .st{position:absolute;inset:0;--y0:calc(50% - var(--u)*470.5)}
+#rp .bk{position:absolute;left:calc(var(--u)*30);bottom:calc(var(--u)*26);width:calc(var(--u)*242);height:calc(var(--u)*76);border:calc(var(--u)*3) solid #fff;border-radius:calc(var(--u)*38);background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(214,234,255,.82));color:#1f4e84;font:700 max(12px,calc(var(--u)*26)) 'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;box-shadow:0 calc(var(--u)*6) calc(var(--u)*16) rgba(20,70,160,.35);cursor:pointer;transition:background .2s,transform .15s}
+#rp .bk:hover{background:#fff;transform:translateY(-2px)}
+#rp .bk:active{transform:scale(.97)}
+#rp .bk span{display:inline}
+#rp .ttl2{position:absolute;right:calc(var(--u)*32);width:calc(var(--u)*940);top:calc(var(--y0) + var(--u)*20);text-align:center;pointer-events:none;font-family:'Fredoka','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+#rp .ttl2 .t1{display:inline-flex;align-items:center;gap:calc(var(--u)*16);font-weight:700;font-size:max(22px,calc(var(--u)*68));line-height:1.1;letter-spacing:.01em;color:#fff;-webkit-text-stroke:max(5px,calc(var(--u)*13)) #2c6fd8;paint-order:stroke fill;text-shadow:0 calc(var(--u)*6) 0 #1b4aa6,0 calc(var(--u)*12) calc(var(--u)*20) rgba(10,50,150,.55)}
+#rp .ttl2 .t1 i{font-style:normal;font-size:.9em;-webkit-text-stroke:0;filter:drop-shadow(0 calc(var(--u)*4) calc(var(--u)*6) rgba(10,50,150,.5))}
+#rp .ttl2 .t2{display:block;width:max-content;max-width:100%;margin:calc(var(--u)*12) auto 0;padding:calc(var(--u)*8) calc(var(--u)*34);border-radius:99px;border:max(2px,calc(var(--u)*3)) solid rgba(255,255,255,.9);background:linear-gradient(180deg,#4a8cf0,#2456b8);color:#fff;font-weight:600;font-size:max(12px,calc(var(--u)*27));letter-spacing:.02em;box-shadow:0 calc(var(--u)*6) calc(var(--u)*16) rgba(10,50,150,.4),inset 0 1px 0 rgba(255,255,255,.45)}
+#rp .tb{position:absolute;right:calc(var(--u)*32);width:calc(var(--u)*940);top:calc(var(--y0) + var(--u)*872);display:flex;justify-content:center;gap:calc(var(--u)*10)}
+#rp .tb .rp-nav{font-size:max(10px,calc(var(--u)*17));padding:calc(var(--u)*9) calc(var(--u)*14);color:#1f4e84;background:rgba(255,255,255,.62)}
+#rp .pn{position:absolute;right:calc(var(--u)*32);top:calc(var(--y0) + var(--u)*205);width:calc(var(--u)*940);height:calc(var(--u)*650);border-radius:calc(var(--u)*34);background:linear-gradient(180deg,rgba(216,233,254,.84),rgba(236,247,253,.84));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:calc(var(--u)*4) solid #77abf0;box-shadow:inset 0 0 0 calc(var(--u)*3) rgba(255,255,255,.75),0 calc(var(--u)*10) calc(var(--u)*30) rgba(20,70,160,.35)}
+#rp .sc{position:absolute;inset:calc(var(--u)*14) calc(var(--u)*8) calc(var(--u)*14) calc(var(--u)*22);overflow-y:auto;padding:0 calc(var(--u)*10) 0 0;scrollbar-width:thin;scrollbar-color:#5b9bf0 #cfe3fb}
+#rp .sc::-webkit-scrollbar{width:max(8px,calc(var(--u)*14))}
+#rp .sc::-webkit-scrollbar-track{background:#cfe3fb;border-radius:99px}
+#rp .sc::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#8fc3ff,#4d8fee);border-radius:99px;border:2px solid #e8f3ff}
+#rp .stt{position:absolute;width:calc(var(--u)*84);height:calc(var(--u)*84);pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6l7.5 16.5 18 2-13.4 12.2 3.8 17.8L32 45.2 16.1 54.5l3.8-17.8L6.5 24.5l18-2z' fill='%23ffe27a' stroke='%23ffb347' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 3px 4px rgba(60,120,200,.35))}
+#rp .s1{left:calc(100% - var(--u)*1014);top:calc(var(--y0) + var(--u)*163)}#rp .s2{left:calc(100% - var(--u)*74);top:calc(var(--y0) + var(--u)*163)}#rp .s3{left:calc(100% - var(--u)*1014);top:calc(var(--y0) + var(--u)*813)}#rp .s4{left:calc(100% - var(--u)*74);top:calc(var(--y0) + var(--u)*813)}
+#rp .sc .rp-sec{margin:calc(var(--u)*10) calc(var(--u)*4) calc(var(--u)*12);font-size:max(11px,calc(var(--u)*17));color:#2f6fb5;text-shadow:0 1px 0 #fff}
+#rp .sc .rp-sec::after{background:linear-gradient(90deg,#7fb2f0,rgba(127,178,240,0))}
+#rp .sc .rp-sec:not(:first-child){margin-top:calc(var(--u)*26)}
+#rp .sc .rp-ft{margin-top:calc(var(--u)*28);color:#4a78b0;text-shadow:none;font-size:max(10px,calc(var(--u)*14))}
+#rp .rp-grid{grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*18)}
+#rp .rp-it{transition:transform .18s,filter .2s}
+#rp .rp-it:hover,#rp .rp-it:focus-visible{transform:translateY(-3px);filter:brightness(1.06)}
+#rp .rp-it:active{transform:scale(.97)}
+#rp .rp-it.img img{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 8px rgba(60,120,200,.25))}
+#rp .rp-it:not(.img){aspect-ratio:600/410;justify-content:center;gap:0;border:max(2px,calc(var(--u)*3)) solid #77abf0;border-radius:calc(var(--u)*30);background:linear-gradient(160deg,#f1f9ff,#cfe5fc);padding:calc(var(--u)*8)}
+#rp .rp-it:not(.img) .rp-box,#rp .rp-it:not(.img):hover .rp-box{width:auto;height:58%;aspect-ratio:1;border:0;background:none;box-shadow:none;transform:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+#rp .rp-it:not(.img) .rp-box img,#rp .rp-it:not(.img) .rp-box svg{width:100%;height:100%}
+#rp .rp-it:not(.img) .rp-nm{color:#1b3fb8;background:none;text-shadow:0 0 3px #fff,0 0 3px #fff;font-size:max(11px,calc(var(--u)*21));font-weight:700;padding:0}
+@media not all and (min-aspect-ratio:13/10){
+ html #rp{--rpdef:url(emuicons/bg2.webp);background-position:22% center;overflow-y:auto}
+ #rp .st{position:static;width:auto;height:auto;transform:none;background:none;max-width:780px;margin:0 auto;padding:10px 12px 36px;display:flex;flex-direction:column;gap:12px}
+ #rp .ttl2{position:static;width:auto;text-align:center;padding:4px 0 2px}
+ #rp .ttl2 .t1{font-size:clamp(26px,8vw,40px);-webkit-text-stroke:7px #2c6fd8}
+ #rp .ttl2 .t2{font-size:clamp(12px,3.6vw,15px);padding:6px 20px;margin-top:8px}
+ #rp .bk{position:static;width:auto;height:auto;align-self:flex-start;border:1px solid #fff;background:rgba(255,255,255,.6);color:#1f4e84;font:600 14px 'Fredoka','Noto Sans KR',sans-serif;padding:8px 16px;border-radius:99px}
+ #rp .bk span{display:inline}
+ #rp .tb{position:static;width:auto;flex-wrap:wrap;justify-content:flex-start;gap:6px}
+ #rp .tb .rp-nav{font-size:12.5px;padding:7px 10px}
+ #rp .pn{position:static;width:auto;height:auto;border-radius:22px;padding:10px;border:2px solid #fff}
+ #rp .sc{position:static;overflow:visible;padding:0}
+ #rp .stt{display:none}
+ #rp .rp-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+ #rp .rp-it:not(.img){border-radius:18px}
+ #rp .rp-it:not(.img) .rp-nm{font-size:13px}
+ #rp .sc .rp-sec{font-size:13px}
+}
 </style>
 <link rel="stylesheet" href="cutegame.css?v=1">
 <style id="dropskin">
@@ -375,24 +428,23 @@ html.emuopen #rp{display:none}
 </head>
 <body>
 <div id="rp">
- <div class="rp-wrap">
-  <header class="rp-top">
-   <div class="rp-side l">
-    <button type="button" class="rp-nav" id="rNotice"><b>‹</b> 공지사항</button>
-    <button type="button" class="rp-nav" id="rGuide">안내</button>
-    <button type="button" class="rp-nav" id="rVer">버전선택</button>
-   </div>
-   <h1 class="rp-title">Retro PC Web Emulator</h1>
-   <div class="rp-side r">
-    <button type="button" class="rp-nav js-cache" id="rCache">캐쉬지우기</button>
-    <button type="button" class="rp-nav" id="rBg">배경선택</button>
-    <button type="button" class="rp-nav" id="rIcon">아이콘선택 <b>›</b></button>
-   </div>
-  </header>
-  <div class="rp-sec">GAME CONSOLES</div><div class="rp-grid" id="rpC"></div>
-  <div class="rp-sec">PC · DOS · WINDOWS</div><div class="rp-grid" id="rpP"></div>
-  <div class="rp-sec">TOOLS</div><div class="rp-grid" id="rpT"></div>
-  <div class="rp-ft">ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요 · EmulatorJS · v86</div>
+ <div class="st">
+  <div class="ttl2"><span class="t1"><i>🎮</i>게임 에뮬레이터 선택</span><span class="t2">원하는 게임기를 선택해주세요!</span></div>
+  <button type="button" class="bk" id="rVer" aria-label="뒤로가기"><span>‹ 뒤로가기</span></button>
+  <div class="tb">
+   <button type="button" class="rp-nav" id="rNotice">공지사항</button>
+   <button type="button" class="rp-nav" id="rGuide">안내</button>
+   <button type="button" class="rp-nav js-cache" id="rCache">캐쉬지우기</button>
+   <button type="button" class="rp-nav" id="rBg">배경선택</button>
+   <button type="button" class="rp-nav" id="rIcon">아이콘선택</button>
+  </div>
+  <div class="pn"><div class="sc">
+   <div class="rp-sec">GAME CONSOLES</div><div class="rp-grid" id="rpC"></div>
+   <div class="rp-sec">PC · DOS · WINDOWS</div><div class="rp-grid" id="rpP"></div>
+   <div class="rp-sec">TOOLS</div><div class="rp-grid" id="rpT"></div>
+   <div class="rp-ft">ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요 · EmulatorJS · v86</div>
+  </div></div>
+  <i class="stt s1"></i><i class="stt s2"></i><i class="stt s3"></i><i class="stt s4"></i>
  </div>
 </div>
 <div id="rpm" role="dialog" aria-modal="true"><div class="m"><div class="mh"><span id="rpmT"></span><button type="button" id="rpmX">닫기</button></div><div class="mb" id="rpmB"></div></div></div>
@@ -470,7 +522,6 @@ html.emuopen #rp{display:none}
 <input type="file" id="gsvIn" hidden accept=".gsv,.GSV,.state">
 
 
-<script src="savebridge.js?v=1"></script>
 <script src="emudata.js?v=mg2"></script>
 <script src="mamegame.js?v=1"></script>
 <script src="loadgame.js?v=2"></script>
@@ -671,8 +722,21 @@ $('#bCore').onclick=()=>{
 };
 /* 저장 / 불러오기 : 예) NINTENDO64SUPERMARIO64_10021530.GSV */
 function stamp(){const n=new Date(),p=v=>String(v).padStart(2,'0');return p(n.getMonth()+1)+p(n.getDate())+p(n.getHours())+p(n.getMinutes())}
-$('#bSave').onclick=()=>{SaveBridge.openSave({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
-$('#bRest').onclick=()=>{SaveBridge.openLoad({win:fr.contentWindow,id:cur&&cur.id,fn:cur&&cur.fn,name:gameName,toast:toast})};
+$('#bSave').onclick=()=>{
+ try{
+  const st=fr.contentWindow.EJS_emulator.gameManager.getState();
+  const g=gameName.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,14)||'GAME';
+  const name=`${cur.fn}${g}_${stamp()}.GSV`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([st]));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();toast('💾 저장됨: '+name);
+ }catch(err){toast('저장 실패: 게임이 시작된 후 다시 시도하세요')}
+};
+$('#bRest').onclick=()=>{$('#gsvIn').value='';$('#gsvIn').click()};
+$('#gsvIn').onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{fr.contentWindow.EJS_emulator.gameManager.loadState(new Uint8Array(await f.arrayBuffer()));toast('📥 불러옴: '+f.name)}
+ catch(err){toast('불러오기 실패: 같은 게임·기종의 GSV인지 확인하세요')}
+};
 
 /* 조작버튼 / 메뉴 숨김 */
 $('#bCtl').onclick=()=>{
@@ -1576,9 +1640,11 @@ addEventListener('keydown',e=>{if(e.key==='Escape')winClose()});
   calc:'<rect x="15" y="9" width="34" height="46" rx="4"/><rect x="21" y="15" width="22" height="9" rx="1.5"/><path d="M23 33h.1M32 33h.1M41 33h.1M23 42h.1M32 42h.1M41 42h.1M23 49h.1M32 49h.1M41 49h.1" stroke-width="3"/>'
  };
 
- var mode=ls.get('rpIcon','color');
+ var IMGT={'atari2600':'emuicons/atari2600.webp','nes':'emuicons/nes.webp','sms':'emuicons/sms.webp','pce':'emuicons/pce.webp','md':'emuicons/md.webp','gb':'emuicons/gb.webp','lynx':'emuicons/lynx.webp','snes':'emuicons/snes.webp','gg':'emuicons/gg.webp','segacd':'emuicons/segacd.webp','3do':'emuicons/3do.webp','jaguar':'emuicons/jaguar.webp','psx':'emuicons/psx.webp','saturn':'emuicons/saturn.webp','s32x':'emuicons/s32x.webp','vb':'emuicons/vb.webp','n64':'emuicons/n64.webp','ngp':'emuicons/ngp.webp','gbc':'emuicons/gbc.webp','dc':'emuicons/dc.webp','ps2':'emuicons/ps2.webp','gba':'emuicons/gba.webp','gc':'emuicons/gc.webp','mamegame':'emuicons/mamegame.webp','nds':'emuicons/nds.webp','wii':'emuicons/wii.webp'};
+var mode=ls.get('rpIcon','color');
 
  function tile(kind,id,name,inner){
+  if(kind==='c'&&mode==='color'&&IMGT[id])return '<button type="button" class="rp-it img" data-k="c" data-id="'+id+'" title="'+esc(name)+'"><img src="'+IMGT[id]+'" alt="'+esc(name)+'" draggable="false"></button>';
   return '<button type="button" class="rp-it" data-k="'+kind+'" data-id="'+id+'" title="'+esc(name)+'"><span class="rp-box">'+inner+'</span><span class="rp-nm">'+esc(name)+'</span></button>';
  }
  function cInner(c){
