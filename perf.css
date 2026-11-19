@@ -1,0 +1,38 @@
+/* perf.css — 중급 기기(갤럭시 A52s 등)에서 스크롤 버벅임·발열을 줄이는 최적화
+   - 화면에 계속 다시 그려지는 효과(큰 블러, 무한 애니메이션, 카드마다 backdrop-filter)를 제거하거나 가볍게 바꿉니다.
+   - !important 로 덮어쓰기 때문에 테마를 바꿔도 유지됩니다. 되돌리려면 이 파일 연결(link)만 지우면 됩니다. */
+
+/* 1) 배경 빛 덩어리: 110px 블러 + 계속 움직이는 애니메이션 → 정적인 부드러운 그라데이션(마스크) */
+.bg{contain:layout paint style;transform:translateZ(0)}
+.bg i{
+ filter:none!important;animation:none!important;
+ -webkit-mask-image:radial-gradient(closest-side,#000 0,rgba(0,0,0,.5) 45%,transparent 100%);
+ mask-image:radial-gradient(closest-side,#000 0,rgba(0,0,0,.5) 45%,transparent 100%)}
+
+/* 2) 제목 반짝임(background-position 무한 애니메이션 → 매 프레임 글자 다시 그림) 제거 */
+header h1{animation:rise .9s .25s backwards!important;background-size:100% 100%!important;background-position:0 0!important}
+
+/* 3) 스크롤 영역에 있는 요소의 backdrop-filter(블러) 제거 — 카드 수만큼 매 프레임 블러 계산하던 부분 */
+.app,.card,.tabs,.srch .box,.sres,#bar,#pbar,#fab,#loadbox,#dl,#toast{
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* 4) 아이콘마다 붙은 drop-shadow 2겹 필터 제거 (카드 자체 그라데이션으로 충분) */
+.app .ico{filter:none!important}
+#drop .big,#pmsg .big{filter:none!important}
+
+/* 5) 터치 기기에서는 hover 효과(그림자 확대·이동)가 스크롤 중 눌린 채 남아 다시 그려지므로 끔 */
+@media (hover:none){
+ .app:hover,.card:hover{transform:none!important;box-shadow:none!important}
+ .app:hover .ico{transform:none!important}
+}
+
+/* 6) 게임 실행 중에는 뒤쪽 홈 화면을 그리지 않음 → CPU/GPU 부담·발열 감소 */
+html.emuopen .bg{display:none!important}
+html.emuopen header,html.emuopen main{visibility:hidden!important}
+html.emuopen #drop .big{animation:none!important}
+
+/* 7) 모션 줄이기 설정 / 저전력 */
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 불러오기 화면 안내문 줄바꿈 */
+#dExt{white-space:pre-line}
