@@ -21,8 +21,8 @@ function to_utf8($s) {
 function uid() { return date('Ymd_His') . '_' . substr(md5(uniqid('', true)), 0, 6); }
 
 // 삭제 암호 (서버에서만 검사하므로 브라우저 소스에는 보이지 않음)
-$USE_PASSWORD = false; // true로 바꾸면 입장 암호/삭제 암호가 다시 켜집니다
-$DELETE_PASSWORD = '5379';
+$USE_PASSWORD = false; // true로 바꾸면 사이트 입장 때도 암호를 묻습니다 (삭제 암호는 항상 켜져 있음)
+$DELETE_PASSWORD = '3553';
 $HINT_TO = 'youngho7375@naver.com';
 $MAIL_FROM = ''; // 비워두면 닷홈 주소에서 자동 생성(예: 아이디@아이디.dothome.co.kr). 필요하면 '아이디@도메인'으로 직접 지정
 
@@ -46,7 +46,7 @@ if ($a === 'hint') {
 $SITE_PASSWORD = $DELETE_PASSWORD;
 $TOKEN = hash_hmac('sha256', 'wv-session', $SITE_PASSWORD . __DIR__);
 
-if ($a === 'config') out(array('ok' => true, 'pw' => (bool)$USE_PASSWORD));
+if ($a === 'config') out(array('ok' => true, 'pw' => (bool)$USE_PASSWORD, 'del' => true));
 
 if ($a === 'login') {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') out(array('ok' => false, 'error' => 'POST only'), 405);
@@ -137,7 +137,7 @@ if ($a === 'upload') {
 
 if ($a === 'delete') {
   $pw = isset($_POST['pw']) ? (string)$_POST['pw'] : '';
-  if ($USE_PASSWORD && !hash_equals($DELETE_PASSWORD, $pw)) { sleep(1); out(array('ok' => false, 'auth' => false, 'error' => '암호가 틀렸어요'), 403); }
+  if (!hash_equals($DELETE_PASSWORD, $pw)) { sleep(1); out(array('ok' => false, 'auth' => false, 'error' => '암호가 틀렸어요'), 403); }
   $name = basename(isset($_POST['name']) ? $_POST['name'] : '');
   $p = $base . '/' . $name;
   if (!ok_name($name) || !is_file($p)) out(array('ok' => false, 'error' => '파일을 찾을 수 없어요'), 404);

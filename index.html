@@ -273,7 +273,7 @@ function askPw(msg){return new Promise(res=>{
 let NEEDPW=true;
 async function doDelete(t,names,msg){
  let pw='';
- if(NEEDPW){pw=await askPw(msg);if(pw===null)return false}else if(!confirm(msg+' 계속할까요?'))return false;
+ pw=await askPw(msg);if(pw===null)return false;
  for(const nm of names){
   let j={};try{j=await post({a:'delete',t,name:nm,pw})}catch(e){}
   if(!j.ok){toast(j.error||'삭제 실패');return false}}
