@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>영호의 게임세상</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 28px;
+    padding: 5vh 16px 40px;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(ellipse at 85% 30%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 50%),
+      linear-gradient(160deg, #ffffff 0%, #d9efff 45%, #a9d8ff 100%);
+    background-attachment: fixed;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo",
+                 "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+    color: #111;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== 상단 로고 이미지 ===== */
+  .hero {
+    width: min(760px, 100%);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(60, 120, 190, .28), 0 2px 8px rgba(0,0,0,.08);
+    background: #1a1450;
+    aspect-ratio: 16 / 9;
+  }
+  .hero img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ===== iOS 메시지 창 ===== */
+  .messages {
+    width: min(520px, 100%);
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255,255,255,.8);
+    border-radius: 26px;
+    box-shadow: 0 12px 32px rgba(70, 130, 200, .22);
+    overflow: hidden;
+  }
+
+  .msg-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 16px 10px;
+    background: rgba(249,249,249,.85);
+    border-bottom: 1px solid rgba(0,0,0,.08);
+  }
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #a5aab5 0%, #858a96 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .contact {
+    font-size: 12px;
+    color: #111;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .contact::after {
+    content: "›";
+    color: #9a9aa0;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .msg-body {
+    padding: 16px 14px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .timestamp {
+    text-align: center;
+    font-size: 11px;
+    color: #8e8e93;
+    margin-bottom: 4px;
+  }
+  .timestamp b { font-weight: 600; }
+
+  .bubble {
+    position: relative;
+    align-self: flex-start;
+    max-width: 82%;
+    padding: 10px 15px;
+    background: #e9e9eb;
+    color: #000;
+    font-size: 16px;
+    line-height: 1.45;
+    border-radius: 20px;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  /* 말풍선 꼬리 */
+  .bubble.last::before,
+  .bubble.last::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+  }
+  .bubble.last::before {
+    left: -7px;
+    width: 20px; height: 20px;
+    background: #e9e9eb;
+    border-bottom-right-radius: 16px;
+  }
+  .bubble.last::after {
+    left: -26px;
+    width: 26px; height: 20px;
+    background: #f3f9ff; /* 창 배경과 비슷하게 가려주는 색 */
+    border-bottom-right-radius: 10px;
+  }
+  .messages { background: rgba(243,249,255,.9); }
+
+  .delivered {
+    font-size: 11px;
+    color: #8e8e93;
+    margin: 2px 0 0 6px;
+  }
+
+  @media (max-width: 480px) {
+    body { padding-top: 3vh; gap: 20px; }
+    .bubble { font-size: 15px; max-width: 88%; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 이 파일(index.html)과 같은 폴더에 title.png 로 그림을 넣어주세요 -->
+  <div class="hero">
+    <img src="title.png" alt="영호의 게임세상">
+  </div>
+
+  <div class="messages">
+    <div class="msg-header">
+      <div class="avatar">영</div>
+      <div class="contact">영호의 게임에뮬레이터</div>
+    </div>
+    <div class="msg-body">
+      <div class="timestamp"><b>iMessage</b> · 오늘</div>
+      <div class="bubble last">
+        영호의 게임에뮬레이터는 현재 페이지 개선을 위해 서비스를 잠시 중단하였음을 알려드립니다. 그동안 감사합니다.
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
