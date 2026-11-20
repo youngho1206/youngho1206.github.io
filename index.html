@@ -135,8 +135,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
 .pad button{height:min(8.6vh,58px);border-radius:14px;background:#fbfbfd;box-shadow:0 2px 5px rgba(0,0,0,.09),inset 0 1px 0 #fff;font-size:24px;color:#374151;display:grid;place-items:center;touch-action:manipulation;user-select:none}
 .pad button:active{background:#eceef2}
 .pad button.blank{visibility:hidden}
-#pwModal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:80;display:grid;place-items:center;padding:20px}
+#pwModal,#setModal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:80;display:grid;place-items:center;padding:20px}
 .pwb{background:#fff;border-radius:22px;padding:22px 20px 14px;width:min(340px,100%)}
+.gear{position:absolute;top:calc(14px + env(safe-area-inset-top));right:12px;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;color:#6b7280}
+.gear:active{background:#eceef2}
+.pwb label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}
+.pwb .sm{font-size:12px;line-height:1.5;margin:8px 0}
+.pwb{max-height:90vh;overflow:auto}
 .pwb h3{font-size:18px}.pwb p{font-size:14px;color:var(--sub);margin:6px 0 14px}
 .pwb input{width:100%;border:1px solid #d9dde5;border-radius:12px;padding:13px 14px;font-size:17px;outline:0}
 .pwb input:focus{border-color:var(--blue)}
@@ -157,6 +162,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
 <body>
 
 <section id="home" class="screen">
+  <button class="gear" id="gear" aria-label="설정"></button>
   <div class="logo"><b>Web</b> <span>Version</span></div>
   <p class="tag">다양한 기능을 웹에서 간편하게 이용해보세요.</p>
   <div class="cards">
@@ -165,7 +171,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
     <button class="card" data-go="memo"><img src="icons/memo.png" alt=""><h3>메모</h3><p>간편하게 메모를 작성하세요.</p><span class="go" style="color:#f5a623"></span></button>
     <button class="card" data-go="game"><img src="icons/game.png" alt=""><h3>게임</h3><p>재미있는 게임을 즐겨보세요.</p><span class="go" style="color:#6d4cff"></span></button>
   </div>
-  <p class="foot">© 2026 Web Version. All rights reserved. · v1120-3</p>
+  <p class="foot">© 2026 Web Version. All rights reserved. · v1120-gh1</p>
 </section>
 
 <section id="photo" class="screen" hidden></section>
@@ -183,7 +189,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
 <input type="file" id="fileMemo" accept=".txt,text/plain" multiple hidden>
 
 <script>
-const $=s=>document.querySelector(s), API='api.php';
+const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const svg=(p,f)=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="${f?'currentColor':'none'}" stroke="${f?'none':'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const I={
@@ -207,26 +213,95 @@ const I={
  range:svg('<rect x="3" y="5" width="7" height="7" rx="1.5"/><rect x="14" y="12" width="7" height="7" rx="1.5"/><path d="M10 8.5h4v7"/>'),
  all:svg('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/>'),
  zoom:svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>'),
+ gear:svg('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>'),
  note:svg('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'),
 };
 document.querySelectorAll('.card .go').forEach(g=>g.innerHTML=svg('<path d="M5 12h14M13 6l6 6-6 6"/>'));
 
 let tt;
 function toast(m,sticky){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);if(!sticky)tt=setTimeout(()=>t.classList.remove('show'),2300)}
-let TOK='';try{TOK=localStorage.wvTok||'';if(Date.now()>+(localStorage.wvTokExp||0))TOK=''}catch(e){}
-function needLogin(j){if(j&&j.need_login){toast('서버의 api.php가 예전 버전이에요. 새 api.php를 덮어써주세요',true);return true}return false}
-async function list(t){const r=await fetch(`${API}?a=list&t=${t}&k=${encodeURIComponent(TOK)}&_=${Date.now()}`);const j=await r.json();if(needLogin(j))throw new Error('login');if(!j.ok)throw new Error(j.error||'error');return j.items}
-async function post(d){const fd=new FormData();for(const k in d)fd.append(k,d[k]);fd.append('k',TOK);const r=await fetch(API,{method:'POST',body:fd});const j=await r.json();needLogin(j);return j}
-function upload(t,files){return new Promise(res=>{
- if(!files||!files.length)return res({});
- const fd=new FormData();fd.append('a','upload');fd.append('t',t);fd.append('k',TOK);[...files].forEach(f=>fd.append('files[]',f));
- const x=new XMLHttpRequest();x.open('POST',API);
- x.upload.onprogress=e=>{if(e.lengthComputable)toast(`업로드 중... ${Math.round(e.loaded/e.total*100)}%`,true)};
- x.onload=()=>{let j={};try{j=JSON.parse(x.responseText)}catch(e){}
-  if(needLogin(j))return res(j);
-  toast(j.ok?`${j.saved}개 업로드 완료`+(j.error?' (일부 실패)':''):(j.error||'업로드 실패 - 서버 응답을 확인해주세요'));res(j)};
- x.onerror=()=>{toast('서버(api.php)에 연결할 수 없어요');res({})};
- x.send(fd)})}
+/* ---------- GitHub 저장소 연동 (photo / music / memo 폴더에 저장) ---------- */
+const GH={owner:'',repo:'',branch:'',token:''};
+(function(){let c={};try{c=JSON.parse(localStorage.wvGH||'{}')}catch(e){}
+ const h=location.hostname,p=location.pathname.split('/').filter(Boolean);
+ if(/\.github\.io$/i.test(h)){GH.owner=h.replace(/\.github\.io$/i,'');GH.repo=(p[0]&&!/\.[a-z0-9]+$/i.test(p[0]))?p[0]:h}
+ GH.owner=c.owner||GH.owner;GH.repo=c.repo||GH.repo;GH.branch=c.branch||'';GH.token=c.token||''})();
+function ghSave(){try{localStorage.wvGH=JSON.stringify(GH)}catch(e){}}
+const EXT={photo:['jpg','jpeg','png','gif','webp','bmp','heic','mp4','mov','webm','3gp'],music:['mp3','m4a','wav','ogg','flac','aac'],memo:['txt']};
+const MAXMB=25;
+const ghPath=p=>p.split('/').map(encodeURIComponent).join('/');
+const brObj=()=>GH.branch?{branch:GH.branch}:{};
+async function gh(method,path,body,accept){
+ if(!GH.owner||!GH.repo){const e=new Error('norepo');e.code='norepo';throw e}
+ const h={'Accept':accept||'application/vnd.github+json'};
+ if(GH.token)h.Authorization='Bearer '+GH.token;
+ if(body)h['Content-Type']='application/json';
+ let url=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${ghPath(path)}`;
+ if(method==='GET'&&GH.branch)url+='?ref='+encodeURIComponent(GH.branch);
+ const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ if(!r.ok){const e=new Error('http');e.status=r.status;try{e.msg=(await r.json()).message}catch(_){}throw e}
+ return r}
+function ghErr(e){
+ if(e&&e.code==='norepo'){toast('우측 상단 설정에서 저장소를 입력해주세요');return}
+ const s=e&&e.status;
+ if(s===404)toast('저장소/폴더를 찾을 수 없어요. 설정의 소유자·저장소 이름을 확인하세요');
+ else if(s===401)toast('GitHub 토큰이 올바르지 않아요. 설정에서 다시 입력하세요');
+ else if(s===403)toast(GH.token?'권한이 없거나 요청 한도를 넘었어요. 토큰의 Contents 읽기/쓰기 권한을 확인하세요':'GitHub 요청 한도를 넘었어요. 설정에서 토큰을 넣으면 한도가 늘어나요');
+ else if(s===409||s===422)toast('저장 충돌이 났어요. 새로고침 후 다시 시도하세요');
+ else toast('GitHub에 연결할 수 없어요')}
+function parseStamp(n){const m=n.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/);return m?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime()/1000:0}
+async function list(t){
+ const a=await (await gh('GET',t)).json();
+ if(!Array.isArray(a))return [];
+ return a.filter(f=>f.type==='file'&&EXT[t].includes((f.name.split('.').pop()||'').toLowerCase()))
+  .map(f=>({name:f.name,path:f.path,sha:f.sha,size:f.size,url:f.download_url,orig:f.name.replace(/^(memo_)?\d{8}_\d{6}_[0-9a-f]{4}_?/,''),mtime:parseStamp(f.name)}))
+  .sort((x,y)=>y.mtime-x.mtime||(x.name<y.name?1:-1))}
+const z2=n=>String(n).padStart(2,'0');
+const stamp=()=>{const d=new Date();return `${d.getFullYear()}${z2(d.getMonth()+1)}${z2(d.getDate())}_${z2(d.getHours())}${z2(d.getMinutes())}${z2(d.getSeconds())}_${Math.random().toString(16).slice(2,6).padEnd(4,'0')}`};
+const safeName=n=>{const i=n.lastIndexOf('.');const base=i>0?n.slice(0,i):n,ext=i>0?n.slice(i+1).toLowerCase():'';return base.replace(/[^\w.\-가-힣 ()\[\]]/g,'_').slice(0,60)+(ext?'.'+ext:'')};
+function b64(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+function dec(buf){try{return new TextDecoder('utf-8',{fatal:true}).decode(buf).replace(/^﻿/,'')}catch(e){return new TextDecoder('euc-kr').decode(buf).replace(/^﻿/,'')}}
+function needToken(){if(GH.token)return false;toast('설정(우측 상단)에서 GitHub 토큰을 먼저 입력해주세요');openSettings();return true}
+async function upload(t,files){
+ files=[...(files||[])];if(!files.length)return {};
+ if(needToken())return {};
+ let ok=0;const errs=[];
+ for(let i=0;i<files.length;i++){const f=files[i];
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  if(!EXT[t].includes(ext)){errs.push(f.name+': 지원하지 않는 형식');continue}
+  if(f.size>MAXMB*1048576){errs.push(f.name+': '+MAXMB+'MB 초과');continue}
+  toast(`업로드 중... ${i+1}/${files.length}`,true);
+  try{
+   let buf=await f.arrayBuffer();
+   if(t==='memo')buf=new TextEncoder().encode(dec(buf));
+   const name=t==='memo'?`memo_${stamp()}.txt`:`${stamp()}_${safeName(f.name)}`;
+   await gh('PUT',`${t}/${name}`,{message:`upload ${t}`,content:b64(buf),...brObj()});
+   ok++}catch(e){ghErr(e);errs.push(f.name);if(e&&(e.status===401||e.status===403||e.status===404||e.code==='norepo'))break}}
+ if(ok)toast(`${ok}개 업로드 완료`+(errs.length?' (일부 실패)':''));
+ else if(errs.length&&!$('#toast').classList.contains('show'))toast(errs[0]);
+ return {ok:ok>0,saved:ok}}
+async function ghDelete(t,name){
+ const p=`${t}/${name}`;const m=await (await gh('GET',p)).json();
+ await gh('DELETE',p,{message:`delete ${t}`,sha:m.sha,...brObj()})}
+/* 메모 본문 캐시 (sha 기준) */
+const TXC={};try{Object.assign(TXC,JSON.parse(localStorage.wvTx||'{}'))}catch(e){}
+function txSave(){try{const k=Object.keys(TXC);if(k.length>200)k.slice(0,k.length-200).forEach(x=>delete TXC[x]);localStorage.wvTx=JSON.stringify(TXC)}catch(e){}}
+async function memoText(it){
+ if(TXC[it.sha]!==undefined)return TXC[it.sha];
+ let buf;
+ if(GH.token)buf=await (await gh('GET',it.path,null,'application/vnd.github.raw+json')).arrayBuffer();
+ else buf=await (await fetch(it.url+'?v='+it.sha)).arrayBuffer();
+ const t=dec(buf);TXC[it.sha]=t;txSave();return t}
+async function attachMemoText(items){await Promise.all(items.map(async it=>{try{it.text=await memoText(it)}catch(e){it.text=''}}))}
+async function saveMemo(name,text){
+ if(needToken())return {ok:false};
+ try{
+  let sha;
+  if(name){sha=(await (await gh('GET','memo/'+name)).json()).sha}else name=`memo_${stamp()}.txt`;
+  const r=await (await gh('PUT','memo/'+name,{message:'memo',content:b64(new TextEncoder().encode(text)),...(sha?{sha}:{}),...brObj()})).json();
+  const ns=r.content&&r.content.sha;if(ns){TXC[ns]=text;txSave()}
+  return {ok:true,name}
+ }catch(e){ghErr(e);return {ok:false}}}
 function menu(anchor,items){
  closeMenu();const m=document.createElement('div');m.className='menu';m.id='menu';
  items.forEach(([l,f])=>{const b=document.createElement('button');b.textContent=l;b.onclick=e=>{e.stopPropagation();closeMenu();f()};m.appendChild(b)});
@@ -246,28 +321,46 @@ async function shareUrls(items,label){
  try{if(navigator.share){await navigator.share({title:label,text:link});return}}catch(e){if(e&&e.name==='AbortError')return}
  try{await navigator.clipboard.writeText(link);toast('링크를 복사했어요')}catch(e){prompt('링크를 복사하세요',link)}
 }
-function download(it){const a=document.createElement('a');a.href=it.url;a.download=it.orig||it.name;document.body.appendChild(a);a.click();a.remove()}
+async function download(it){
+ try{const r=await fetch(it.url);const b=await r.blob();const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=it.orig||it.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+ catch(e){window.open(it.url,'_blank')}}
 
-/* ---------- 삭제 암호 (검증은 서버에서만) ---------- */
+/* ---------- 삭제 암호 / 설정 ---------- */
+const PWH='4d2b4fd054827a511593a8d98f315c0a530adae8e76e971fb9892f6a3d8ff320';
+async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 function askPw(msg){return new Promise(res=>{
  const o=document.createElement('div');o.id='pwModal';
- o.innerHTML=`<div class="pwb"><h3>삭제 암호 입력</h3><p>${esc(msg||'')}</p><input type="password" id="pwIn" inputmode="numeric" autocomplete="off" placeholder="암호"><div class="pwh"><button id="pwHint">비밀번호 힌트 보내기</button></div><div class="pwa"><button id="pwNo">취소</button><button id="pwOk">확인</button></div></div>`;
+ o.innerHTML=`<div class="pwb"><h3>삭제 암호 입력</h3><p>${esc(msg||'')}</p><input type="password" id="pwIn" inputmode="numeric" autocomplete="off" placeholder="암호"><div class="pwa"><button id="pwNo">취소</button><button id="pwOk">확인</button></div></div>`;
  document.body.appendChild(o);const inp=o.querySelector('#pwIn');inp.focus();
  const done=v=>{o.remove();res(v)};
  o.querySelector('#pwNo').onclick=()=>done(null);
  o.querySelector('#pwOk').onclick=()=>done(inp.value);
  inp.onkeydown=e=>{if(e.key==='Enter')done(inp.value);if(e.key==='Escape')done(null)};
- o.onclick=e=>{if(e.target===o)done(null)};
- o.querySelector('#pwHint').onclick=async()=>{toast('힌트 메일을 보내는 중...',true);
-  try{const j=await post({a:'hint'});toast(j.ok?'비밀번호 힌트를 메일로 보냈어요':(j.error||'메일 발송 실패'))}catch(e){toast('메일 발송 실패')}}})}
-let NEEDPW=true;
+ o.onclick=e=>{if(e.target===o)done(null)}})}
 async function doDelete(t,names,msg){
- let pw='';
- pw=await askPw(msg);if(pw===null)return false;
- for(const nm of names){
-  let j={};try{j=await post({a:'delete',t,name:nm,pw})}catch(e){}
-  if(!j.ok){toast(j.error||'삭제 실패');return false}}
+ if(needToken())return false;
+ const pw=await askPw(msg);if(pw===null)return false;
+ let h='';try{h=await sha256(pw)}catch(e){}
+ if(h!==PWH){toast('암호가 틀렸어요');return false}
+ toast('삭제 중...',true);
+ for(const nm of names){try{await ghDelete(t,nm)}catch(e){if(!(e&&e.status===404)){ghErr(e);return false}}}
  return true}
+function openSettings(){
+ if($('#setModal'))return;
+ const o=document.createElement('div');o.id='setModal';
+ o.innerHTML=`<div class="pwb"><h3>GitHub 저장소 설정</h3><p class="sm">사진·음악·메모가 이 저장소의 photo / music / memo 폴더에 저장돼요.</p>
+ <label>소유자(GitHub 아이디)</label><input id="sOwner" value="${esc(GH.owner)}" autocapitalize="off" autocomplete="off">
+ <label>저장소 이름</label><input id="sRepo" value="${esc(GH.repo)}" autocapitalize="off" autocomplete="off">
+ <label>토큰 (올리기·삭제용)</label><input id="sTok" type="password" value="${esc(GH.token)}" placeholder="github_pat_..." autocomplete="off">
+ <p class="sm">토큰은 GitHub → Settings → Developer settings → Fine-grained tokens에서 이 저장소만 골라 <b>Contents: Read and write</b> 권한으로 만드세요. 이 기기 브라우저에만 저장돼요.</p>
+ <div class="pwa"><button id="sClr">토큰 지우기</button><button id="sNo">닫기</button><button id="pwOk">저장</button></div></div>`;
+ document.body.appendChild(o);
+ o.querySelector('#sNo').onclick=()=>o.remove();
+ o.onclick=e=>{if(e.target===o)o.remove()};
+ o.querySelector('#sClr').onclick=()=>{GH.token='';ghSave();o.querySelector('#sTok').value='';toast('토큰을 지웠어요')};
+ o.querySelector('#pwOk').onclick=()=>{
+  GH.owner=o.querySelector('#sOwner').value.trim().replace(/^@/,'');GH.repo=o.querySelector('#sRepo').value.trim();GH.token=o.querySelector('#sTok').value.trim();
+  ghSave();o.remove();toast('저장했어요');route()}}
 
 /* ---------- router ---------- */
 const PAGES=['home','photo','music','memo'];
@@ -288,7 +381,7 @@ const home=()=>{location.hash='#home'};
 const P={items:[],sel:new Set(),mode:false};
 const isVid=n=>/\.(mp4|mov|webm|3gp)$/i.test(n);
 async function loadPhoto(){
- try{P.items=await list('photo')}catch(e){P.items=[];toast('서버(api.php)에 연결할 수 없어요')}
+ try{P.items=await list('photo')}catch(e){P.items=[];ghErr(e)}
  P.sel.clear();P.mode=false;renderPhoto()}
 function renderPhoto(){
  const n=P.items.length,m=P.mode,s=P.sel.size;
@@ -383,7 +476,7 @@ const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
 const grad=s=>{const h=hue(s);return `linear-gradient(135deg,hsl(${h},70%,78%),hsl(${(h+50)%360},70%,66%))`};
 function parse(it){let b=it.orig.replace(/\.[^.]+$/,'');const k=b.indexOf(' - ');return k>0?{artist:b.slice(0,k),title:b.slice(k+3)}:{artist:'내 음악',title:b}}
 async function loadMusic(){
- try{M.items=await list('music').then(a=>a.sort((x,y)=>x.mtime-y.mtime))}catch(e){M.items=[];toast('서버(api.php)에 연결할 수 없어요')}
+ try{M.items=await list('music').then(a=>a.sort((x,y)=>x.mtime-y.mtime))}catch(e){M.items=[];ghErr(e)}
  if(M.i>=M.items.length)M.i=0;
  if(M.items.length&&!audio.src)setTrack(M.i,false);
  renderMusic()}
@@ -448,7 +541,7 @@ function renderMusic(){
 /* ---------- memo ---------- */
 const N={items:[],cur:null};
 async function loadMemo(){
- try{N.items=await list('memo')}catch(e){N.items=[];toast('서버(api.php)에 연결할 수 없어요')}
+ try{N.items=await list('memo');await attachMemoText(N.items)}catch(e){N.items=[];ghErr(e)}
  renderMemo()}
 const memoTitle=t=>(t.split('\n').find(l=>l.trim())||'제목 없음').trim().slice(0,60);
 const memoBody=t=>{const L=t.split('\n');const k=L.findIndex(l=>l.trim());return L.slice(k+1).join('\n').trim()};
@@ -466,30 +559,29 @@ function renderMemo(){
 let EDIT=null,EDIT0='';
 async function openEditor(m){
  let text='';
- if(m){try{const r=await fetch(m.url+'?_='+Date.now());const b=await r.arrayBuffer();
-   try{text=new TextDecoder('utf-8',{fatal:true}).decode(b)}catch(e){text=new TextDecoder('euc-kr').decode(b)}
-   text=text.replace(/^﻿/,'')}catch(e){text=m.text}}
+ if(m){try{text=await memoText(m)}catch(e){text=m.text||''}}
  EDIT=m?m.name:null;EDIT0=text;
  const ed=$('#editor');ed.hidden=false;
  ed.innerHTML=`<header class="bar"><button class="ib" id="eBack">${I.back}</button><div class="acts">${m?`<button class="ib" id="eShare">${I.share}</button><button class="ib" id="eDel">${I.trash}</button>`:''}<button class="txtbtn" id="eSave" style="color:var(--blue);font-weight:600">저장</button></div></header>
  <div class="dt">${m?fmtD(m.mtime):fmtD(Date.now()/1000)}</div><textarea id="eText" placeholder="메모를 입력하세요"></textarea>`;
  const ta=$('#eText');ta.value=text;if(!m)ta.focus();
  $('#eBack').onclick=()=>closeEditor(false);
- $('#eSave').onclick=async()=>{await saveEditor();toast('저장했어요')};
+ $('#eSave').onclick=async()=>{if(await saveEditor())toast('저장했어요')};
  if(m){
   $('#eShare').onclick=()=>shareUrls([{url:m.url,name:m.name,orig:memoTitle(ta.value)+'.txt'}],'메모');
   $('#eDel').onclick=async()=>{if(await doDelete('memo',[EDIT],'이 메모를 삭제합니다.')){EDIT0=ta.value;closeEditor(true);loadMemo()}}}}
 async function saveEditor(){
  const t=$('#eText').value;
- if(!t.trim()){if(EDIT)toast('내용이 비어 있어 저장하지 않았어요. 삭제는 휴지통 버튼을 이용하세요');EDIT0=t;return}
- const j=await post({a:'save',t:'memo',name:EDIT||'',text:t});
- if(j.ok){EDIT=j.name;EDIT0=t}else toast(j.error||'저장 실패')}
+ if(!t.trim()){if(EDIT)toast('내용이 비어 있어 저장하지 않았어요. 삭제는 휴지통 버튼을 이용하세요');EDIT0=t;return false}
+ const j=await saveMemo(EDIT,t);
+ if(j.ok){EDIT=j.name;EDIT0=t;return true}return false}
 async function closeEditor(skip){
  const ed=$('#editor');if(ed.hidden)return;
  const ta=$('#eText');
- if(!skip&&ta&&ta.value!==EDIT0)await saveEditor();
+ if(!skip&&ta&&ta.value!==EDIT0&&ta.value.trim()){if(!await saveEditor()&&!confirm('저장하지 못했어요. 저장하지 않고 나갈까요?'))return}
  ed.hidden=true;ed.innerHTML='';if(!skip)loadMemo()}
 
+$('#gear').innerHTML=I.gear;$('#gear').onclick=openSettings;
 route();
 </script>
 </body>
