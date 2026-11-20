@@ -21,6 +21,7 @@ function to_utf8($s) {
 function uid() { return date('Ymd_His') . '_' . substr(md5(uniqid('', true)), 0, 6); }
 
 // 삭제 암호 (서버에서만 검사하므로 브라우저 소스에는 보이지 않음)
+$USE_PASSWORD = false; // true로 바꾸면 입장 암호/삭제 암호가 다시 켜집니다
 $DELETE_PASSWORD = '5379';
 $HINT_TO = 'youngho7375@naver.com';
 $MAIL_FROM = ''; // 비워두면 닷홈 주소에서 자동 생성(예: 아이디@아이디.dothome.co.kr). 필요하면 '아이디@도메인'으로 직접 지정
@@ -45,6 +46,8 @@ if ($a === 'hint') {
 $SITE_PASSWORD = $DELETE_PASSWORD;
 $TOKEN = hash_hmac('sha256', 'wv-session', $SITE_PASSWORD . __DIR__);
 
+if ($a === 'config') out(array('ok' => true, 'pw' => (bool)$USE_PASSWORD));
+
 if ($a === 'login') {
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') out(array('ok' => false, 'error' => 'POST only'), 405);
   $pw = isset($_POST['pw']) ? (string)$_POST['pw'] : '';
@@ -54,7 +57,7 @@ if ($a === 'login') {
 
 // 로그인(토큰) 없이는 목록/업로드/삭제/저장 모두 불가
 $k = isset($_REQUEST['k']) ? (string)$_REQUEST['k'] : '';
-if (!hash_equals($TOKEN, $k)) out(array('ok' => false, 'need_login' => true, 'error' => '로그인이 필요해요'), 401);
+if ($USE_PASSWORD && !hash_equals($TOKEN, $k)) out(array('ok' => false, 'need_login' => true, 'error' => '로그인이 필요해요'), 401);
 
 if (!isset($T[$t])) out(array('ok' => false, 'error' => '잘못된 요청'), 400);
 
@@ -134,7 +137,7 @@ if ($a === 'upload') {
 
 if ($a === 'delete') {
   $pw = isset($_POST['pw']) ? (string)$_POST['pw'] : '';
-  if (!hash_equals($DELETE_PASSWORD, $pw)) { sleep(1); out(array('ok' => false, 'auth' => false, 'error' => '암호가 틀렸어요'), 403); }
+  if ($USE_PASSWORD && !hash_equals($DELETE_PASSWORD, $pw)) { sleep(1); out(array('ok' => false, 'auth' => false, 'error' => '암호가 틀렸어요'), 403); }
   $name = basename(isset($_POST['name']) ? $_POST['name'] : '');
   $p = $base . '/' . $name;
   if (!ok_name($name) || !is_file($p)) out(array('ok' => false, 'error' => '파일을 찾을 수 없어요'), 404);

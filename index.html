@@ -270,8 +270,10 @@ function askPw(msg){return new Promise(res=>{
  o.onclick=e=>{if(e.target===o)done(null)};
  o.querySelector('#pwHint').onclick=async()=>{toast('힌트 메일을 보내는 중...',true);
   try{const j=await post({a:'hint'});toast(j.ok?'비밀번호 힌트를 메일로 보냈어요':(j.error||'메일 발송 실패'))}catch(e){toast('메일 발송 실패')}}})}
+let NEEDPW=true;
 async function doDelete(t,names,msg){
- const pw=await askPw(msg);if(pw===null)return false;
+ let pw='';
+ if(NEEDPW){pw=await askPw(msg);if(pw===null)return false}else if(!confirm(msg+' 계속할까요?'))return false;
  for(const nm of names){
   let j={};try{j=await post({a:'delete',t,name:nm,pw})}catch(e){}
   if(!j.ok){toast(j.error||'삭제 실패');return false}}
@@ -534,7 +536,10 @@ function confirmHint(){
   try{const j=await post({a:'hint'});toast(j.ok?'비밀번호 힌트를 메일로 보냈어요':(j.error||'메일 발송 실패'))}catch(e){toast('메일 발송 실패')}}}
 $('#gForgot').onclick=confirmHint;
 $('#logout').onclick=()=>{showGate();toast('로그아웃했어요')};
-if(TOK){$('#gate').hidden=true;route()}else{drawPin()}
+(async()=>{
+ try{const r=await fetch(API+'?a=config&_='+Date.now());const c=await r.json();NEEDPW=c.pw!==false}catch(e){}
+ if(!NEEDPW){$('#gate').hidden=true;const lo=$('#logout');if(lo){lo.previousSibling&&0;lo.hidden=true}route()}
+ else if(TOK){$('#gate').hidden=true;route()}else{drawPin()}})();
 </script>
 </body>
 </html>
