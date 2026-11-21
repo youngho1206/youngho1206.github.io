@@ -1,0 +1,32 @@
+{
+ "games": [
+  {
+   "file": "kof98.zip",
+   "title": "킹 오브 파이터98"
+  },
+  {
+   "file": "kof96.zip",
+   "title": "킹 오브 파이터96"
+  },
+  {
+   "file": "mslug.zip",
+   "title": "메탈슬러그"
+  },
+  {
+   "file": "raiden.zip",
+   "title": "라이덴"
+  },
+  {
+   "file": "tektagt.zip",
+   "title": "철권태그"
+  },
+  {
+   "file": "outrun.zip",
+   "title": "아웃런"
+  },
+  {
+   "file": "twcup90.zip",
+   "title": "테크모 월드컵 90"
+  }
+ ]
+}
