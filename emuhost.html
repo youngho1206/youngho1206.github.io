@@ -122,6 +122,12 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavi
   /* iframe 안에서도 키/터치 입력을 받도록 포커스 유지 */
   try{W.focus()}catch(e){}
   document.addEventListener('pointerdown',function(){try{W.focus()}catch(e){}},{passive:true,capture:true});
+  /* 마메게임 바이오스: MAME/_bios/neogeo.zip 등 바이오스 주소를 코어에 같이 전달 (롬 파일은 그대로) */
+  if(c.bios&&c.bios.length){
+   W.EJS_biosUrl=c.bios[0].url;
+   var ef={};c.bios.forEach(function(b){ef[b.name]=b.url});
+   W.EJS_externalFiles=ef;
+  }
   /* PS1 속도 개선: 다이나믹 리컴파일러(DRC) 켬 · 자동 프레임스킵 · 부팅로고/보간 끔 */
   if(c.core==='psx'){W.EJS_defaultOptions=c.psxOpts||{'pcsx_rearmed_drc':'enabled','pcsx_rearmed_frameskip_type':'auto','pcsx_rearmed_frameskip_threshold':'33','pcsx_rearmed_neon_enhancement_enable':'disabled','pcsx_rearmed_neon_interlace_enable':'disabled','pcsx_rearmed_show_bios_bootlogo':'disabled','pcsx_rearmed_spu_interpolation':'off','pcsx_rearmed_spu_reverb':'enabled'}}
   W.EJS_onGameStart=function(){try{c.onStart&&c.onStart()}catch(e){}};

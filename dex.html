@@ -632,9 +632,8 @@ function buildEmu(w,body,a,id){
  var inp=h('input');inp.type='file';inp.style.display='none';
  if(a.img){var im=h('img');im.src=a.img;im.alt='';im.draggable=false;drop.append(im)}
  var goBtn=h('button','go','파일 열기');goBtn.type='button';
- drop.append(h('h2',null,a.n),h('p',null,'게임을 플레이 하시려면 ROM파일이 필요합니다.'),goBtn,h('p','ext','지원 형식: '+c.x),inp);
+ drop.append(h('h2',null,a.n),h('p',null,'게임을 플레이 하시려면 ROM파일이 필요합니다.'),goBtn,h('p','ext','지원 형식: '+c.x+(MG.is(c)?'\n네오지오 바이오스(neogeo.zip)는 자동으로 적용됩니다.':'')),inp);
  stage.append(drop);
- 
  goBtn.onclick=function(){inp.value='';inp.click()};
  inp.onchange=function(){onPick(inp.files)};
  ['dragover','dragenter'].forEach(function(v){drop.addEventListener(v,function(e){e.preventDefault();drop.classList.add('over')})});
@@ -761,7 +760,7 @@ function buildEmu(w,body,a,id){
   S.watch=setTimeout(function(){if(tryNext())return;giveUp(isPs&&hasLG?LoadGame.TOO_LONG+'\n게임 파일이 플레이스테이션용인지 확인해 주세요.':'게임 시작이 너무 오래 걸립니다. 이 기종에 맞는 ROM 파일인지 확인하고 다시 시도해 보세요.'+(lastErr?'\n('+lastErr.slice(0,80)+')':''))},isPs?300000:(hasNext?180000:300000));
   setTimeout(function(){
    if(seq!==S.seq)return;
-   Promise.resolve([]).then(function(bios){
+   Promise.resolve(file.mgBios||[]).then(function(bios){
     if(seq!==S.seq)return;
     var d,gw;
     try{d=fr.contentDocument;gw=fr.contentWindow;d.open();d.write(EM_HOST);d.close()}catch(e){giveUp('에뮬레이터 준비 실패: '+e.message);return}
@@ -771,6 +770,7 @@ function buildEmu(w,body,a,id){
      gw.EJS_player='#game';gw.EJS_core=coreName;gw.EJS_gameName=S.name;
      gw.EJS_gameUrl=new gw.File([file],file.name);
      gw.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
+     if(bios.length){gw.EJS_biosUrl=bios[0].url;var ef={};bios.forEach(function(b){ef[b.name]=b.url});gw.EJS_externalFiles=ef}
      if(/desmume|melonds/.test(coreName)){gw.EJS_controlScheme='nds';gw.EJS_defaultOptions={'desmume_pointer_type':'touch','melonds_touch_mode':'Touch'}}
      if(isPs&&hasLG)gw.EJS_defaultOptions=LoadGame.psxOptions(psxLvl);
      gw.EJS_startOnLoaded=true;gw.EJS_color=c.a;gw.EJS_language='ko-KR';

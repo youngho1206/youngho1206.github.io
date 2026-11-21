@@ -425,71 +425,26 @@ html #rp{--u:calc(min(100vw,177.7778vh) / 1672);--rpdef:url(emuicons/bg2.webp);b
 :root[data-cg="emu"]:not(#cg):not(#cg) #drop #dExt{color:#cbb9ff;font-size:clamp(12.5px,3.3vw,14px);font-weight:400}
 :root[data-cg="emu"]:not(#cg):not(#cg) #drop.over{outline:3px dashed #d9b8ff;outline-offset:-16px}
 </style>
-<style id="rpNew">
-html body #rp{--rpdef:url(newui/bg-pc.jpg);background:#2f8ef0 var(--rpbg,var(--rpdef)) center bottom/cover no-repeat;overflow-x:hidden;overflow-y:auto;background-attachment:fixed;color:#16307a}
-html body #rp .st{position:relative;inset:auto;width:min(94vw,1420px);height:auto;margin:0 auto;padding:clamp(14px,3.5vh,34px) 0 clamp(26px,5vh,48px);display:flex;flex-direction:column;align-items:center;gap:clamp(12px,2.6vh,26px);min-height:100%}
-html body #rp .rp-home{position:absolute;left:0;top:clamp(10px,2.4vh,22px);display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;border:2px solid #fff;background:rgba(20,60,170,.78);color:#fff;font:700 clamp(13px,1.5vw,17px) 'Noto Sans KR',sans-serif;cursor:pointer;box-shadow:0 3px 0 rgba(0,20,90,.35);z-index:3}
-html body #rp .rp-home:hover{background:rgba(40,90,220,.95)}
-html body #rp .rp-tr{position:absolute;right:0;top:clamp(10px,2.4vh,22px);display:flex;gap:10px;z-index:3}
-html body #rp .rp-tr button{width:clamp(38px,4vw,50px);height:clamp(38px,4vw,50px);border-radius:50%;border:2px solid #fff;background:rgba(20,60,170,.55);color:#fff;font-size:clamp(20px,2.4vw,28px);line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
-html body #rp .rp-hd{text-align:center;margin-top:clamp(36px,3vh,6px)}
-html body #rp .rp-pad{width:clamp(70px,9vw,128px);height:auto;filter:drop-shadow(0 4px 6px rgba(0,30,120,.4))}
-html body #rp .rp-h2{margin:2px 0 0;font:italic 800 clamp(30px,5.2vw,64px)/1.1 'Fredoka','Noto Sans KR',sans-serif;color:#fff;letter-spacing:.01em;text-shadow:0 0 14px #35e6ff,0 3px 0 #1b46c8,0 0 3px #1b46c8}
-html body #rp .rp-sub2{margin:clamp(6px,1.2vh,12px) 0 0}
-html body #rp .rp-sub2 span{display:inline-block;font:500 clamp(13px,2vw,25px) 'Noto Sans KR',sans-serif;color:#fff;text-shadow:0 2px 6px rgba(0,30,120,.7);padding:0 8px}
-html body #rp #rpC{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.1vw,18px)}
-html body #rp .rp-it.rp-card:not(.img){aspect-ratio:1.75/1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6% 4% 4%;border-radius:clamp(14px,1.6vw,24px);border:2px solid rgba(255,255,255,.75);
- background:linear-gradient(160deg,var(--c1),var(--c2));box-shadow:0 6px 14px rgba(20,60,150,.3),inset 0 2px 0 rgba(255,255,255,.55);cursor:pointer;transition:transform .15s,filter .15s;min-width:0;color:#222}
-html body #rp .rp-it.rp-card:not(.img):hover,html body #rp .rp-it.rp-card:not(.img):focus-visible{transform:translateY(-4px);filter:brightness(1.06);outline:none}
-html body #rp .rp-it.rp-card:not(.img):active{transform:scale(.97)}
-html body #rp .rp-it.rp-card:not(.img) img{flex:1;min-height:0;width:auto;max-width:78%;object-fit:contain;filter:drop-shadow(0 3px 3px rgba(0,0,0,.28))}
-html body #rp .rp-it.rp-card:not(.img) b{display:block;margin-top:2%;font:700 clamp(10px,1.25vw,17px)/1.15 'Noto Sans KR',sans-serif;color:#1d1d2b;text-align:center;white-space:nowrap}
-html body #rp .rp-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(8px,1.4vw,20px);margin-top:clamp(2px,1vh,10px)}
-html body #rp .rp-pills button{display:flex;align-items:center;gap:12px;padding:clamp(8px,1.2vh,12px) clamp(16px,2.2vw,32px);border-radius:99px;border:2px solid #fff;background:rgba(255,255,255,.92);box-shadow:0 5px 12px rgba(20,60,150,.28);cursor:pointer;text-align:left;color:#16307a;font-family:'Noto Sans KR',sans-serif}
-html body #rp .rp-pills button:hover{background:#fff;transform:translateY(-2px)}
-html body #rp .rp-pills i{display:block;width:clamp(26px,3vw,40px);height:clamp(26px,3vw,40px)}
-html body #rp .rp-pills i svg{width:100%;height:100%}
-html body #rp .rp-pills b{display:block;font:700 clamp(13px,1.5vw,20px)/1.2 'Noto Sans KR',sans-serif}
-html body #rp .rp-pills small{display:block;font:400 clamp(10px,1.1vw,14px)/1.3 'Noto Sans KR',sans-serif;color:#5d6b9b}
-html body #rp .rp-pop{position:fixed;inset:0;z-index:40;background:rgba(10,40,120,.45);display:flex;align-items:center;justify-content:center;padding:16px}
-html body #rp .rp-pop[hidden]{display:none}
-html body #rp .rp-pb{width:min(100%,720px);max-height:88vh;overflow:auto;background:#f2f8ff;border:3px solid #fff;border-radius:22px;padding:16px;box-shadow:0 20px 50px rgba(0,20,90,.5)}
-html body #rp .rp-ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font:700 17px 'Noto Sans KR',sans-serif;color:#16307a}
-html body #rp .rp-ph button{border:0;border-radius:99px;background:#2f6fe0;color:#fff;padding:6px 14px;font:600 13px 'Noto Sans KR',sans-serif;cursor:pointer}
-html body #rp .rp-pb .rp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
-html body #rp .rp-pb .rp-it:not(.img){aspect-ratio:auto;padding:10px 6px;border-radius:14px}
-html body #rp .rp-txt{font:400 14px/1.7 'Noto Sans KR',sans-serif;color:#274e7a}
-html body #rp .rp-txt p{margin:0 0 10px}.rp-txt a{color:#1d5be0;font-weight:700}
-html body #rp .rp-menu button{display:block;width:100%;margin:6px 0;padding:12px;border:2px solid #cfe0fb;border-radius:12px;background:#fff;color:#16307a;font:600 15px 'Noto Sans KR',sans-serif;cursor:pointer}
-@media(max-width:820px){html body #rp #rpC{grid-template-columns:repeat(3,1fr)}html body #rp .rp-it.rp-card:not(.img){aspect-ratio:1.45/1}html body #rp .rp-it.rp-card:not(.img) b{font-size:clamp(11px,3.1vw,14px)}html body #rp .rp-home{padding:7px 12px}}
-@media(max-width:820px) and (orientation:portrait){html body #rp{background-position:40% bottom}}
-</style>
 </head>
 <body>
 <div id="rp">
  <div class="st">
-  <button type="button" class="rp-home" id="rVer" aria-label="처음페이지로 가기">🏠 처음페이지</button>
-  <div class="rp-tr"><button type="button" id="rGear" aria-label="설정">⚙</button><button type="button" id="rInfo" aria-label="안내">ⓘ</button></div>
-  <header class="rp-hd">
-   <svg class="rp-pad" viewBox="0 0 120 70" aria-hidden="true"><path d="M30 6h60c14 0 22 12 26 30s-2 30-12 30c-9 0-13-8-20-14H36c-7 6-11 14-20 14C6 66 0 54 4 36 8 18 16 6 30 6z" fill="#eef0ff" stroke="#c9ccee" stroke-width="3"/><path d="M33 22v14M26 29h14" stroke="#4b57d6" stroke-width="7" stroke-linecap="round"/><circle cx="84" cy="22" r="5" fill="#4caf50"/><circle cx="96" cy="30" r="5" fill="#ff5252"/><circle cx="84" cy="38" r="5" fill="#ffc107"/><circle cx="72" cy="30" r="5" fill="#ff4fa8"/></svg>
-   <h2 class="rp-h2">Retro Game Emulator</h2>
-   <p class="rp-sub2"><span>추억의 게임을 웹 브라우저에서 즐겨보세요!</span></p>
-  </header>
-  <div class="rp-grid" id="rpC"></div>
-  <nav class="rp-pills" aria-label="기능">
-   <button type="button" id="rpPcBtn"><i><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" fill="#5b7cf0"/><rect x="9" y="19" width="6" height="2" fill="#5b7cf0"/></svg></i><span><b>PC 에뮬레이터</b><small>DOS &amp; Windows</small></span></button>
-   <button type="button" id="rpFileBtn"><i><svg viewBox="0 0 24 24"><path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#ffc83d"/></svg></i><span><b>게임 파일 불러오기</b><small>직접 선택하기</small></span></button>
-   <button type="button" id="rpSaveBtn"><i><svg viewBox="0 0 24 24"><path d="M4 3h13l3 3v15H4z" fill="#34c77b"/><rect x="7" y="3" width="9" height="6" fill="#fff"/><rect x="7" y="13" width="10" height="6" rx="1" fill="#fff"/></svg></i><span><b>세이브 관리</b><small>저장 / 불러오기</small></span></button>
-  </nav>
-  <div class="rp-pop" id="rpPcPop" hidden><div class="rp-pb"><div class="rp-ph"><b>PC 에뮬레이터 · DOS &amp; Windows</b><button type="button" data-x>닫기</button></div><div class="rp-grid" id="rpP"></div></div></div>
-  <div class="rp-pop" id="rpPick" hidden><div class="rp-pb"><div class="rp-ph"><b id="rpPickT">기종을 선택하세요</b><button type="button" data-x>닫기</button></div><div class="rp-grid" id="rpPickG"></div></div></div>
-  <div class="rp-pop" id="rpSave" hidden><div class="rp-pb"><div class="rp-ph"><b>세이브 관리</b><button type="button" data-x>닫기</button></div>
-   <div class="rp-txt"><p>① 게임을 실행한 뒤 위쪽 <b>💾 저장</b> 버튼으로 세이브를 내려받고, <b>📥 불러오기</b> 버튼으로 다시 불러옵니다.</p><p>② 게임 내 저장(.sav .srm 등)과 즉시저장(.state)을 모두 지원하며, 다른 에뮬레이터·앱과 주고받을 수 있습니다.</p><p>③ 먼저 기종을 선택해 게임을 실행하면 저장/불러오기 버튼이 활성화됩니다.</p><p><a href="https://youngho1206.tistory.com/2" target="_blank" rel="noopener">세이브파일 저장방법 자세히 보기 ›</a></p></div></div></div>
-  <div hidden>
-   <button type="button" class="rp-nav" id="rNotice"></button><button type="button" class="rp-nav" id="rGuide"></button>
-   <button type="button" class="rp-nav js-cache" id="rCache"></button><button type="button" class="rp-nav" id="rBg"></button><button type="button" class="rp-nav" id="rIcon"></button>
-   <div id="rpT"></div>
+  <div class="ttl2"><span class="t1"><i>🎮</i>게임 에뮬레이터 선택</span><span class="t2">원하는 게임기를 선택해주세요!</span></div>
+  <button type="button" class="bk" id="rVer" aria-label="뒤로가기"><span>‹ 뒤로가기</span></button>
+  <div class="tb">
+   <button type="button" class="rp-nav" id="rNotice">공지사항</button>
+   <button type="button" class="rp-nav" id="rGuide">안내</button>
+   <button type="button" class="rp-nav js-cache" id="rCache">캐쉬지우기</button>
+   <button type="button" class="rp-nav" id="rBg">배경선택</button>
+   <button type="button" class="rp-nav" id="rIcon">아이콘선택</button>
   </div>
+  <div class="pn"><div class="sc">
+   <div class="rp-sec">GAME CONSOLES</div><div class="rp-grid" id="rpC"></div>
+   <div class="rp-sec">PC · DOS · WINDOWS</div><div class="rp-grid" id="rpP"></div>
+   <div class="rp-sec">TOOLS</div><div class="rp-grid" id="rpT"></div>
+   <div class="rp-ft">ROM 파일은 본인이 합법적으로 소유한 게임만 사용하세요 · EmulatorJS · v86</div>
+  </div></div>
+  <i class="stt s1"></i><i class="stt s2"></i><i class="stt s3"></i><i class="stt s4"></i>
  </div>
 </div>
 <div id="rpm" role="dialog" aria-modal="true"><div class="m"><div class="mh"><span id="rpmT"></span><button type="button" id="rpmX">닫기</button></div><div class="mb" id="rpmB"></div></div></div>
@@ -718,8 +673,8 @@ function startGame(file,ci=0,lvl){
 
  fr.src='about:blank';
  setTimeout(async()=>{
-   let bios=[];
-   
+   let bios=file.mgBios||[];
+   if(!bios.length&&cur.bios&&window.PCEMU){try{bios=await PCEMU.findBios(cur.bios)}catch(e){}}
    try{
     const d=fr.contentDocument,w=fr.contentWindow;
     d.open();
@@ -730,7 +685,7 @@ function startGame(file,ci=0,lvl){
     w.EJS_player='#game'; w.EJS_core=coreName; w.EJS_gameName=gameName;
     w.EJS_gameUrl=new w.File([file],file.name);
     w.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';
-    
+    if(bios.length){w.EJS_biosUrl=bios[0].url;const ef={};bios.forEach(b=>ef[b.name]=b.url);w.EJS_externalFiles=ef}
     if(/desmume|melonds/.test(coreName)){w.EJS_controlScheme='nds';w.EJS_defaultOptions={'desmume_pointer_type':'touch','melonds_touch_mode':'Touch'}}
     w.EJS_startOnLoaded=true; w.EJS_color=cur.a; w.EJS_language='ko-KR';
     /* PS1 속도 개선: 다이나믹 리컴파일러(DRC) 켬 · 자동 프레임스킵 · 부팅로고/보간 끔 */
@@ -1707,12 +1662,8 @@ var mode=ls.get('rpIcon','color');
   if(mode==='color'&&SKY[e.id])return '<img src="'+SKY[e.id]+'" alt="'+esc(e.n)+'" draggable="false">';
   return '<svg viewBox="0 0 64 64" aria-hidden="true">'+(T_LINE[e.id]||'<rect x="14" y="14" width="36" height="36" rx="4"/>')+'</svg>';
  }
- var CARD_C=[['#ff9fb4','#ff7f98'],['#b9cdfb','#93b4f7'],['#d3c4f7','#b9a4ee'],['#a8ecd4','#7fdcb8'],['#ffd9a0','#ffc57a'],['#c4f2a8','#a2e88b'],['#e2c8fa','#cfa9f3'],['#b4d8fb','#8fc2f5'],['#ffb0c8','#ff93b4'],['#ccc5f6','#b2a9ee'],['#a8ecd0','#86e0b9'],['#ffe3a3','#ffd37a'],['#bfe4fb','#97d0f5'],['#dcc4f8','#c6a4f1'],['#a8ecd4','#8be3c0']];
- var CARD_N={nes:'NES',md:'Mega Drive',sms:'Master System',gb:'Game Boy',snes:'SNES',gg:'Game Gear',jaguar:'Atari Jaguar',vb:'Virtual Boy',n64:'Nintendo 64',ngp:'Neo Geo Pocket',gbc:'Game Boy Color',gba:'Game Boy Advance',nds:'Nintendo DS',pce:'PC Engine',atari2600:'Atari 2600'};
- function cardHtml(c,i){var k=CARD_C[i%15],n=CARD_N[c.id]||c.n;
-  return '<button type="button" class="rp-it rp-card" data-k="c" data-id="'+c.id+'" title="'+esc(n)+'" style="--c1:'+k[0]+';--c2:'+k[1]+'"><img src="newui/c-'+c.id+'.png" alt="" draggable="false"><b>'+esc(n)+'</b></button>'}
  function render(){
-  $('#rpC').innerHTML=C.map(cardHtml).join('');
+  $('#rpC').innerHTML=C.map(function(c){return tile('c',c.id,c.n+(c.soon?' (준비중)':''),cInner(c))}).join('');
   $('#rpP').innerHTML=P.map(function(p){return tile('p',p.id,p.n,pInner(p))}).join('');
   $('#rpT').innerHTML=ETC.filter(function(e){return e.href}).map(function(e){return tile('e',e.id,e.n,tInner(e))}).join('');
  }
@@ -1772,44 +1723,6 @@ var mode=ls.get('rpIcon','color');
    +'<p class="rp-sub">선택하면 바로 적용되고 다음 접속 때도 유지돼요.</p>');
  };
 
- /* ===== 새 선택화면: 설정 · 안내 · PC · 파일 · 세이브 ===== */
- var rpq=function(x){return document.querySelector(x)};
- function popOpen(id){rpq(id).hidden=false}
- document.querySelectorAll('#rp .rp-pop').forEach(function(p){
-  p.addEventListener('click',function(e){if(e.target===p||e.target.hasAttribute('data-x'))p.hidden=true});
-  p.addEventListener('click',function(e){if(e.target.closest('.rp-it'))p.hidden=true});
- });
- addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('#rp .rp-pop').forEach(function(p){p.hidden=true})});
- rpq('#rpPcBtn').onclick=function(){popOpen('#rpPcPop')};
- rpq('#rpSaveBtn').onclick=function(){popOpen('#rpSave')};
- rpq('#rInfo').onclick=function(){rpq('#rGuide').click()};
- rpq('#rGear').onclick=function(){
-  open('설정','<div class="rp-menu"><button type="button" data-g="bg">🖼 배경 선택</button><button type="button" data-g="cache">🗑 캐쉬 지우기</button></div>');
- };
- rpq('#rpmB').addEventListener('click',function(e){
-  var b=e.target.closest('button[data-g]');if(!b)return;
-  if(b.dataset.g==='bg'){rpq('#rBg').click()}else{close();rpq('#rCache').click()}
- });
- /* 게임 파일 불러오기: 확장자로 기종을 찾고, 겹치면(zip 등) 기종을 고르게 합니다 */
- var fin=document.createElement('input');fin.type='file';fin.hidden=true;document.body.appendChild(fin);
- var pend=null;
- function runWith(c,f){openEmu(c);setTimeout(function(){onPick([f])},60)}
- rpq('#rpFileBtn').onclick=function(){fin.value='';fin.click()};
- fin.onchange=function(){
-  var f=fin.files&&fin.files[0];if(!f)return;
-  var ext='.'+f.name.split('.').pop().toLowerCase();
-  var m=C.filter(function(c){return (' '+c.x+' ').toLowerCase().indexOf(' '+ext+' ')>-1&&ext!=='.zip'&&ext!=='.bin'});
-  if(m.length===1){runWith(m[0],f);return}
-  pend=f;
-  var list=m.length?m:C;
-  rpq('#rpPickT').textContent='어떤 기종으로 실행할까요?';
-  rpq('#rpPickG').innerHTML=list.map(cardHtml).join('').replace(/data-k="c"/g,'data-pick="1"');
-  popOpen('#rpPick');
- };
- rpq('#rpPickG').addEventListener('click',function(e){
-  var b=e.target.closest('[data-pick]');if(!b||!pend)return;
-  var c=C.find(function(x){return x.id===b.dataset.id}),f=pend;pend=null;rpq('#rpPick').hidden=true;if(c)runWith(c,f);
- });
  render();
  if(typeof ICONS_READY!=='undefined')ICONS_READY.then(function(){if(mode==='color')render()});
 })();

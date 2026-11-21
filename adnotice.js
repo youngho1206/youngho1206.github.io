@@ -1,10 +1,10 @@
-/* adnotice.js - 첫 접속 안내창 (저작권·광고 없음 안내)
+/* adnotice.js - 첫 접속 안내창 (광고 없음 안내)
    - index.html / desktop.html / mobile.html 에서 불러옵니다.
    - '다음 접속시 안보기'를 체크하면 그 즉시 localStorage 'adnotice.hide' 와 쿠키에 기억하고 다시 나타나지 않습니다.
    - 체크하지 않아도 같은 접속(탭) 안에서는 화면을 옮겨도 한 번만 나타납니다.
    - 다시 보고 싶으면 주소 뒤에 ?notice=1 을 붙이세요. */
 (function(){'use strict';
-var KEY='adnotice.hide.v2',SES='adnotice.shown.v2',CK='adnotice_hide_v2';
+var KEY='adnotice.hide',SES='adnotice.shown',CK='adnotice_hide';
 var force=/[?&]notice=1/.test(location.search);
 /* 안보기 기억: localStorage + 쿠키(1년) 두 곳에 저장하고, 둘 중 하나라도 있으면 안보기로 처리합니다. */
 function isHidden(){
@@ -58,8 +58,8 @@ function show(){
  bg.setAttribute('role','dialog');bg.setAttribute('aria-modal','true');bg.setAttribute('aria-labelledby','adn-tt');
  bg.innerHTML='<div class="adn-box">'
   +'<div class="adn-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 7.7-7 9.5-4-1.8-7-5.1-7-9.5V6z"/><path d="M8.8 12.2l2.3 2.3 4.2-4.6"/></svg></div>'
-  +'<h2 class="adn-tt" id="adn-tt">이용 안내</h2>'
-  +'<p class="adn-tx">이 사이트는 게임 파일을 기본 제공하지 않습니다. 게임 파일은 이용자가 직접 준비해야 하며, 이 페이지에는 광고 기능이 없습니다.</p>'
+  +'<h2 class="adn-tt" id="adn-tt">광고 없는 사이트 안내</h2>'
+  +'<p class="adn-tx">이 사이트는 <b>수익을 위해 만든 사이트가 아니라 광고가 나오지 않습니다.</b> 이외 아이콘이 안보일경우 사이트에서 제공되는 <b>절전모드</b>를 꺼보세요.(휴대폰절전모드는 아닙니다.)</p>'
   +'<label class="adn-ck"><input type="checkbox" id="adn-ck"><i></i><span>다음 접속시 안보기</span></label>'
   +'<button type="button" class="adn-ok" id="adn-ok">확인</button></div>';
  document.body.appendChild(bg);

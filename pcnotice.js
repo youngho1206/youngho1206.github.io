@@ -5,6 +5,7 @@
    · 준비중    : emudata.js 에서 soon:1 로 표시한 기종(드림캐스트·PS2·게임큐브·Wii)은
                  실행하지 않고 이유를 안내합니다.
    · PC 옵션   : PCEMU.opts(c) — PC 사양에 맞춘 코어 설정(스프라이트 제한 해제·고해상도 등)
+   · 바이오스  : PCEMU.findBios(names) — BIOS/ 폴더에 올려 둔 바이오스 파일을 찾아 줍니다.
 
    새 기종을 PC용으로 만들려면 emudata.js 의 항목에 pc:1 만 넣으면 됩니다.
    ===================================================================== */
@@ -69,7 +70,20 @@ var OPTS={
 };
 function opts(c){return c&&c.pc&&OPTS[c.core]?Object.assign({},OPTS[c.core]):null}
 
-window.PCEMU={MSG:MSG,soon:soon,notice:notice,opts:opts,modal:modal};
+/* ---------- 바이오스: BIOS/ 폴더에 올려 둔 파일 중 처음 발견되는 것 ---------- */
+function findBios(names){
+ names=names||[];
+ var i=0;
+ function next(){
+  if(i>=names.length)return Promise.resolve([]);
+  var n=names[i++],u;
+  try{u=new URL('BIOS/'+n,location.href).href}catch(e){return next()}
+  return fetch(u,{method:'HEAD',cache:'no-store'}).then(function(r){return r.ok?[{name:n,url:u}]:next()},function(){return next()});
+ }
+ return next();
+}
+
+window.PCEMU={MSG:MSG,soon:soon,notice:notice,opts:opts,findBios:findBios,modal:modal};
 
 /* ---------- 각 화면의 전역 openEmu 에 연결 (함수가 있을 때만) ---------- */
 var o=window.openEmu;

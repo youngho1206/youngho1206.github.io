@@ -165,18 +165,17 @@ function buildEmu(){grid.innerHTML='';
  C.forEach(function(c){var d=el('div','ec',eimgTag(c)+'<b>'+c.n+'</b><small>'+c.y+'</small>',grid);d.onclick=function(){chooseEmu(c)}});
  if(cs&&mode==='hello')renderHello(); else hello.innerHTML='';
  showEmu()}
-function chooseEmu(c){if(window.PCEMU&&PCEMU.soon(c))return;cs=c;mode='hello';renderHello();showEmu();if(window.PCEMU)PCEMU.notice(c);}
+function chooseEmu(c){if(window.PCEMU&&PCEMU.soon(c))return;cs=c;mode='hello';renderHello();showEmu();if(window.PCEMU)PCEMU.notice(c)}
 function renderHello(){var c=cs;hello.innerHTML=eimgTag(c,'hi')+'<div class=\"hn\">'+c.n+'</div><div class=\"hx\">'+c.x+'</div><p>'+t('hello')+'</p>';
  var b=el('button','btn o',t('open'),hello);b.style.padding='10px 34px';b.onclick=function(){openFile(c)};
  var k=el('button','btn','◀ '+t('back'),hello);k.onclick=backToGrid}
 function backToGrid(){cs=null;mode='grid';showEmu()}
 function openFile(c){if(!c){backToGrid();return}var f=$('#fi');f.accept='';f.multiple=false;f.value='';f.onchange=function(){if(f.files[0])launch(c,f.files[0])};f.click()}
 async function launch(c,f){try{if(MG.is(c)&&/\.zip$/i.test(f.name)&&MG.prepare)f=await MG.prepare(f)}catch(e){alert('롬 준비 실패: '+e.message);return}
- var bios0=[];
  cs=c;gname=f.name.replace(/\.[^.]+$/,'');mode='play';hideWins();go('emu');started=false;
  if(!fr){fr=el('iframe',null,null,stage);fr.allow='autoplay; gamepad; fullscreen';stage.insertBefore(fr,stage.firstChild)}
  fr.onload=function(){fr.onload=null;var w=fr.contentWindow;if(typeof w.startEmu!=='function'){alert('emuhost.html을 불러오지 못했습니다.');return}if(MG.is(c))try{MG.hook(w)}catch(e){}
-  w.startEmu({bios:bios0,file:f,core:c.core,name:gname,color:c.a,onStart:function(){started=true;applyVol()},onScriptError:function(){alert('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.')},onFail:function(m){if(/memory|Aborted|RangeError/i.test(m))alert('기기 메모리가 부족합니다.')}})};
+  w.startEmu({bios:f.mgBios||[],file:f,core:c.core,name:gname,color:c.a,onStart:function(){started=true;applyVol()},onScriptError:function(){alert('에뮬레이터 엔진을 불러오지 못했습니다. 인터넷 연결을 확인하세요.')},onFail:function(m){if(/memory|Aborted|RangeError/i.test(m))alert('기기 메모리가 부족합니다.')}})};
  fr.src='emuhost.html?v='+Date.now()}
 function buildBar(){var b=$('#ebar')||el('div',null,null,stage);b.id='ebar';b.innerHTML='';
  [['load',function(){openFile(cs)}],['save',saveMenu],['full',function(){fs(stage)}],['hide',function(){try{fr.contentDocument.body.classList.toggle('hidectl')}catch(e){}}],['back',quit]].forEach(function(a){var x=el('button','btn','['+t(a[0])+']',b);x.onclick=a[1]})}

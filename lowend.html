@@ -550,7 +550,7 @@ function startGame(file,ci=0,lvl){
  };
  /* 닌텐도DS: 코어를 차례로 시도 (desmume2015 → melonds → desmume). 시작 안 되면 자동으로 다음 코어 */
  const list=[sys.core].concat(sys.alt||[]),coreName=list[ci],hasNext=ci+1<list.length;
- const isMame=MG.is(sys),biosP=Promise.resolve([]);
+ const isMame=MG.is(sys),biosP=Promise.resolve(file.mgBios||[]);
  if(isMame)$('#bCore').textContent='🧩 '+MG.coreName(coreName);
  const tryNext=why=>{
   if(seq!==gameSeq||started||!hasNext)return false;

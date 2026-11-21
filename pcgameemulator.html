@@ -235,6 +235,7 @@ body.dos-run.dctl-on #dctl{display:flex}
 </dialog>
 
 <input type="file" id="fFolder" webkitdirectory hidden>
+<input type="file" id="fBios" hidden>
 <input type="file" id="fJson" accept=".json,application/json" hidden>
 <input type="file" id="fJsonZip" hidden>
 <input type="file" id="fWin" hidden>
@@ -423,7 +424,7 @@ const EXEC = ['engine', 'folder', 'bundle', 'dos', 'win32', 'disc'];
 const SYSTEMS = [['win','윈도우 (PC 에뮬레이터)'],['psx','플레이스테이션 1'],['segaCD','세가 CD'],['segaSaturn','세가 새턴'],['pce','PC 엔진 CD'],['3do','3DO'],['psp','PSP']];
 const WINOS = [['win98','윈도우 98',64],['win95','윈도우 95',64],['win31','윈도우 3.1',16],['win30','윈도우 3.0',32]];
 let lastOs = 'win98';
-let winImage = null, lastSys = 'win', flatView = true;
+let biosFile = null, winImage = null, lastSys = 'win', flatView = true;
 const BADGE = { engine: '게임 엔진', bundle: 'js-dos 번들', dos: 'DOS', win32: 'Windows', disc: '디스크 이미지', folder: '폴더 전체', file: '파일', dir: '폴더' };
 const fmt = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : n + ' B';
 
@@ -470,7 +471,7 @@ function showList(warn) {
   overlay('<div class="lp"><div class="lh"><div><b id="lt"></b><span id="lc"></span></div><button id="lopen">다시 불러오기</button></div>' +
     '<div class="lf"><input id="q" type="search" placeholder="파일 검색 (모든 폴더)"><label><input type="checkbox" id="flat" checked> 모든 파일 펼쳐보기</label><label><input type="checkbox" id="onlyexe"> 실행파일만 보기</label></div>' +
     '<div class="ll" id="ll" role="listbox"></div><p class="warn" id="warn"></p>' +
-    '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><select id="osSel" hidden>' + WINOS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="winimg" hidden>이미지 직접 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
+    '<div class="lb"><span id="ls"></span><select id="sys" hidden>' + SYSTEMS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="bios" hidden>BIOS 선택</button><select id="osSel" hidden>' + WINOS.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select><button class="sec" id="winimg" hidden>이미지 직접 선택</button><button id="ovStart">게임 시작</button></div></div>', () => {
     $('q').oninput = () => { $('ll').scrollTop = 0; renderList(); };
     $('onlyexe').onchange = renderList;
     $('flat').checked = flatView;
@@ -483,6 +484,8 @@ function showList(warn) {
     $('osSel').onchange = () => { lastOs = $('osSel').value; };
     $('winimg').onclick = () => $('fWin').click();
     if (winImage) $('winimg').textContent = '직접 선택: ' + winImage.name;
+    $('bios').onclick = () => $('fBios').click();
+    if (biosFile) $('bios').textContent = 'BIOS: ' + biosFile.name;
     renderList();
     updateSel();
     if (warn) $('warn').textContent = warn;
@@ -493,7 +496,7 @@ function updateSel() {
   $('ls').textContent = selected ? selected.path : '목록에서 실행파일을 선택하세요';
   const k = selected && selected.kind, disc = k === 'disc';
   const win = k === 'folder' || (k === 'win32' && selected.bits !== 64) || (disc && $('sys').value === 'win');
-  $('sys').hidden = !disc; $('winimg').hidden = !win; $('osSel').hidden = !win;
+  $('sys').hidden = !disc; $('bios').hidden = !disc || win; $('winimg').hidden = !win; $('osSel').hidden = !win;
   $('warn').textContent = '';
 }
 
@@ -1171,7 +1174,7 @@ async function getWinDisk(id) {
     }
     return buf;
   }
-  throw new Error('사이트에 윈도우 이미지가 없어요: os/' + id + '/' + id + '.img (또는 .zip). 저작권 보호로 윈도우 이미지는 제공하지 않으니 “이미지 직접 선택”으로 직접 구한 이미지를 불러오세요.');
+  throw new Error('사이트에 윈도우 이미지가 없어요: os/' + id + '/' + id + '.img (또는 .zip). 이미지를 올리거나 “이미지 직접 선택”을 눌러 주세요.');
 }
 
 /* ---------- 자동 부팅: 바탕화면이 나올 때까지 필요한 키 입력을 자동으로 넣어요 (winemu.html 과 같은 방식) ----------
@@ -1296,6 +1299,7 @@ async function runDisc(en) {
   window.EJS_gameName = en.path.split('/').pop().replace(/\.[^.]+$/, '');
   window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
   window.EJS_startOnLoaded = true;
+  if (en.bios) window.EJS_biosUrl = URL.createObjectURL(en.bios);
   await loadScript(window.EJS_pathtodata + 'loader.js');
 }
 
@@ -1330,7 +1334,7 @@ function start() {
   if (en.kind === 'dir') return warn('폴더는 실행할 수 없어요.');
   if (en.kind === 'file') return warn('실행파일이 아니에요. .exe .com .bat 파일을 선택하세요.');
   if (en.kind === 'engine' && !en.ok) return warn('엔진 파일이 없어요: ' + ENGINES[en.key].base + ENGINES[en.key].entry);
-  if (en.kind === 'disc') { en.core = $('sys').value; }
+  if (en.kind === 'disc') { en.core = $('sys').value; en.bios = biosFile; }
   en.win = en.kind === 'folder' || en.kind === 'win32' || (en.kind === 'disc' && en.core === 'win');
   launch(en);
 }
@@ -1408,6 +1412,11 @@ $('fWin').onchange = e => {
   winImage = e.target.files[0] || null;
   e.target.value = '';
   if (winImage && $('winimg')) $('winimg').textContent = '직접 선택: ' + winImage.name;
+};
+$('fBios').onchange = e => {
+  biosFile = e.target.files[0] || null;
+  e.target.value = '';
+  if (biosFile && $('bios')) $('bios').textContent = 'BIOS: ' + biosFile.name;
 };
 </script>
 <script src="netplay.js?v=5"></script>
