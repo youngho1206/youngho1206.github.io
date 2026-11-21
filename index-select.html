@@ -2,8 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<script src="noads.js"></script>
-<script src="saver.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07070a">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,7 +12,7 @@
 <title>최영호의 게임에뮬레이터</title>
 <script>
 /* 선택을 기억해 두었다가(이번 접속 동안 / 다음 접속부터) 바로 해당 화면으로 보냅니다. ?select=1 로 접속하면 다시 선택할 수 있습니다. */
-var T={m:'mobile.html',d:'dex.html'};
+var T={m:'mobile.html',d:'desktop.html'};
 function go(k,keep){
  try{sessionStorage.setItem('ver',k);if(keep===true)localStorage.setItem('ver',k);else if(keep===false)localStorage.removeItem('ver')}catch(e){}
  var p=new URLSearchParams(location.search);p.delete('select');var s=p.toString();
@@ -110,16 +108,14 @@ header p{margin:14px 0 0;color:var(--mut);font:300 clamp(13px,1.9vw,16px) var(--
     <svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M28 12h8M29 52h6"/></svg>
     <div class="t"><b>모바일버전으로 접속하기</b><span>스마트폰에 맞춘 화면</span></div><em>추천</em>
   </a>
-  <a class="card" id="cd" href="dex.html" data-k="d">
+  <a class="card" id="cd" href="desktop.html" data-k="d">
     <svg viewBox="0 0 64 64"><rect x="6" y="9" width="36" height="25" rx="3"/><path d="M18 42h12M24 34v8"/><rect x="40" y="26" width="18" height="28" rx="3.5"/><path d="M47 49h4"/></svg>
-    <div class="t"><b>바탕화면 모드</b><span>소프트키 · 시작 메뉴 · 유튜브 게임 검색</span></div><em>추천</em>
+    <div class="t"><b>PC 및 태블릿버전으로 접속하기</b><span>넓은 화면에 맞춘 화면</span></div><em>추천</em>
   </a>
 </main>
 <div class="tools">
   <button type="button" class="tool" id="bNotice"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>공지사항<i class="dot"></i></button>
   <button type="button" class="tool" id="bInstall"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>앱 설치하기</button>
-  <button type="button" class="tool" id="bCache"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg><span id="bCacheT">캐쉬지우기</span></button>
-  <button type="button" class="tool js-wipe" id="bWipe" title="이 사이트에 쌓인 기록을 모두 지우고 처음 접속한 상태로 되돌립니다"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14h12l1-14"/><path d="M9 10l6 6M15 10l-6 6"/></svg><span id="bWipeT">데이터삭제</span></button>
 </div>
 <label class="keep"><input type="checkbox" id="keep">다음부터 이 화면으로 바로 접속</label>
 <div id="sh" aria-hidden="true"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="grab"></div><div class="sh-h"><b id="shT"></b><button type="button" id="shX">닫기</button></div><div class="sh-s" id="shS"></div><div class="sh-b" id="shB"></div></div></div>
@@ -196,304 +192,5 @@ document.querySelectorAll('.card').forEach(function(a){
  a.addEventListener('click',function(e){e.preventDefault();go(a.dataset.k,document.getElementById('keep').checked)});
 });
 </script>
-<script>
-/* 캐쉬지우기: 이 사이트의 임시 저장 파일(캐쉬)을 모두 지우고 최신 버전으로 다시 불러옵니다. (업데이트 반영용)
-   내 설정·메모·사진 토큰 같은 저장 데이터(localStorage)는 지우지 않습니다. */
-(function(){
- var btn=document.getElementById('bCache');if(!btn)return;
- var lab=document.getElementById('bCacheT'),busy=false;
- var FILES=['./','index.html','index-select.html','mobile.html','dex.html','emulator.html','pcthemes/themes.json','classic.html','index-1.html','winemu.html','dosplayer.html','dos.html','emuhost.html',
-  'gallery.html','map.html','memo.html','calc.html','life.html','search.html',
-  'retro.js','retro.css','perf.css','mamegame.js','arcade.js','arcade.css','dock.js','emudata.js','theme.js','themeadd.js','pctheme.js','pcplus.js',
-  'manifest.webmanifest','sw.js','INFO-WEB.TXT','MAME/games.json','pctheme/data.json','pctheme/retro.js','pctheme/retro.css',
-  'webthema/themes.json','webthema/names.json','webthema/base-style.css','webthema/thema01.html','webthema/thema02.html'];
- function urls(){
-  var u={};
-  FILES.forEach(function(f){u[f]=1});
-  document.querySelectorAll('link[href],script[src]').forEach(function(e){
-   var v=e.getAttribute('href')||e.getAttribute('src');
-   if(v&&!/^(https?:)?\/\//.test(v)&&v.indexOf('data:')!==0)u[v]=1;   // ?v=1 이 붙은 주소까지 포함
-  });
-  return Object.keys(u);
- }
- function say(t){lab.textContent=t}
- btn.addEventListener('click',function(){
-  if(busy)return;
-  if(!confirm('이 사이트의 저장된 캐쉬(임시 파일)를 모두 지우고\n최신 버전으로 새로 불러옵니다.\n\n설정·메모 등 내 데이터는 지워지지 않습니다.\n계속할까요?'))return;
-  busy=true;btn.disabled=true;say('지우는 중…');
-  var jobs=[];
-  /* 1) 앱(서비스워커) 캐쉬 삭제 */
-  if(window.caches&&caches.keys)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));
-  /* 2) 서비스워커 등록 해제 (새로 접속하면 최신 버전으로 다시 등록됩니다) */
-  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
-  /* 3) 브라우저에 남아 있는 파일 캐쉬 갱신 (cache:'reload' = 서버에서 새로 받아 덮어쓰기) */
-  jobs.push(Promise.all(urls().map(function(u){return fetch(u,{cache:'reload',credentials:'same-origin'}).catch(function(){})})));
-  Promise.all(jobs.map(function(p){return p.catch(function(){})})).then(function(){
-   say('완료! 새로 불러옵니다');
-   setTimeout(function(){location.reload()},700);
-  });
- });
-})();
-</script>
-<script>
-/* 데이터삭제: 이 사이트에 쌓인 기록(설정·메모·저장파일·게임 세이브·토큰 등)을 모두 지우고, 처음 접속한 상태로 되돌립니다. (캐쉬지우기와 별개) */
-(function(){
- if(window.__wipeBound)return;window.__wipeBound=true;
- var busy=false;
- var KNOWN_DB=['dosweb','EmulatorJS-roms','EmulatorJS-bios','EmulatorJS-core','EmulatorJS-states','/data/saves','/home/web_user/retroarch/userdata'];
- function delDB(n){return new Promise(function(res){try{var q=indexedDB.deleteDatabase(n);q.onsuccess=q.onerror=q.onblocked=function(){res()};setTimeout(res,1500)}catch(e){res()}})}
- function wipeDBs(){
-  if(!window.indexedDB)return Promise.resolve();
-  var names={};KNOWN_DB.forEach(function(n){names[n]=1});
-  var p=(indexedDB.databases?indexedDB.databases().catch(function(){return[]}):Promise.resolve([]));
-  return p.then(function(list){
-   (list||[]).forEach(function(d){if(d&&d.name)names[d.name]=1});
-   return Promise.all(Object.keys(names).map(delDB));
-  });
- }
- function wipeCookies(){
-  try{
-   var dir=location.pathname.replace(/[^\/]*$/,'');
-   document.cookie.split(';').forEach(function(c){
-    var n=c.split('=')[0].replace(/^\s+|\s+$/g,'');if(!n)return;
-    ['/',dir].forEach(function(p){document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path='+p});
-   });
-  }catch(e){}
- }
- function run(b){
-  if(busy)return;
-  if(!confirm('이 사이트에 쌓인 기록을 모두 삭제합니다.\n\n지워지는 항목:\n- 설정·테마·화면 선택 기록\n- 메모·일기 등 저장된 내 데이터\n- 게임스크린샷 연결(토큰) 정보\n- 게임 저장·불러오기 데이터\n- 캐쉬(임시 파일)\n\n삭제 후 처음 접속한 것처럼 첫 화면으로 돌아가며,\n지운 데이터는 되돌릴 수 없습니다.\n\n정말 삭제할까요?'))return;
-  busy=true;b.disabled=true;
-  var lab=b.querySelector('span')||b;lab.textContent='삭제 중…';
-  try{localStorage.clear()}catch(e){}
-  try{sessionStorage.clear()}catch(e){}
-  wipeCookies();
-  var jobs=[wipeDBs()];
-  if(window.caches&&caches.keys)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));
-  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
-  Promise.all(jobs.map(function(p){return p.catch(function(){})})).then(function(){
-   try{localStorage.clear();sessionStorage.clear()}catch(e){}
-   lab.textContent='완료! 처음 화면으로 이동';
-   setTimeout(function(){location.replace(new URL('index.html',location.href).href)},800);
-  });
- }
- document.addEventListener('click',function(e){
-  var t=e.target&&e.target.closest?e.target:null;if(!t)return;
-  var c=t.closest('.js-wipe');if(c)run(c);
- });
-})();
-</script>
-<!-- DEVSTATUS:START -->
-<script>
-(function(){
-'use strict';
-/* 장치 상태 바 + 절전 모드 */
-if(window.top!==window||window.__dsBar)return;
-window.__dsBar=1;
-var KEY='ds.saver';
-var isAndroid=/Android/i.test(navigator.userAgent||'');
-var S={bt:0,usb:0,otg:0,kb:0,ms:0,pad:0};
-var saver=false,autoSaver=false,batt=null,padIv=0;
-var origGP=navigator.getGamepads?navigator.getGamepads.bind(navigator):null;
-function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-
-var st=document.createElement('style');
-st.textContent=`
-#ds-bar{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px));left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:8px;padding:3px 10px;border-radius:12px;background:rgba(15,17,22,.8);color:#d8dde6;font:600 10.5px/1 system-ui,-apple-system,"Malgun Gothic",sans-serif;border:1px solid rgba(255,255,255,.14);-webkit-user-select:none;user-select:none;max-width:calc(100vw - 8px);white-space:nowrap;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-#ds-bar .it{display:flex;align-items:center;gap:3px;padding:3px 0}
-#ds-bar .it[data-act]{cursor:pointer}
-#ds-bar i{width:7px;height:7px;border-radius:50%;background:#6b7280;display:block;flex:none}
-#ds-bar .off{opacity:.55}
-#ds-bar .on i{background:#2bdc5b;box-shadow:0 0 5px 1px rgba(43,220,91,.85)}
-#ds-sv{position:fixed;top:calc(env(safe-area-inset-top,0px) + var(--ds-sv-top,var(--ds-top,6px)));left:calc(env(safe-area-inset-left,0px) + 10px);z-index:2147483000;display:inline-flex;align-items:center;gap:7px;height:36px;margin:0;padding:0 16px 0 13px;border-radius:99px;border:2px solid #ffd0d6;background:linear-gradient(135deg,#ff8a96,#e8495b 70%);color:#fff;text-shadow:0 1px 2px rgba(120,20,40,.5);font:400 14.5px/1 Jua,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;letter-spacing:.03em;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box;box-shadow:0 4px 0 #a8263d,0 8px 18px rgba(232,73,91,.4);transition:transform .15s,box-shadow .15s,filter .2s}
-#ds-sv:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 6px 0 #a8263d,0 12px 22px rgba(232,73,91,.45)}
-#ds-sv:active{transform:translateY(3px);box-shadow:0 1px 0 #a8263d}
-#ds-sv svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#ds-sv .st{font-size:12px;opacity:.9}
-#ds-sv.on{background:linear-gradient(135deg,#5fd3a0,#2f9e6e 70%);border-color:#c9f2de;text-shadow:0 1px 2px rgba(10,70,40,.5);box-shadow:0 4px 0 #1c6f4c,0 8px 18px rgba(47,158,110,.4)}
-#ds-sv.on:hover{box-shadow:0 6px 0 #1c6f4c,0 12px 22px rgba(47,158,110,.45)}
-#ds-sv.on:active{box-shadow:0 1px 0 #1c6f4c}
-#ds-sv:focus-visible{outline:3px solid #ffcf7d;outline-offset:3px}
-@media (max-width:560px){body{margin-top:42px}#ds-bar{top:calc(env(safe-area-inset-top,0px) + var(--ds-top,3px) + 9px);left:auto;right:4px;transform:none;max-width:calc(100vw - 134px);overflow-x:auto;scrollbar-width:none;gap:6px;padding:3px 8px}#ds-bar::-webkit-scrollbar{display:none}}
-html.ds-saver #ds-bar .on i{box-shadow:none}
-#ds-bar .bat{width:17px;height:9px;border:1px solid #9aa3b2;border-radius:2px;position:relative;display:block;padding:0;box-sizing:border-box}
-#ds-bar .bat::after{content:"";position:absolute;right:-3px;top:2px;width:2px;height:3px;background:#9aa3b2;border-radius:0 1px 1px 0}
-#ds-bar .bat b{display:block;height:100%;width:0;background:#2bdc5b}
-#ds-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 32px);left:50%;transform:translateX(-50%);z-index:2147483001;display:none;background:rgba(15,17,22,.92);color:#fff;font:600 12px/1.3 system-ui,-apple-system,"Malgun Gothic",sans-serif;padding:7px 12px;border-radius:10px;max-width:90vw;text-align:center}
-html.ds-saver *,html.ds-saver *::before,html.ds-saver *::after{animation-duration:.001s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important;scroll-behavior:auto!important}
-`;
-document.head.appendChild(st);
-
-var items=[['bt','BT','블루투스','pair'],['usb','USB','USB','wired'],['otg','OTG','OTG','wired'],['kb','⌨','키보드'],['ms','🖱','마우스'],['pad','🎮','게임패드']];
-var bar=document.createElement('div');
-bar.id='ds-bar';
-bar.innerHTML='<span class="it bw" title="배터리"><span class="bat"><b></b></span><span class="bp">--</span></span>'
- +items.map(function(a){return '<span class="it off" data-k="'+a[0]+'"'+(a[3]?' data-act="'+a[3]+'"':'')+'><i></i><span>'+a[1]+'</span></span>'}).join('');
-document.body.appendChild(bar);
-var svb=document.createElement('button');svb.type='button';svb.id='ds-sv';
-svb.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8.500 5-14 14-14 0 9-5.500 14-14 14z"/><path d="M5 19l7-7"/></svg><span>절전</span><span class="st">꺼짐</span>';
-document.body.appendChild(svb);
-var tt=document.createElement('div');tt.id='ds-toast';document.body.appendChild(tt);
-var sv=svb;
-function toast(m){tt.textContent=m;tt.style.display='block';clearTimeout(tt._t);tt._t=setTimeout(function(){tt.style.display='none'},2600)}
-
-function render(){
-  items.forEach(function(a){
-    var el=bar.querySelector('[data-k="'+a[0]+'"]'),on=!!S[a[0]];
-    el.classList.toggle('on',on);el.classList.toggle('off',!on);
-    el.title=a[2]+(on?' · 연결됨':' · 미연결')+(a[3]?' (탭하여 연결)':'');
-  });
-  sv.classList.toggle('on',saver);sv.setAttribute('aria-pressed',saver?'true':'false');sv.querySelector('.st').textContent=saver?'켜짐':'꺼짐';
-  sv.title='절전 모드 '+(saver?'켜짐':'꺼짐')+' (탭하여 전환)';
-}
-
-/* ---------- 배터리 ---------- */
-function paintBatt(){
-  var f=bar.querySelector('.bat b'),p=bar.querySelector('.bp'),w=bar.querySelector('.bw');
-  if(!batt){p.textContent='--';f.style.width='0';w.title='이 브라우저는 배터리 정보를 제공하지 않습니다';return}
-  var l=Math.round(batt.level*100);
-  f.style.width=l+'%';f.style.background=l<=20?'#ef4444':l<=50?'#f5b301':'#2bdc5b';
-  p.textContent=(batt.charging?'⚡':'')+l+'%';
-  w.title='배터리 '+l+'%'+(batt.charging?' · 충전 중':'');
-}
-function onBatt(){
-  paintBatt();
-  if(ls(KEY)||!batt)return; /* 사용자가 직접 정했으면 자동 전환 안 함 */
-  var low=batt.level<=0.2&&!batt.charging;
-  if(low&&!saver){autoSaver=true;setSaver(true);toast('배터리 20% 이하 · 절전 모드 켜짐')}
-  else if(!low&&autoSaver&&saver){autoSaver=false;setSaver(false)}
-}
-if(navigator.getBattery){
-  navigator.getBattery().then(function(b){
-    batt=b;['levelchange','chargingchange'].forEach(function(e){b.addEventListener(e,onBatt)});onBatt();
-  }).catch(function(){});
-}
-
-/* ---------- 게임패드 ---------- */
-function scanPads(){
-  var c=0;
-  try{var g=origGP?origGP():[];for(var i=0;i<g.length;i++)if(g[i]&&g[i].connected)c++}catch(e){}
-  var v=c>0?1:0;if(S.pad!==v){S.pad=v;render()}
-}
-addEventListener('gamepadconnected',scanPads);
-addEventListener('gamepaddisconnected',function(){setTimeout(scanPads,50)});
-
-/* 절전 모드: 게임패드가 없으면 getGamepads()를 호출해도 장치 조회를 하지 않음 */
-function patchGP(w){
-  try{
-    var n=w.navigator;if(!n||!n.getGamepads||n.__dsP)return;
-    var o=(w===window&&origGP)?origGP:n.getGamepads.bind(n);
-    n.__dsP=1;
-    Object.defineProperty(n,'getGamepads',{configurable:true,writable:true,value:function(){
-      return (saver&&!S.pad)?[null,null,null,null]:o();
-    }});
-  }catch(e){}
-}
-function patchAll(){
-  patchGP(window);
-  var f=document.querySelectorAll('iframe');
-  for(var i=0;i<f.length;i++){try{patchGP(f[i].contentWindow)}catch(e){}}
-}
-document.addEventListener('load',function(e){
-  var t=e.target;if(t&&t.tagName==='IFRAME'){try{patchGP(t.contentWindow)}catch(x){}}
-},true);
-
-/* 절전 모드: 화면에 상호작용 없는 장식 캔버스(눈, 배경효과 등) 숨김 */
-function hideDeco(on){
-  var c=document.querySelectorAll('canvas');
-  for(var i=0;i<c.length;i++){
-    var el=c[i];
-    if(on){
-      if(el.dataset.dsH)continue;
-      var cs=getComputedStyle(el);
-      if(cs.position==='fixed'&&cs.pointerEvents==='none'){el.dataset.dsH=el.style.display||'-';el.style.display='none'}
-    }else if(el.dataset.dsH){
-      el.style.display=el.dataset.dsH==='-'?'':el.dataset.dsH;delete el.dataset.dsH;
-    }
-  }
-}
-function padPoll(){
-  if(!saver&&!padIv&&origGP){padIv=setInterval(scanPads,2500)}
-  else if(saver&&padIv){clearInterval(padIv);padIv=0}
-}
-function setSaver(v){
-  saver=!!v;
-  document.documentElement.classList.toggle('ds-saver',saver);
-  patchAll();hideDeco(saver);padPoll();render();
-}
-
-/* ---------- 마우스 / 키보드 ---------- */
-var mq=window.matchMedia?matchMedia('(any-pointer:fine) and (any-hover:hover)'):null;
-function msUpd(){S.ms=(mq&&mq.matches)||S.msSeen?1:0;render()}
-if(mq){if(mq.addEventListener)mq.addEventListener('change',msUpd);else if(mq.addListener)mq.addListener(msUpd)}
-function msSeen(e){
-  if(e.pointerType==='mouse'&&e.isTrusted){S.msSeen=1;removeEventListener('pointermove',msSeen,true);msUpd()}
-}
-addEventListener('pointermove',msSeen,true);
-
-var kbT=0,kbLast=0;
-addEventListener('keydown',function(e){
-  if(!e.isTrusted||!e.code||e.key==='Unidentified')return; /* 화면 키보드 제외 */
-  if(!S.kb){S.kb=1;render()}
-  var t=Date.now();
-  if(t-kbLast>1500){kbLast=t;clearTimeout(kbT);kbT=setTimeout(function(){S.kb=0;render()},300000)}
-},true);
-
-/* ---------- USB / OTG / HID ---------- */
-function refreshWired(){
-  var n=0,p=[];
-  try{if(navigator.usb)p.push(navigator.usb.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
-  try{if(navigator.hid)p.push(navigator.hid.getDevices().then(function(l){n+=l.length},function(){}))}catch(e){}
-  Promise.all(p).then(function(){S.usb=(!isAndroid&&n>0)?1:0;S.otg=(isAndroid&&n>0)?1:0;render()});
-}
-['usb','hid'].forEach(function(k){
-  try{if(navigator[k]){navigator[k].addEventListener('connect',refreshWired);navigator[k].addEventListener('disconnect',refreshWired)}}catch(e){}
-});
-async function wiredPair(){
-  try{
-    if(navigator.usb)await navigator.usb.requestDevice({filters:[]});
-    else if(navigator.hid)await navigator.hid.requestDevice({filters:[]});
-    else{toast('이 브라우저는 USB/OTG 연결을 지원하지 않습니다');return}
-  }catch(e){if(!e||e.name!=='NotFoundError')toast('USB/OTG 연결 실패')}
-  refreshWired();
-}
-
-/* ---------- 블루투스 ---------- */
-var btDevs=[];
-function btRefresh(){
-  var c=0;btDevs.forEach(function(d){if(d.gatt&&d.gatt.connected)c++});
-  S.bt=c>0?1:0;render();
-}
-function btAdd(d){if(btDevs.indexOf(d)<0){btDevs.push(d);d.addEventListener('gattserverdisconnected',btRefresh)}}
-if(navigator.bluetooth&&navigator.bluetooth.getDevices){
-  navigator.bluetooth.getDevices().then(function(l){l.forEach(btAdd);btRefresh()}).catch(function(){});
-}
-async function btPair(){
-  if(!navigator.bluetooth){toast('이 브라우저는 블루투스 연결을 지원하지 않습니다');return}
-  try{
-    var d=await navigator.bluetooth.requestDevice({acceptAllDevices:true});
-    btAdd(d);if(d.gatt)await d.gatt.connect();
-    btRefresh();toast((d.name||'블루투스 장치')+' 연결됨');
-  }catch(e){if(!e||e.name!=='NotFoundError')toast('블루투스 연결 실패')}
-}
-
-/* ---------- 클릭 ---------- */
-bar.addEventListener('click',function(e){
-  var t=e.target.closest?e.target.closest('[data-act]'):null;if(!t)return;
-  var a=t.getAttribute('data-act');
-  if(a==='sv'){var v=!saver;ls(KEY,v?'on':'off');autoSaver=false;setSaver(v);toast(v?'절전 모드 켜짐 · 연결된 장치만 사용':'절전 모드 꺼짐')}
-  else if(a==='pair')btPair();
-  else if(a==='wired')wiredPair();
-});
-
-svb.addEventListener('click',function(){var v=!saver;ls(KEY,v?'on':'off');autoSaver=false;setSaver(v);toast(v?'절전 모드 켜짐 · 연결된 장치만 사용':'절전 모드 꺼짐')});
-
-/* ---------- 시작 ---------- */
-msUpd();refreshWired();scanPads();
-setSaver(ls(KEY)==='on');
-window.addEventListener('storage',function(e){if(e.key===KEY){autoSaver=false;setSaver(e.newValue==='on')}});
-})();
-</script>
-<!-- DEVSTATUS:END -->
 </body>
 </html>

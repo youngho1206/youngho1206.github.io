@@ -9,7 +9,7 @@ const q=s=>document.querySelector(s);
 const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 /* ---------- 분류 ---------- */
-const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds','gc','wii'],sega:['sms','md','gg','segacd','saturn','s32x','dc'],atari:['atari2600','lynx','jaguar'],etc:['psx','ps2','3do','pce','ngp'],mamegame:['mamegame']};
+const BRAND={nintendo:['nes','gb','snes','vb','n64','gbc','gba','nds'],sega:['sms','md','gg'],atari:['atari2600','lynx'],etc:['psx','pce','ngp']};
 const pick=ids=>ids.map(id=>C.find(c=>c.id===id)).filter(Boolean);
 const mk=(it,t)=>({t,it,id:it.id,n:it.n,y:it.y||'',a:it.a||'#38b6ff',b:it.b||'#0a1230',kw:(window.S_KW&&S_KW[it.id])||''});
 const CATS=[
@@ -17,7 +17,6 @@ const CATS=[
  {k:'nintendo',n:'닌텐도',items:()=>pick(BRAND.nintendo).map(c=>mk(c,'c'))},
  {k:'sega',n:'세가',items:()=>pick(BRAND.sega).map(c=>mk(c,'c'))},
  {k:'atari',n:'아타리',items:()=>pick(BRAND.atari).map(c=>mk(c,'c'))},
- {k:'mamegame',n:'마메게임',items:()=>pick(BRAND.mamegame).map(c=>mk(c,'c'))},
  {k:'etc',n:'소니 · 기타',items:()=>pick(BRAND.etc).map(c=>mk(c,'c'))},
  {k:'pc',n:'윈도우 · DOS',items:()=>P.map(p=>mk(p,'p'))},
  {k:'tool',n:'기타기능',items:()=>ETC.map(e=>mk(Object.assign({y:'',b:'#0a1230'},e),'e'))}
@@ -30,8 +29,8 @@ function art(x){
  return icon(x.it);
 }
 function cardHtml(x,i){
- const soon=(x.t==='e'||x.t==='c')&&x.it.soon;
- const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':(x.t==='c'&&x.it.pc?'<span class="rb" data-t="PC용"></span>':''));
+ const soon=x.t==='e'&&x.it.soon;
+ const rb=x.t==='p'?'<span class="rb" data-t="PC"></span>':(soon?'<span class="rb soon" data-t="준비중"></span>':'');
  const sub=x.t==='e'?(x.it.l||''):(x.y?x.y+'년':'');
  const st=x.t==='p'?'<em class="st"></em><i class="pb"><i></i></i>':'';
  return `<div class="cell" style="animation-delay:${Math.min(i,30)*22}ms"><button type="button" class="card ${soon?'soon':''}" data-t="${x.t}" data-id="${x.id}" style="--ca:${x.a};--cb:${x.b}" title="${esc(x.n)}">
