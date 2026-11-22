@@ -4,7 +4,7 @@
  const connectStatus=$('#connect-status'), publishStatus=$('#publish-status'), progress=$('#progress-bar');
  const connectBtn=$('#connect'), publishBtn=$('#publish');
  const sourceEl=$('#game-source'), localField=$('#local-files-field'), urlField=$('#external-url-field');
- const filesEl=$('#game-files'), fileUrlEl=$('#game-file-url'), imageEl=$('#game-image'), coverUrlEl=$('#cover-url');
+ const filesEl=$('#game-files'), zipEl=$('#game-zips'), fileUrlEl=$('#game-file-url'), imageEl=$('#game-image'), coverUrlEl=$('#cover-url');
  let connected=false;
  const apiBase='https://api.github.com';
  const headers=()=>({'Accept':'application/vnd.github+json','Authorization':`Bearer ${tokenEl.value.trim()}`,'X-GitHub-Api-Version':'2022-11-28'});
@@ -15,7 +15,7 @@
  function slugify(s){return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9가-힣]+/g,'-').replace(/^-+|-+$/g,'').slice(0,55)||'game'}
  function base64(bytes){let out='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)out+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(out)}
  function safeHttps(value,label){try{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password)throw new Error();return u.href}catch{throw new Error(`${label}은(는) 로그인 정보가 포함되지 않은 유효한 HTTPS 주소여야 합니다.`)}}
- function syncSource(){const remote=sourceEl.value==='url';localField.classList.toggle('hidden',remote);urlField.classList.toggle('hidden',!remote);filesEl.required=!remote;fileUrlEl.required=remote}
+ function syncSource(){const remote=sourceEl.value==='url';localField.classList.toggle('hidden',remote);urlField.classList.toggle('hidden',!remote);filesEl.required=false;zipEl.required=false;fileUrlEl.required=remote}
  sourceEl.addEventListener('change',syncSource);syncSource();
  async function api(path,opts={}){const r=await fetch(apiBase+path,{...opts,headers:{...headers(),...(opts.headers||{})}});let data={};try{data=await r.json()}catch{}if(!r.ok)throw new Error(data.message||`GitHub API 오류 (${r.status})`);return data}
  async function getFile(path){try{return await api(`/repos/${encodeURIComponent(repoInfo().owner)}/${encodeURIComponent(repoInfo().repo)}/contents/${escPath(path)}?ref=${encodeURIComponent(repoInfo().branch)}`)}catch(e){if(String(e.message).includes('Not Found'))return null;throw e}}
@@ -28,17 +28,42 @@
   if(!image&&!coverUrlEl.value.trim()){status(publishStatus,'타이틀 이미지 파일 또는 이미지 URL을 입력하세요.','bad');return}
   let externalUrl='';try{if(remote)externalUrl=safeHttps(fileUrlEl.value.trim(),'게임 파일 URL');if(coverUrlEl.value.trim())safeHttps(coverUrlEl.value.trim(),'타이틀 이미지 URL')}catch(err){status(publishStatus,err.message,'bad');return}
   if(remote&&!externalUrl){status(publishStatus,'외부 게임 파일 URL을 입력하세요.','bad');return}
-  if(!remote&&!files.length){status(publishStatus,'게임 파일 또는 폴더를 선택하세요.','bad');return}
-  const total=files.reduce((n,f)=>n+f.size,0)+(image?.size||0);if(!remote&&(total>90*1024*1024||files.some(f=>f.size>90*1024*1024))){status(publishStatus,'직접 업로드는 파일당 90MB 미만으로 제한합니다. 100MB 이상 파일은 외부 서버 URL 방식을 선택하세요.','bad');return}
+  if(!remote&&!files.length&&!(zipEl?.files?.length)){status(publishStatus,'게임 파일, 폴더 또는 ZIP 파일을 선택하세요.','bad');return}
+  const total=files.reduce((n,f)=>n+f.size,0)+[...(zipEl?.files||[])].reduce((n,f)=>n+f.size,0)+(image?.size||0);if(!remote&&(total>90*1024*1024||files.some(f=>f.size>90*1024*1024))){status(publishStatus,'직접 업로드는 선택한 전체 파일 기준 90MB 미만을 권장합니다. 100MB 이상 파일은 외부 서버 URL 방식을 선택하세요.','bad');return}
   publishBtn.disabled=true;setProgress(0);status(publishStatus,'등록 준비 중…');
   try{
    const catalog=await readCatalog();let id=slugify(title),suffix=2;while(catalog.some(g=>g.id===id))id=`${slugify(title)}-${suffix++}`;
-   const root=`games/files/${platform}/${id}`;let done=0;const all=(remote?0:files.length)+(image?1:0)+1;
+   const root=`games/files/${platform}/${id}`;let done=0,all=1;
    const storedFiles=[];
-   if(!remote){for(const file of files){const rel=(file.webkitRelativePath||file.name).replace(/^.*?\//,'').replace(/^\/+/, '');const path=`${root}/${rel}`;const content=base64(new Uint8Array(await file.arrayBuffer()));await putFile(path,content,`Add ${title} game file: ${rel}`);storedFiles.push(path);done++;setProgress(done/all*85);status(publishStatus,`게임 파일 업로드 중… (${done}/${all})\n${rel}`)}}
+   if(!remote){
+    const uploadItems=files.map(file=>({path:(file.webkitRelativePath||file.name).replace(/^.*?\//,'').replace(/^\/+/,''),file}));
+    for(const zipFile of [...(zipEl?.files||[])]){
+     if(!window.JSZip)throw new Error('ZIP 처리 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.');
+     const archive=await JSZip.loadAsync(zipFile);
+     const prefix=slugify(zipFile.name.replace(/\.zip$/i,''));
+     for(const [entryName,entry] of Object.entries(archive.files)){
+      if(entry.dir)continue;
+      const normalized=entryName.replace(/\\/g,'/').replace(/^\/+/, '');
+      if(normalized.split('/').some(part=>part==='..'))continue;
+      const blob=await entry.async('blob');
+      uploadItems.push({path:`${prefix}/${normalized}`,file:blob});
+     }
+    }
+    const extractedTotal=uploadItems.reduce((n,item)=>n+item.file.size,0)+(image?.size||0);
+    if(extractedTotal>90*1024*1024)throw new Error('ZIP 압축 해제 후 전체 파일이 90MB를 초과합니다. 더 작은 ZIP 또는 외부 URL 방식을 사용하세요.');
+    all=uploadItems.length+(image?1:0)+1;
+    for(const item of uploadItems){
+     const rel=item.path.replace(/^\/+/, '');
+     const path=`${root}/${rel}`;
+     const content=base64(new Uint8Array(await item.file.arrayBuffer()));
+     await putFile(path,content,`Add ${title} game file: ${rel}`);
+     storedFiles.push(path);done++;setProgress(done/all*85);
+     status(publishStatus,`게임 파일 업로드 중… (${done}/${all})\\n${rel}`);
+    }
+   }
    let cover='';if(image){const ext=(image.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const coverPath=`games/covers/${id}.${ext}`;await putFile(coverPath,base64(new Uint8Array(await image.arrayBuffer())),`Add ${title} cover image`);cover=coverPath;done++;setProgress(done/all*85)}else if(coverUrlEl.value.trim()){cover=safeHttps(coverUrlEl.value.trim(),'타이틀 이미지 URL')}
-   const entry={id,title,platform,year:year||'',description:description||'Classic PC game',symbol:platform==='win95'?'95':platform==='win98'?'98':'DOS',color:'linear-gradient(135deg,#284a65,#17273e)',cover,files:storedFiles,bundle:'',externalUrl:remote?externalUrl:'',externalFilename:remote?(new URL(externalUrl).pathname.split('/').pop()||'external-game-file'):'',storageMode:remote?'external-url':'github'};catalog.push(entry);
-   await putFile('games/games.json',btoa(unescape(encodeURIComponent(JSON.stringify(catalog,null,2)))),`Register game: ${title}`);setProgress(100);status(publishStatus,`게시 완료!\n게임: ${title}\n플랫폼: ${platform.toUpperCase()}\n파일 방식: ${remote?'외부 URL 링크 저장':'GitHub 업로드 ('+files.length+'개 파일)'}\n타이틀 이미지: ${image?'GitHub 업로드':'이미지 URL'}\n저장소: ${owner}/${repo}\n\nGitHub Pages 반영까지 잠시 기다린 뒤 메인 페이지를 새로고침하세요.\n외부 파일은 링크가 공개 상태이고 실제 파일로 연결되는지 확인하세요.`,'good');$('#game-form').reset();syncSource();
+   const entry={id,title,platform,year:year||'',description:description||'Classic PC game',symbol:platform==='win95'?'95':platform==='win98'?'98':'DOS',color:'linear-gradient(135deg,#284a65,#17273e)',cover,files:storedFiles,bundle:storedFiles.find(p=>/\.jsdos$/i.test(p))||'',externalUrl:remote?externalUrl:'',externalFilename:remote?(new URL(externalUrl).pathname.split('/').pop()||'external-game-file'):'',storageMode:remote?'external-url':'github'};catalog.push(entry);
+   await putFile('games/games.json',btoa(unescape(encodeURIComponent(JSON.stringify(catalog,null,2)))),`Register game: ${title}`);setProgress(100);status(publishStatus,`게시 완료!\n게임: ${title}\n플랫폼: ${platform.toUpperCase()}\n파일 방식: ${remote?'외부 URL 링크 저장':'GitHub 업로드 ('+storedFiles.length+'개 파일)'}\n타이틀 이미지: ${image?'GitHub 업로드':'이미지 URL'}\n저장소: ${owner}/${repo}\n\nGitHub Pages 반영까지 잠시 기다린 뒤 메인 페이지를 새로고침하세요.\n외부 파일은 링크가 공개 상태이고 실제 파일로 연결되는지 확인하세요.`,'good');$('#game-form').reset();syncSource();
   }catch(err){status(publishStatus,`게시 중 오류: ${err.message}\n일부 파일은 이미 저장소에 올라갔을 수 있습니다. 저장소를 먼저 확인하세요.`,'bad')}finally{publishBtn.disabled=false}
  });
 })();

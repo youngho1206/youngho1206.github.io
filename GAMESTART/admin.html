@@ -27,7 +27,7 @@
     <div class="field"><label for="game-image">게임 사진 (타이틀 이미지 파일)</label><input id="game-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><span class="small">이미지 파일을 직접 올리거나 아래 이미지 URL을 입력하세요.</span></div>
     <div class="field"><label for="cover-url">타이틀 이미지 URL (선택)</label><input id="cover-url" type="url" placeholder="https://example.com/game-cover.jpg"></div>
     <div class="field full"><label for="game-source">게임 파일 등록 방식 *</label><select id="game-source"><option value="upload">내 컴퓨터에서 파일/폴더 업로드 (100MB 미만 권장)</option><option value="url">외부 서버 파일 URL 사용 (대용량 게임)</option></select></div>
-    <div class="field full" id="local-files-field"><label for="game-files">게임 파일 (폴더 안 파일 여러 개 선택 가능)</label><input id="game-files" type="file" multiple webkitdirectory directory><span class="small">게임 폴더 전체를 선택하거나 실행 파일(EXE)과 DATA 폴더 등을 함께 선택하세요.</span></div>
+    <div class="field full" id="local-files-field"><label for="game-files">게임 파일 또는 폴더</label><input id="game-files" type="file" multiple webkitdirectory directory><span class="small">게임 폴더 전체를 선택하거나 실행 파일과 DATA 폴더 등을 함께 선택하세요.</span><label for="game-zips" style="display:block;margin-top:12px">ZIP 압축 파일 추가</label><input id="game-zips" type="file" accept=".zip,application/zip,application/x-zip-compressed" multiple><span class="small">ZIP 파일을 선택하면 내부 파일을 자동으로 읽어 게임 파일로 등록합니다. ZIP은 압축 해제된 상태로 저장됩니다.</span></div>
     <div class="field full hidden" id="external-url-field"><label for="game-file-url">외부 게임 파일 URL *</label><input id="game-file-url" type="url" placeholder="https://files.example.com/game.zip"><span class="small">공개 다운로드가 가능한 실제 파일 주소를 입력하세요. 공유 페이지 주소가 아니라 ZIP/ISO/IMG 등 파일 자체로 연결되는 HTTPS 링크여야 합니다.</span></div>
     <div class="field full"><label for="description">게임 설명</label><textarea id="description" maxlength="300" placeholder="게임에 대한 간단한 설명"></textarea></div>
    </div>
@@ -37,5 +37,5 @@
  </section>
  <section class="panel"><h2>03 / 실행 방식 안내</h2><p class="panel-intro">이 등록기는 게임의 폴더·이미지·메타데이터를 저장소에 올리거나 외부 파일 URL을 라이브러리에 등록합니다.</p><div class="security">중요: 파일 등록과 게임 실행은 별개입니다. DOS는 JS-DOS용으로 준비된 번들이 있어야 바로 실행할 수 있습니다. Windows 95/98 게임은 별도의 Windows 9x 가상 PC 디스크/실행 환경과 게임 호환성 설정이 필요합니다. 외부 URL은 라이브러리에 링크만 저장합니다. 외부 파일 호스트가 직접 다운로드를 허용해야 하며, 브라우저 플레이어에서 파일을 읽으려면 호스트의 CORS 허용도 필요할 수 있습니다. 이 버전은 파일 등록을 시험하는 단계이며 Windows 95/98 자동 실행까지 완성된 것은 아닙니다.</div></section>
 </main>
-<script src="assets/admin.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script src="assets/admin.js"></script>
 </body></html>

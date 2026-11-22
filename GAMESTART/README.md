@@ -4,12 +4,12 @@ A static GitHub Pages game catalog with a browser-based game registration panel.
 
 ## Included
 - DOS / Windows 95 / Windows 98 platform filters
-- Game title, description, year, title-art image, and multi-file folder registration
+- Game title, description, year, title-art image, multi-file folder registration, and ZIP archive upload/extraction
 - GitHub REST API publishing from `admin.html`
 - External HTTPS game-file URL mode for large files (stores the URL in the catalog instead of uploading the binary)
 - Title image can be uploaded or referenced by an HTTPS image URL
 - Library cards show a `GET GAME FILE` link for externally hosted files
-- Folder-relative file paths are retained under `games/files/<platform>/<game-id>/`
+- Folder-relative file paths and ZIP-internal folder paths are retained under `games/files/<platform>/<game-id>/`\n- ZIP archives are extracted in the browser before upload; the original ZIP is not stored as one archive\n- If an uploaded archive contains a `.jsdos` file, it is automatically selected as the DOS player bundle\n- The player page lists and links extracted files when no runnable `.jsdos` bundle is available
 - Catalog metadata is written to `games/games.json`
 - Existing JS-DOS player path remains available for games with a prepared `.jsdos` bundle
 
@@ -18,7 +18,7 @@ A static GitHub Pages game catalog with a browser-based game registration panel.
 2. Enter GitHub repository owner, repository name, branch, and a fine-grained personal access token.
 3. Grant the selected repository **Contents: Read and write** permission only.
 4. Test the connection.
-5. Enter the game title and platform. Choose either local file/folder upload or **External server file URL**. For large files, paste a public, direct HTTPS download URL. Choose a title image file or enter an HTTPS image URL.
+5. Enter the game title and platform. Choose local file/folder upload, one or more **ZIP archives** (the archive contents are extracted and uploaded as ordinary files), or **External server file URL**. For large files, paste a public, direct HTTPS download URL. Choose a title image file or enter an HTTPS image URL.
 6. Click **Save and publish to GitHub**. Local files/images are uploaded, while external game URLs are saved as metadata in `games/games.json`. The library card displays a **GET GAME FILE** link for external files.
 
 The token is kept only in the current page's JavaScript memory and is not saved to localStorage or cookies. Do not share it or enter it on an untrusted copy of this page. Revoke the token in GitHub when it is no longer needed.
