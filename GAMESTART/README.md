@@ -6,6 +6,9 @@ A static GitHub Pages game catalog with a browser-based game registration panel.
 - DOS / Windows 95 / Windows 98 platform filters
 - Game title, description, year, title-art image, and multi-file folder registration
 - GitHub REST API publishing from `admin.html`
+- External HTTPS game-file URL mode for large files (stores the URL in the catalog instead of uploading the binary)
+- Title image can be uploaded or referenced by an HTTPS image URL
+- Library cards show a `GET GAME FILE` link for externally hosted files
 - Folder-relative file paths are retained under `games/files/<platform>/<game-id>/`
 - Catalog metadata is written to `games/games.json`
 - Existing JS-DOS player path remains available for games with a prepared `.jsdos` bundle
@@ -15,8 +18,8 @@ A static GitHub Pages game catalog with a browser-based game registration panel.
 2. Enter GitHub repository owner, repository name, branch, and a fine-grained personal access token.
 3. Grant the selected repository **Contents: Read and write** permission only.
 4. Test the connection.
-5. Enter the game title, platform, optional year and description, choose a title image, and select the game folder/files.
-6. Click **Save and publish to GitHub**. Files are uploaded one by one, then `games/games.json` is updated.
+5. Enter the game title and platform. Choose either local file/folder upload or **External server file URL**. For large files, paste a public, direct HTTPS download URL. Choose a title image file or enter an HTTPS image URL.
+6. Click **Save and publish to GitHub**. Local files/images are uploaded, while external game URLs are saved as metadata in `games/games.json`. The library card displays a **GET GAME FILE** link for external files.
 
 The token is kept only in the current page's JavaScript memory and is not saved to localStorage or cookies. Do not share it or enter it on an untrusted copy of this page. Revoke the token in GitHub when it is no longer needed.
 
