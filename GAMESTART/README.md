@@ -1,55 +1,31 @@
-# Retro Archive — Browser PC Game Library
+# Retro Archive — Classic PC Game Library
 
-A static-site starter for a personal classic PC game library. The catalog and player run on GitHub Pages or another static host; no separate server is required for normal playback.
+A static GitHub Pages game catalog with a browser-based game registration panel.
 
-## Included files
+## Included
+- DOS / Windows 95 / Windows 98 platform filters
+- Game title, description, year, title-art image, and multi-file folder registration
+- GitHub REST API publishing from `admin.html`
+- Folder-relative file paths are retained under `games/files/<platform>/<game-id>/`
+- Catalog metadata is written to `games/games.json`
+- Existing JS-DOS player path remains available for games with a prepared `.jsdos` bundle
 
-- `index.html` — game library and platform filters
-- `player.html` — browser player
-- `assets/style.css` — site styling
-- `assets/app.js` — catalog loading, search, filters, and launch links
-- `games/games.json` — editable game catalog
+## Publish a game
+1. Open `admin.html` on your published site.
+2. Enter GitHub repository owner, repository name, branch, and a fine-grained personal access token.
+3. Grant the selected repository **Contents: Read and write** permission only.
+4. Test the connection.
+5. Enter the game title, platform, optional year and description, choose a title image, and select the game folder/files.
+6. Click **Save and publish to GitHub**. Files are uploaded one by one, then `games/games.json` is updated.
 
-## Add a game
+The token is kept only in the current page's JavaScript memory and is not saved to localStorage or cookies. Do not share it or enter it on an untrusted copy of this page. Revoke the token in GitHub when it is no longer needed.
 
-1. Add a game bundle you are legally allowed to use to the `games/` folder.
-2. Add an entry to `games/games.json` and set `bundle` to its relative path.
-3. Commit and publish the folder. Open the site over HTTPS; do not test with a `file://` URL.
+## Important execution limits
+- Uploading files and registering catalog metadata does not automatically make a game playable.
+- DOS games need a compatible JS-DOS bundle (`.jsdos`) and a configured `bundle` URL in `games/games.json`.
+- Windows 95/98 games require a separately prepared Windows 9x virtual-machine disk image/runtime and game compatibility setup. This registration tool stores the raw game folder but does not create a Windows 9x disk image or bootable VM.
+- Use only game files and images that you own or are authorized to distribute.
+- GitHub's Contents API has per-file size limits; this UI intentionally blocks files or a selection total above 90 MB. Large game libraries should use suitable external file hosting or release assets instead of committing every binary to the website repository.
 
-Example:
-
-```json
-{
-  "id": "my-game",
-  "title": "My Game",
-  "platform": "dos",
-  "year": "1994",
-  "description": "A short game description.",
-  "symbol": "94",
-  "bundle": "games/my-game.jsdos"
-}
-```
-
-Supported `platform` values are `dos`, `win95`, and `win98`.
-
-## Player compatibility
-
-- **MS-DOS:** uses js-dos with the DOSBox backend.
-- **Windows 95 / 98:** uses js-dos with the DOSBox-X backend. The bundle must already contain a prepared, compatible Windows 9x environment and the game. Merely changing the catalog platform to `win95` or `win98` does not convert a DOS bundle into a Windows game.
-- Compatibility depends on each game's graphics, sound, drivers, memory requirements, and bundle configuration. Some titles may need individual testing and configuration.
-
-The player uses the js-dos v8 CDN, so an internet connection is required. The site itself is static; it does not upload, convert, or host game files on a server for you.
-
-## Important file and rights notes
-
-- This starter does not include game files, Windows installation media, BIOS/firmware, or disk images.
-- Only add games and system files that you have the right to use and distribute from your site.
-- Large bundles may exceed the file-size limits of your hosting provider. Check the provider's current limits before adding them.
-
-## Publish in an existing GitHub Pages repository
-
-Copy the contents of this `GAMESTART` folder into a `GAMESTART/` subfolder in your repository, then commit and push. The page will usually be available at `https://YOUR-USERNAME.github.io/GAMESTART/` once GitHub Pages has deployed it.
-
-## Current catalog
-
-The included catalog contains three demonstration entries. They are intentionally disabled until you add valid game bundles and set each `bundle` path.
+## GitHub Pages
+Keep the site files at the repository's published root (or configure Pages to use the correct folder). After upload, allow GitHub Pages a short time to rebuild, then refresh the site.

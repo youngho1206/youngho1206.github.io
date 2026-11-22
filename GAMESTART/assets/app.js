@@ -1,89 +1,11 @@
-let games = [], active = "all";
-const grid = document.querySelector("#game-grid");
-const search = document.querySelector("#search");
-const empty = document.querySelector("#empty");
-const labels = { dos: "MS-DOS", win95: "WINDOWS 95", win98: "WINDOWS 98" };
-
-async function init() {
-  try {
-    const response = await fetch("games/games.json");
-    if (!response.ok) throw new Error("Catalog could not be loaded");
-    games = await response.json();
-    if (!Array.isArray(games)) games = [];
-  } catch (error) {
-    games = [];
-    empty.textContent = "The game catalog could not be loaded. Please refresh the page.";
-  }
-  updateCounts();
-  render();
-}
-
-function updateCounts() {
-  for (const key of ["all", "dos", "win95", "win98"]) {
-    const count = key === "all" ? games.length : games.filter(game => game.platform === key).length;
-    const target = document.querySelector(`#count-${key}`);
-    if (target) target.textContent = count;
-  }
-  const total = document.querySelector(".stats > div:first-child strong");
-  const libraryTotal = document.querySelector(".stats > div:nth-child(2) strong");
-  if (total) total.textContent = new Set(games.map(game => game.platform)).size.toString().padStart(2, "0");
-  if (libraryTotal) libraryTotal.textContent = games.length.toString().padStart(2, "0");
-}
-
-function render() {
-  const query = search.value.trim().toLowerCase();
-  const list = games.filter(game =>
-    (active === "all" || game.platform === active) &&
-    (`${game.title} ${game.description || ""} ${game.year || ""}`.toLowerCase().includes(query))
-  );
-
-  grid.innerHTML = list.map(game => {
-    const enabled = typeof game.bundle === "string" && game.bundle.trim().length > 0;
-    const safeId = encodeURIComponent(String(game.id));
-    return `<article class="game-card">
-      <div class="game-cover" style="background:${safeColor(game.color)}">
-        <span class="platform-tag">${esc(labels[game.platform] || game.platform || "PC")}</span>
-        <span class="cover-symbol">${esc(game.symbol || "PC")}</span>
-      </div>
-      <div class="game-info">
-        <h3>${esc(game.title || "Untitled game")}</h3>
-        <p>${esc(game.description || "Classic PC game")}</p>
-        <div class="card-bottom">
-          <span class="year">${esc(game.year || "YEAR UNKNOWN")}</span>
-          <button class="play-link" ${enabled ? `onclick="launch('${safeId}')"` : "disabled"}>${enabled ? "PLAY NOW ↗" : "COMING SOON"}</button>
-        </div>
-      </div>
-    </article>`;
-  }).join("");
-  empty.classList.toggle("hidden", list.length > 0);
-}
-
-function safeColor(value) {
-  // Catalog colors are optional. Restrict inline styling to simple CSS gradients/colors.
-  if (typeof value === "string" && /^(#[0-9a-f]{3,8}|linear-gradient\([#\w\s.,%()-]+\))$/i.test(value)) return value;
-  return "linear-gradient(135deg,#284a65,#17273e)";
-}
-
-function esc(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
-}
-
-document.querySelector("#filters").addEventListener("click", event => {
-  const button = event.target.closest("button[data-filter]");
-  if (!button) return;
-  active = button.dataset.filter;
-  document.querySelectorAll(".filter").forEach(item => item.classList.toggle("active", item === button));
-  render();
-});
-search.addEventListener("input", render);
-
-function launch(encodedId) {
-  const id = decodeURIComponent(encodedId);
-  const game = games.find(item => String(item.id) === id);
-  if (!game || !game.bundle) return;
-  location.href = `player.html?game=${encodeURIComponent(game.id)}`;
-}
-window.launch = launch;
+let games=[], active='all';
+const grid=document.querySelector('#game-grid'), search=document.querySelector('#search'), empty=document.querySelector('#empty');
+const labels={dos:'MS-DOS',win95:'WINDOWS 95',win98:'WINDOWS 98'};
+async function init(){try{const r=await fetch('games/games.json',{cache:'no-store'});if(!r.ok)throw new Error('catalog unavailable');games=await r.json();if(!Array.isArray(games))games=[]}catch(e){games=[]}updateCounts();render()}
+function updateCounts(){for(const key of ['all','dos','win95','win98']){const n=key==='all'?games.length:games.filter(g=>g.platform===key).length;const el=document.querySelector('#count-'+key);if(el)el.textContent=n}const stat=document.querySelector('#stat-games');if(stat)stat.textContent=String(games.length).padStart(2,'0')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){const q=search.value.trim().toLowerCase();const list=games.filter(g=>(active==='all'||g.platform===active)&&(`${g.title||''} ${g.description||''} ${g.year||''}`.toLowerCase().includes(q)));grid.innerHTML=list.map(g=>{const playable=!!g.bundle;const cover=g.cover?`<img src="${esc(g.cover)}" alt="${esc(g.title)} 타이틀 이미지" loading="lazy">`:'';return `<article class="game-card"><div class="game-cover" style="background:${esc(g.color||'linear-gradient(135deg,#284a65,#17273e)')}">${cover}<span class="platform-tag">${esc(labels[g.platform]||g.platform)}</span><span class="cover-symbol">${esc(g.symbol||'PC')}</span></div><div class="game-info"><h3>${esc(g.title)}</h3><p>${esc(g.description||'Classic PC game')}</p><div class="card-bottom"><span class="year">${esc(g.year||'YEAR UNKNOWN')}</span><button class="play-link" ${playable?'':'disabled'} data-game="${esc(g.id)}">${playable?'PLAY NOW ↗':'FILES ADDED'}</button></div></div></article>`}).join('');empty.classList.toggle('hidden',list.length>0);grid.querySelectorAll('[data-game]').forEach(b=>b.addEventListener('click',()=>launch(b.dataset.game)))}
+document.querySelector('#filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;active=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));render()});
+search.addEventListener('input',render);
+function launch(id){const g=games.find(x=>x.id===id);if(!g||!g.bundle)return;location.href='player.html?game='+encodeURIComponent(g.id)}
 init();
