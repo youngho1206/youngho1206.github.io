@@ -1,7 +1,83 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Game Player — Retro Archive</title><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css"><style>
-body{min-height:100vh}.player-top{height:70px;padding:0 4vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff18}.back{color:#f2aa72;font-size:12px}.player-main{max-width:1200px;margin:35px auto;padding:0 22px}.player-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}.player-heading h1{font:700 27px "Space Grotesk";margin:8px 0}.player-heading p{color:#8f9db1;font-size:12px;margin:0}.screen-shell{background:#05080e;border:1px solid #ffffff20;border-radius:10px;padding:12px;box-shadow:0 20px 60px #0006}.screen{height:min(68vh,680px);min-height:360px;width:100%;background:#000;border-radius:5px;overflow:hidden}.player-note{font-size:11px;color:#8998ad;line-height:1.8;margin-top:17px}.player-error{padding:40px;text-align:center;color:#aab6c8}.player-error strong{display:block;color:#f2aa72;margin-bottom:8px}
-</style></head><body><header class="player-top"><a class="brand" href="./"><span class="brand-mark">R</span><span>RETRO<span class="brand-light">ARCHIVE</span></span></a><a class="back" href="./#library">← BACK TO LIBRARY</a></header><main class="player-main"><div class="player-heading"><div><div class="eyebrow">NOW PLAYING</div><h1 id="game-title">Loading game…</h1><p id="game-platform">Browser game player</p></div></div><div class="screen-shell"><div class="screen" id="dos"><div class="player-error">Preparing the game player…</div></div></div><p class="player-note">Tip: click inside the game screen to capture keyboard input. Press Esc or use your browser controls to leave full-screen mode. Game files are loaded from this site's <code>games/</code> folder.</p></main>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Player — Retro Archive</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+<style>
+body{min-height:100vh}.player-top{height:70px;padding:0 4vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff18}.back{color:#f2aa72;font-size:12px}.player-main{max-width:1200px;margin:35px auto;padding:0 22px}.player-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}.player-heading h1{font:700 27px "Space Grotesk";margin:8px 0}.player-heading p{color:#8f9db1;font-size:12px;margin:0}.screen-shell{background:#05080e;border:1px solid #ffffff20;border-radius:10px;padding:12px;box-shadow:0 20px 60px #0006}.screen{height:min(68vh,680px);min-height:360px;width:100%;background:#000;border-radius:5px;overflow:hidden}.player-message{padding:40px 24px;text-align:center;color:#aab6c8;line-height:1.8}.player-message strong{display:block;color:#f2aa72;margin-bottom:8px;font-size:15px}.player-note{font-size:11px;color:#8998ad;line-height:1.8;margin-top:17px}.player-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.player-actions a{color:#f2aa72;font-size:12px}.player-note code{color:#e8b38d}
+</style>
+</head>
+<body>
+<header class="player-top"><a class="brand" href="./"><span class="brand-mark">R</span><span>RETRO<span class="brand-light">ARCHIVE</span></span></a><a class="back" href="./#library">← BACK TO LIBRARY</a></header>
+<main class="player-main">
+  <div class="player-heading"><div><div class="eyebrow">NOW PLAYING</div><h1 id="game-title">Loading game…</h1><p id="game-platform">Browser game player</p></div></div>
+  <div class="screen-shell"><div class="screen" id="dos"><div class="player-message">Preparing the game player…</div></div></div>
+  <div class="player-actions"><a href="./#library">← Return to game library</a></div>
+  <p class="player-note">Tip: click inside the game screen to use the keyboard. Press Esc or use your browser controls to leave full-screen mode. Game bundles are loaded from this site's <code>games/</code> folder. Windows 95/98 entries require a bundle that already contains a compatible Windows 9x environment.</p>
+</main>
 <script>
-(async()=>{const id=new URLSearchParams(location.search).get("game");const title=document.querySelector("#game-title"),platform=document.querySelector("#game-platform"),host=document.querySelector("#dos");try{const r=await fetch("games/games.json");const games=await r.json();const g=games.find(x=>x.id===id);if(!g||!g.bundle)throw new Error("This game has not been configured yet.");title.textContent=g.title;platform.textContent=({dos:"MS-DOS",win95:"Windows 95",win98:"Windows 98"}[g.platform]||g.platform)+" · "+(g.year||"");const css=document.createElement("link");css.rel="stylesheet";css.href="https://v8.js-dos.com/latest/js-dos.css";document.head.appendChild(css);const s=document.createElement("script");s.src="https://v8.js-dos.com/latest/js-dos.js";s.onload=()=>{host.innerHTML="";Dos(host,{url:g.bundle});};s.onerror=()=>{host.innerHTML='<div class="player-error"><strong>Player library could not load</strong>Check your internet connection and try again.</div>'};document.head.appendChild(s)}catch(e){host.innerHTML='<div class="player-error"><strong>Game is not ready yet</strong>'+e.message+'</div>';title.textContent="Game unavailable"}})();
-</script></body></html>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("game");
+  const title = document.querySelector("#game-title");
+  const platform = document.querySelector("#game-platform");
+  const host = document.querySelector("#dos");
+  const labels = { dos: "MS-DOS", win95: "Windows 95", win98: "Windows 98" };
+  const showMessage = (heading, message) => {
+    host.innerHTML = "";
+    const box = document.createElement("div");
+    box.className = "player-message";
+    const strong = document.createElement("strong");
+    strong.textContent = heading;
+    const detail = document.createElement("div");
+    detail.textContent = message;
+    box.append(strong, detail);
+    host.append(box);
+  };
+
+  try {
+    if (!id) throw new Error("No game was selected. Return to the library and choose a game.");
+    const response = await fetch("games/games.json");
+    if (!response.ok) throw new Error("The game catalog could not be loaded.");
+    const games = await response.json();
+    const game = games.find(item => String(item.id) === id);
+    if (!game || !game.bundle) throw new Error("This game does not have a playable bundle yet.");
+    if (!["dos", "win95", "win98"].includes(game.platform)) throw new Error("This platform is not configured for this player.");
+
+    title.textContent = game.title || "Untitled game";
+    platform.textContent = `${labels[game.platform]} · ${game.year || "Year unknown"}`;
+
+    const bundlePath = String(game.bundle).trim();
+    if (/^(?:[a-z]+:|\/|\\)|\.\.(?:\/|\\)/i.test(bundlePath)) {
+      throw new Error("The bundle path must point to a file inside the site's games folder.");
+    }
+
+    if (!window.Dos) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://v8.js-dos.com/latest/js-dos.js";
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("The js-dos player library could not be loaded. Check your internet connection."));
+        document.head.appendChild(script);
+      });
+    }
+
+    host.innerHTML = "";
+    const options = {
+      url: bundlePath,
+      theme: "dark",
+      autoStart: true,
+      imageRendering: "pixelated",
+      renderAspect: "Fit",
+      backend: game.platform === "dos" ? "dosbox" : "dosboxX"
+    };
+    window.Dos(host, options);
+  } catch (error) {
+    title.textContent = "Game unavailable";
+    showMessage("Unable to start this game", error && error.message ? error.message : "An unexpected error occurred.");
+  }
+})();
+</script>
+</body></html>
