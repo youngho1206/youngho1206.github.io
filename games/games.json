@@ -1,0 +1,40 @@
+[
+  {
+    "id": "game",
+    "title": "파이팅 에이스맨",
+    "platform": "win95",
+    "year": "1998",
+    "description": "일반게임회사의 직원이 히어로가 되는 꿈을 가지고 도시를 구하는 내용..",
+    "symbol": "95",
+    "color": "linear-gradient(135deg,#284a65,#17273e)",
+    "cover": "games/covers/game.jpg",
+    "files": [],
+    "bundle": "",
+    "externalUrl": "https://cyho21.dothome.co.kr/files.php?dl=82aa90afea&f=aceman.zip",
+    "externalFilename": "files.php",
+    "storageMode": "external-url"
+  },
+  {
+    "id": "game-2",
+    "title": "환세취호전",
+    "platform": "win95",
+    "year": "1998",
+    "description": "환세취호전",
+    "symbol": "95",
+    "color": "linear-gradient(135deg,#284a65,#17273e)",
+    "cover": "games/covers/game-2.jpg",
+    "files": [
+      "games/files/win95/game-2/GENSE.FLD",
+      "games/files/win95/game-2/HWANSE.EXE",
+      "games/files/win95/game-2/Hwanse2.Editor.EXE",
+      "games/files/win95/game-2/MIDDATA.MLK",
+      "games/files/win95/game-2/PCMDATA.WLK",
+      "games/files/win95/game-2/_HWANSE.exe",
+      "games/files/win95/game-2/SAVEDATA/savedat3.dat"
+    ],
+    "bundle": "",
+    "externalUrl": "",
+    "externalFilename": "",
+    "storageMode": "github"
+  }
+]
