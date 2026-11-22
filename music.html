@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<script src="noads.js"></script>
+<script src="saver.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050138">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/app-180.png">
+<title>게임음악 · 영호의 게임에뮬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{--cy:#35e6ff;--pk:#ff4fa8;--kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#050138}
+html,body{margin:0;min-height:100%;color:#fff;font-family:var(--kr)}
+body{min-height:100vh;min-height:100dvh;display:flex;justify-content:center;
+ background:transparent}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:#050138 url(menuicons/bg.jpg) center bottom/cover no-repeat}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;color:inherit}
+.wrap{width:100%;max-width:560px;padding:max(20px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px}
+.top{display:flex;align-items:center;gap:12px}
+.top a{flex:none;height:40px;padding:0 16px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;font:700 14px var(--kr);background:rgba(30,25,120,.5);border:1px solid rgba(120,140,255,.4)}
+.top a:hover{background:rgba(60,50,190,.6)}
+.top h1{margin:0;font:900 22px var(--kr);color:var(--cy);text-shadow:0 0 12px rgba(53,230,255,.5)}
+
+.player{padding:20px 18px 18px;border-radius:24px;background:rgba(14,10,80,.72);border:2px solid var(--cy);box-shadow:0 0 22px rgba(53,230,255,.4),inset 0 0 22px rgba(60,80,255,.25);display:flex;flex-direction:column;align-items:center;gap:14px}
+.art{width:min(52vw,190px);aspect-ratio:1;display:grid;place-items:center}
+.art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 14px rgba(70,130,255,.7))}
+.art.spin img{animation:bob 1.6s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-6px) rotate(2deg)}}
+.tt{max-width:100%;text-align:center;font:900 19px/1.4 var(--kr);word-break:keep-all;overflow-wrap:anywhere}
+.sub{margin-top:-8px;font:400 12.5px var(--kr);color:#a9b6ff}
+.seek{width:100%;display:flex;align-items:center;gap:10px;font:500 12px var(--kr);color:#c9d3ff;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--cy) var(--p,0%),#26307a var(--p,0%));outline:none;cursor:pointer;margin:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--cy);box-shadow:0 0 8px var(--cy)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--cy)}
+.ctl{display:flex;align-items:center;justify-content:center;gap:14px}
+.ctl button{appearance:none;border:0;cursor:pointer;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:rgba(40,50,160,.7);border:1px solid rgba(120,160,255,.5)}
+.ctl button:hover{background:rgba(70,90,230,.8)}
+.ctl button.on{background:linear-gradient(135deg,#ff6fb9,#c026d3);border-color:#ff9bd5}
+.ctl #bPlay{width:64px;height:64px;background:linear-gradient(135deg,#35e6ff,#3b6bff);border:0;box-shadow:0 0 18px rgba(53,230,255,.6)}
+.ctl svg{width:22px;height:22px;fill:#fff;stroke:none}
+.ctl #bPlay svg{width:28px;height:28px;fill:#04123a}
+.vol{display:flex;align-items:center;gap:10px;width:70%;max-width:260px;color:#c9d3ff;font-size:13px}
+.vol svg{width:20px;height:20px;fill:none;stroke:#c9d3ff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.lst{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lst li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;cursor:pointer;background:rgba(30,25,120,.35);border:1px solid rgba(120,140,255,.25);transition:background .15s}
+.lst li:hover{background:rgba(60,50,190,.45)}
+.lst li.on{background:linear-gradient(90deg,rgba(53,230,255,.22),rgba(224,64,251,.2));border-color:var(--cy);box-shadow:0 0 14px rgba(53,230,255,.35)}
+.lst .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 12.5px var(--kr);background:rgba(255,255,255,.12)}
+.lst li.on .n{background:var(--cy);color:#04123a}
+.lst .t{flex:1;min-width:0;font:500 14.5px/1.4 var(--kr);overflow-wrap:anywhere}
+.msg{padding:26px 10px;text-align:center;color:#a9b6ff;font:400 14px/1.7 var(--kr)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><a href="index.html?select=1">← 메인화면</a><h1>게임음악 듣기</h1></div>
+
+  <section class="player">
+    <div class="art" id="art"><img src="menuicons/music.png" alt=""></div>
+    <div class="tt" id="tt">음악을 불러오는 중…</div>
+    <div class="sub" id="sub"></div>
+    <div class="seek"><span id="cur">0:00</span><input type="range" id="sk" min="0" max="1000" value="0" aria-label="재생 위치"><span id="dur">0:00</span></div>
+    <div class="ctl">
+      <button type="button" id="bShuf" title="랜덤 재생" aria-label="랜덤 재생"><svg viewBox="0 0 24 24"><path d="M16 3h5v5l-2-2-4 4-1.500-1.500L17.500 5H16zM3 5h4l9 11h2l-2-2 1.500-1.500L21 17l-4.500 4.500L15 20l2-2h-3L5.500 7H3zM3 17h4l2-2.500L10.500 16 8 19H3z"/></svg></button>
+      <button type="button" id="bPrev" aria-label="이전 곡"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button type="button" id="bPlay" aria-label="재생"><svg viewBox="0 0 24 24" id="icPlay"><path d="M7 4v16l13-8z"/></svg></button>
+      <button type="button" id="bNext" aria-label="다음 곡"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/></svg></button>
+      <button type="button" id="bRep" title="반복 재생" aria-label="반복 재생"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zM17 17H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg></button>
+    </div>
+    <div class="vol"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16.500 8.500a5 5 0 0 1 0 7"/></svg><input type="range" id="vo" min="0" max="100" value="80" aria-label="볼륨"></div>
+  </section>
+
+  <ul class="lst" id="lst"></ul>
+</main>
+<audio id="au" preload="metadata"></audio>
+
+<script>
+(function(){
+ var $=function(s){return document.querySelector(s)},au=$('#au'),lst=$('#lst'),AUD=/\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|weba)$/i;
+ var T=[],cur=-1,shuf=false,rep=false,DIR='MP3/';
+ function title(n){return n.replace(AUD,'').replace(/_/g,' ')}
+ function fmt(s){if(!isFinite(s))return'0:00';s=Math.floor(s);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+ function fill(el){el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%')}
+ function draw(){
+  lst.innerHTML='';
+  if(!T.length){var m=document.createElement('li');m.className='msg';m.style.cursor='default';m.style.display='block';m.textContent='MP3 폴더에 등록된 음악이 없습니다.';lst.appendChild(m);$('#tt').textContent='등록된 음악이 없습니다';return}
+  T.forEach(function(t,i){
+   var li=document.createElement('li');li.dataset.i=i;
+   li.innerHTML='<span class="n">'+(i+1)+'</span><span class="t"></span>';
+   li.querySelector('.t').textContent=t.title;
+   li.onclick=function(){play(i)};
+   lst.appendChild(li);
+  });
+  $('#tt').textContent='곡을 선택하세요';$('#sub').textContent='총 '+T.length+'곡';
+ }
+ function mark(){lst.querySelectorAll('li').forEach(function(li){li.classList.toggle('on',+li.dataset.i===cur)})}
+ function play(i){
+  if(!T[i])return;cur=i;au.src=T[i].url;
+  $('#tt').textContent=T[i].title;$('#sub').textContent=(i+1)+' / '+T.length;mark();
+  var p=au.play();if(p&&p.catch)p.catch(function(){});
+ }
+ function next(dir){
+  if(!T.length)return;
+  var i;
+  if(shuf&&T.length>1){do{i=Math.floor(Math.random()*T.length)}while(i===cur)}
+  else i=(cur+dir+T.length)%T.length;
+  play(i);
+ }
+ $('#bPlay').onclick=function(){
+  if(!T.length)return;
+  if(cur<0)return play(0);
+  if(au.paused){var p=au.play();if(p&&p.catch)p.catch(function(){})}else au.pause();
+ };
+ $('#bNext').onclick=function(){next(1)};
+ $('#bPrev').onclick=function(){if(au.currentTime>3)au.currentTime=0;else next(-1)};
+ $('#bShuf').onclick=function(){shuf=!shuf;this.classList.toggle('on',shuf)};
+ $('#bRep').onclick=function(){rep=!rep;this.classList.toggle('on',rep)};
+ au.addEventListener('play',function(){$('#icPlay').innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';$('#art').classList.add('spin')});
+ au.addEventListener('pause',function(){$('#icPlay').innerHTML='<path d="M7 4v16l13-8z"/>';$('#art').classList.remove('spin')});
+ au.addEventListener('ended',function(){if(rep&&!shuf)next(1);else if(rep||cur<T.length-1||shuf)next(1);else au.currentTime=0});
+ au.addEventListener('loadedmetadata',function(){$('#dur').textContent=fmt(au.duration)});
+ au.addEventListener('timeupdate',function(){
+  $('#cur').textContent=fmt(au.currentTime);
+  if(au.duration){var s=$('#sk');s.value=au.currentTime/au.duration*1000;fill(s)}
+ });
+ au.addEventListener('error',function(){if(cur>=0)$('#sub').textContent='이 곡을 재생할 수 없습니다.'});
+ $('#sk').addEventListener('input',function(){fill(this);if(au.duration)au.currentTime=this.value/1000*au.duration});
+ $('#vo').addEventListener('input',function(){au.volume=this.value/100;fill(this)});
+ au.volume=.8;fill($('#vo'));fill($('#sk'));
+
+ /* MP3 폴더 읽기: list.php(PHP 호스팅) → playlist.json 순서로 시도합니다. */
+ function mk(name,url){return{name:name,title:title(name),url:url}}
+ function load(){
+  return fetch(DIR+'list.php',{cache:'no-store'}).then(function(r){
+   if(!r.ok)throw 0;return r.json();
+  }).then(function(j){
+   if(!Array.isArray(j)||!j.length)throw 0;
+   return j.map(function(x){return typeof x==='string'?mk(x,DIR+encodeURIComponent(x)):mk(x.n,DIR+x.u)}).filter(function(x){return AUD.test(x.name)});
+  }).catch(function(){
+   return fetch(DIR+'playlist.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+    return (Array.isArray(j)?j:[]).map(function(x){return typeof x==='string'?mk(x,DIR+encodeURIComponent(x)):mk(x.name||x.n,DIR+(x.url||encodeURIComponent(x.name||x.n)))}).filter(function(x){return AUD.test(x.name)});
+   });
+  });
+ }
+ load().then(function(l){T=l}).catch(function(){T=[]}).then(draw);
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+/* =====================================================================
+   cutegame.css — 2D 모바일 게임 느낌의 깔끔하고 귀여운 스타일
+   · index.html · mobile.html · emulator.html 의 <head> 맨 끝에서 불러옵니다.
+   · 되돌리려면 각 HTML 의 <link ... cutegame.css> 한 줄만 지우면 됩니다.
+   · 색은 :root 의 --cg-* 값만 바꾸면 한 번에 바뀝니다.
+   · 성능(perf.css) 을 위해 blur · 무한 애니메이션 없이 그림자와 테두리로만 그렸습니다.
+   ===================================================================== */
+:root{
+ --cg-ink:#35224f;--cg-ink2:#4a2f66;--cg-soft:#8a6a9c;
+ --cg-cream:#fff7e6;--cg-cream2:#ffe9c4;
+ --cg-coral:#ff6f83;--cg-coral-d:#c9364f;
+ --cg-mint:#3fd3a0;--cg-mint-d:#1f9a73;
+ --cg-sky:#4db3ff;--cg-sky-d:#2377c9;
+ --cg-sun:#ffd23f;--cg-sun-d:#d99a0b;
+ --cg-grape:#a885ff;--cg-grape-d:#6c4bc4;
+ --cg-peach:#ff9d4d;--cg-peach-d:#c9651a;
+ --cg-font:"Jua","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+ /* 글자 테두리(스티커 글자) */
+ --cg-ol:1.6px 0.0px 0 var(--cg-ink),1.4px 0.8px 0 var(--cg-ink),0.8px 1.4px 0 var(--cg-ink),0.0px 1.6px 0 var(--cg-ink),-0.8px 1.4px 0 var(--cg-ink),-1.4px 0.8px 0 var(--cg-ink),-1.6px 0.0px 0 var(--cg-ink),-1.4px -0.8px 0 var(--cg-ink),-0.8px -1.4px 0 var(--cg-ink),-0.0px -1.6px 0 var(--cg-ink),0.8px -1.4px 0 var(--cg-ink),1.4px -0.8px 0 var(--cg-ink),0 3px 0 var(--cg-ink);
+ --cg-ol-sm:1.0px 0.0px 0 var(--cg-ink),0.7px 0.7px 0 var(--cg-ink),0.0px 1.0px 0 var(--cg-ink),-0.7px 0.7px 0 var(--cg-ink),-1.0px 0.0px 0 var(--cg-ink),-0.7px -0.7px 0 var(--cg-ink),-0.0px -1.0px 0 var(--cg-ink),0.7px -0.7px 0 var(--cg-ink),0 2px 0 var(--cg-ink);
+ --cg-ol-big:3.0px 0.0px 0 var(--cg-ink),2.8px 1.1px 0 var(--cg-ink),2.1px 2.1px 0 var(--cg-ink),1.1px 2.8px 0 var(--cg-ink),0.0px 3.0px 0 var(--cg-ink),-1.1px 2.8px 0 var(--cg-ink),-2.1px 2.1px 0 var(--cg-ink),-2.8px 1.1px 0 var(--cg-ink),-3.0px 0.0px 0 var(--cg-ink),-2.8px -1.1px 0 var(--cg-ink),-2.1px -2.1px 0 var(--cg-ink),-1.1px -2.8px 0 var(--cg-ink),-0.0px -3.0px 0 var(--cg-ink),1.1px -2.8px 0 var(--cg-ink),2.1px -2.1px 0 var(--cg-ink),2.8px -1.1px 0 var(--cg-ink),5.5px 0.0px 0 #fff7e6,5.2px 1.7px 0 #fff7e6,4.4px 3.2px 0 #fff7e6,3.2px 4.4px 0 #fff7e6,1.7px 5.2px 0 #fff7e6,0.0px 5.5px 0 #fff7e6,-1.7px 5.2px 0 #fff7e6,-3.2px 4.4px 0 #fff7e6,-4.4px 3.2px 0 #fff7e6,-5.2px 1.7px 0 #fff7e6,-5.5px 0.0px 0 #fff7e6,-5.2px -1.7px 0 #fff7e6,-4.4px -3.2px 0 #fff7e6,-3.2px -4.4px 0 #fff7e6,-1.7px -5.2px 0 #fff7e6,-0.0px -5.5px 0 #fff7e6,1.7px -5.2px 0 #fff7e6,3.2px -4.4px 0 #fff7e6,4.4px -3.2px 0 #fff7e6,5.2px -1.7px 0 #fff7e6,0 8px 0 var(--cg-ink),0 14px 18px rgba(10,6,40,.35);
+}
+@keyframes cgPop{from{opacity:0;transform:scale(.7) rotate(-5deg)}60%{transform:scale(1.05) rotate(-1deg)}to{opacity:1;transform:scale(1) rotate(-1.2deg)}}
+@keyframes cgPopFlat{from{opacity:0;transform:scale(.7)}60%{transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+
+/* ─────────────────────────────────────────────────────────────
+   index.html  ·  접속 선택 화면
+   ───────────────────────────────────────────────────────────── */
+:root[data-cg="index"]:not(#cg) .eyebrow{display:inline-block;padding:6px 18px 7px;border-radius:99px;background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink);text-shadow:none;font:400 clamp(13px,1.8vw,16px) var(--cg-font);letter-spacing:.03em}
+:root[data-cg="index"]:not(#cg) h1{color:#fff;text-shadow:var(--cg-ol-big);transform:rotate(-1.2deg);animation:cgPop .7s cubic-bezier(.2,1.4,.4,1) both;letter-spacing:.02em}
+:root[data-cg="index"]:not(#cg) .sub{position:relative;max-width:640px;padding:13px 22px 14px;border-radius:24px;background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 5px 0 var(--cg-ink);text-shadow:none;margin-top:6px}
+:root[data-cg="index"]:not(#cg) .sub:before{content:"";position:absolute;top:-10px;left:50%;width:16px;height:16px;background:var(--cg-cream);border-left:3px solid var(--cg-ink);border-top:3px solid var(--cg-ink);transform:translateX(-50%) rotate(45deg);border-radius:4px 0 0 0}
+:root[data-cg="index"]:not(#cg) .sub b{color:#d23a56;font-weight:700}
+:root[data-cg="index"]:not(#cg) .visit{padding:6px 20px 7px;background:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink),inset 0 2px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:none;backdrop-filter:none;color:#f3e8ff}
+:root[data-cg="index"]:not(#cg) .visit b{color:var(--cg-sun);text-shadow:0 2px 0 var(--cg-ink)}
+:root[data-cg="index"]:not(#cg) .visit u{background:rgba(255,255,255,.25)}
+:root[data-cg="index"]:not(#cg) .visit span:before{content:"";display:inline-block;width:14px;height:14px;margin-right:7px;vertical-align:-2px;border-radius:50%;border:2px solid #8a5a0a;background:radial-gradient(circle at 35% 30%,#fff3a8,var(--cg-sun) 55%,var(--cg-sun-d))}
+:root[data-cg="index"]:not(#cg) .visit span+u+span:before{border-color:#14705a;background:radial-gradient(circle at 35% 30%,#c9ffe9,var(--cg-mint) 55%,var(--cg-mint-d))}
+
+/* 버튼 : 두툼한 테두리 + 아래쪽 턱 + 윗면 반짝임 */
+:root[data-cg="index"]:not(#cg) .btn{--c:var(--cg-sky);--cd:var(--cg-sky-d);height:44px;border:3px solid var(--cg-ink);color:#fff;text-shadow:var(--cg-ol-sm);
+ background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--c);
+ box-shadow:0 5px 0 var(--cg-ink),inset 0 -5px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.55);font:400 clamp(13px,1.4vw,15.5px) var(--cg-font);letter-spacing:.02em;transition:transform .12s,box-shadow .12s,filter .15s}
+:root[data-cg="index"]:not(#cg) .btn.y{--c:var(--cg-mint);--cd:var(--cg-mint-d);color:#fff}
+:root[data-cg="index"]:not(#cg) .btn.r{--c:var(--cg-peach);--cd:var(--cg-peach-d);color:#fff}
+:root[data-cg="index"]:not(#cg) .btn.fill{--c:var(--cg-coral);--cd:var(--cg-coral-d);color:#fff;text-shadow:var(--cg-ol-sm);border-color:var(--cg-ink)}
+:root[data-cg="index"]:not(#cg) .btn:hover{transform:translateY(-2px);filter:brightness(1.06);background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--c);box-shadow:0 7px 0 var(--cg-ink),inset 0 -5px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.55)}
+:root[data-cg="index"]:not(#cg) .btn.fill:hover{background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--c)}
+:root[data-cg="index"]:not(#cg) .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--cg-ink),inset 0 -3px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.55)}
+:root[data-cg="index"]:not(#cg) .btn .dot{background:var(--cg-coral);border:3px solid var(--cg-ink);width:14px;height:14px;top:-6px;right:-4px}
+
+/* 카드 : 게임 메뉴 카드 */
+:root[data-cg="index"]:not(#cg) #cm{--col:var(--cg-coral);--cd:var(--cg-coral-d)}
+:root[data-cg="index"]:not(#cg) #cold{--col:var(--cg-sky);--cd:var(--cg-sky-d)}
+:root[data-cg="index"]:not(#cg) #cd{--col:var(--cg-mint);--cd:var(--cg-mint-d)}
+:root[data-cg="index"]:not(#cg) #cp{--col:var(--cg-peach);--cd:var(--cg-peach-d)}
+:root[data-cg="index"]:not(#cg) #cv{--col:var(--cg-grape);--cd:var(--cg-grape-d)}
+:root[data-cg="index"]:not(#cg) .card{border:4px solid var(--cg-ink);border-radius:30px;background:linear-gradient(180deg,#fffaf0,var(--cg-cream2));
+ box-shadow:0 8px 0 var(--cg-ink),0 16px 26px rgba(10,6,40,.32);transition:transform .14s,box-shadow .14s}
+:root[data-cg="index"]:not(#cg) .card:before{display:none}
+:root[data-cg="index"]:not(#cg) .card:hover{transform:translateY(-4px);box-shadow:0 12px 0 var(--cg-ink),0 22px 30px rgba(10,6,40,.34)}
+:root[data-cg="index"]:not(#cg) .card:active{transform:translateY(6px);box-shadow:0 2px 0 var(--cg-ink),0 6px 12px rgba(10,6,40,.3)}
+:root[data-cg="index"]:not(#cg) .card svg{box-sizing:border-box;padding:clamp(10px,1.7vw,18px);border:4px solid var(--cg-ink);border-radius:28%;stroke:#fff;stroke-width:3.2;
+ background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--col);
+ box-shadow:0 5px 0 var(--cg-ink),inset 0 -5px 0 var(--cd);margin-bottom:clamp(6px,1.2vw,14px)}
+:root[data-cg="index"]:not(#cg) .card b{color:var(--cg-ink2)}
+:root[data-cg="index"]:not(#cg) .card span{color:var(--cg-soft)}
+/* 카드 위 이름표 */
+:root[data-cg="index"]:not(#cg) .card .tg{left:20px;top:-15px;font-size:0;letter-spacing:0;padding:0}
+:root[data-cg="index"]:not(#cg) .card .tg:after{display:block;padding:3px 14px 5px;border:3px solid var(--cg-ink);border-radius:12px;background:var(--col);color:#fff;text-shadow:var(--cg-ol-sm);box-shadow:0 3px 0 var(--cg-ink);font:400 14px/1.2 var(--cg-font);letter-spacing:.02em;transform:rotate(-2deg)}
+:root[data-cg="index"]:not(#cg) #cm .tg:after{content:"모바일"}
+:root[data-cg="index"]:not(#cg) #cold .tg:after{content:"PC · 태블릿"}
+:root[data-cg="index"]:not(#cg) #cd .tg:after{content:"데스크탑"}
+:root[data-cg="index"]:not(#cg) #cp .tg:after{content:"태블릿"}
+:root[data-cg="index"]:not(#cg) #cv .tg:after{content:"게임 영상"}
+:root[data-cg="index"]:not(#cg) .card .rec{right:-8px;top:-14px;padding:3px 13px 4px;border:3px solid var(--cg-ink);background:var(--cg-sun);color:var(--cg-ink);text-shadow:none;box-shadow:0 3px 0 var(--cg-ink);transform:rotate(7deg);font-size:13px}
+
+/* 아래쪽 */
+:root[data-cg="index"]:not(#cg) .keep{text-shadow:var(--cg-ol-sm);color:#fff;font-size:15px}
+:root[data-cg="index"]:not(#cg) .keep input{-webkit-appearance:none;appearance:none;flex:none;width:26px;height:26px;margin:0;border:3px solid var(--cg-ink);border-radius:9px;background:var(--cg-cream);box-shadow:0 3px 0 var(--cg-ink);cursor:pointer}
+:root[data-cg="index"]:not(#cg) .keep input:checked{background:var(--cg-mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/78% no-repeat}
+:root[data-cg="index"]:not(#cg) .legacy{padding:7px 18px 8px;border:3px solid var(--cg-ink);border-radius:99px;background:var(--cg-cream);color:var(--cg-ink2);text-shadow:none;box-shadow:0 4px 0 var(--cg-ink);font-size:14px;letter-spacing:.02em}
+:root[data-cg="index"]:not(#cg) .legacy:hover{background:#fff;color:var(--cg-ink)}
+
+/* 설명창 · 공지 */
+:root[data-cg="index"]:not(#cg) #sh .sheet{background:var(--cg-cream);color:var(--cg-ink2);border:4px solid var(--cg-ink);border-radius:30px;box-shadow:0 8px 0 var(--cg-ink),0 26px 50px rgba(10,6,40,.5)}
+:root[data-cg="index"]:not(#cg) .sh-h{background:linear-gradient(rgba(255,255,255,.28),rgba(255,255,255,.28)) top/100% 46% no-repeat,var(--cg-coral);border-bottom:4px solid var(--cg-ink);border-radius:25px 25px 0 0;padding:14px 18px 14px 24px}
+:root[data-cg="index"]:not(#cg) .sh-h b{color:#fff;text-shadow:var(--cg-ol)}
+:root[data-cg="index"]:not(#cg) .sh-h button{background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 3px 0 var(--cg-ink);padding:5px 14px}
+:root[data-cg="index"]:not(#cg) .sh-s{color:var(--cg-soft)}
+:root[data-cg="index"]:not(#cg) .gc{border:3px solid var(--cg-ink);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--cg-ink);color:var(--cg-ink2)}
+:root[data-cg="index"]:not(#cg) .gc h3{color:var(--cg-coral-d)}
+:root[data-cg="index"]:not(#cg) .gc li:before{background:var(--cg-sun);color:var(--cg-ink);border:3px solid var(--cg-ink);width:30px;height:30px;line-height:24px;box-shadow:none}
+:root[data-cg="index"]:not(#cg) .gc li+li{border-top-color:rgba(53,34,79,.22)}
+:root[data-cg="index"]:not(#cg) .ne-edit{background:var(--cg-sky);border:3px solid var(--cg-ink);box-shadow:0 3px 0 var(--cg-ink)}
+:root[data-cg="index"]:not(#cg) .ne-ta,
+:root[data-cg="index"]:not(#cg) .ne-in{border:3px solid var(--cg-ink);border-radius:14px}
+:root[data-cg="index"]:not(#cg) .ne-b{border:3px solid var(--cg-ink);box-shadow:0 3px 0 var(--cg-ink);background:var(--cg-cream2)}
+:root[data-cg="index"]:not(#cg) .ne-b.ok{background:var(--cg-mint);color:#fff;text-shadow:var(--cg-ol-sm)}
+:root[data-cg="index"]:not(#cg) #guideOv .gv{border:4px solid var(--cg-ink);border-radius:26px;box-shadow:0 8px 0 var(--cg-ink),0 24px 50px rgba(10,6,40,.5)}
+:root[data-cg="index"]:not(#cg) #guideOv .gv-f{background:var(--cg-cream);border-top:4px solid var(--cg-ink)}
+:root[data-cg="index"]:not(#cg) #guideOv .gv-close{background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32)) top/100% 46% no-repeat,var(--cg-coral);color:#fff;text-shadow:var(--cg-ol-sm);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-coral-d)}
+:root[data-cg="index"]:not(#cg) #instBn{background:var(--cg-cream);border:3px solid var(--cg-ink);box-shadow:0 6px 0 var(--cg-ink),0 14px 28px rgba(10,6,40,.4)}
+:root[data-cg="index"]:not(#cg) #instBn img{border:3px solid var(--cg-ink);border-radius:14px}
+:root[data-cg="index"]:not(#cg) #instBn .ib-t b{color:var(--cg-coral-d)}
+:root[data-cg="index"]:not(#cg) #instBn .ib-t span{color:var(--cg-soft)}
+:root[data-cg="index"]:not(#cg) #instGo{background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32)) top/100% 46% no-repeat,var(--cg-mint);color:#fff;text-shadow:var(--cg-ol-sm);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-mint-d)}
+:root[data-cg="index"]:not(#cg) #instGo:active{transform:translateY(3px);box-shadow:0 1px 0 var(--cg-ink),inset 0 -3px 0 var(--cg-mint-d)}
+@media (max-width:600px){
+
+ :root[data-cg="index"]:not(#cg) .card svg{padding:9px;border-width:3px;border-radius:24%}
+ :root[data-cg="index"]:not(#cg) .card{border-width:3px;box-shadow:0 6px 0 var(--cg-ink),0 12px 20px rgba(10,6,40,.3)}
+
+}
+
+/* ─────────────────────────────────────────────────────────────
+   mobile.html  ·  게임기 목록 + 실행 화면 (기본 테마일 때 적용)
+   ───────────────────────────────────────────────────────────── */
+:root.xmas[data-cg="mobile"]:not(#cg){--bg:#2a1b49;--fg:#fff7ec;--mut:#e6d8f0;--acc:var(--cg-sun);--acc2:#fff2b5;--line:rgba(255,255,255,.4);--serif:var(--cg-font);
+ --mm-fg:var(--cg-ink2);--mm-mut:var(--cg-soft);--mm-line:rgba(53,34,79,.28);font-synthesis:none}
+:root.xmas[data-cg="mobile"]:not(#cg) header{padding-top:clamp(40px,8vw,80px)}
+:root.xmas[data-cg="mobile"]:not(#cg) .eyebrow{display:inline-block;padding:6px 18px 7px;border-radius:99px;background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink);letter-spacing:.03em;text-transform:none;font:400 clamp(13px,2vw,15px) var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) h1{font-family:var(--cg-font);font-weight:400;letter-spacing:.02em;word-break:keep-all;text-wrap:balance;background:none;color:#fff;-webkit-text-fill-color:#fff;text-shadow:var(--cg-ol-big);margin-top:18px;transform:rotate(-1.2deg)}
+:root.xmas[data-cg="mobile"]:not(#cg) .orn{font-size:0;max-width:none;height:20px;gap:0;margin-top:16px}
+:root.xmas[data-cg="mobile"]:not(#cg) .orn:before{content:"";flex:none;width:92px;height:14px;background:radial-gradient(circle 6px at 7px 7px,var(--cg-coral) 94%,transparent) 0 0/32px 14px repeat-x,transparent;
+ background:radial-gradient(circle at 7px 7px,var(--cg-coral) 4.5px,var(--cg-ink) 4.7px 6.4px,transparent 6.6px) 0 0/30px 14px repeat-x;transform:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .orn:after{display:none}
+:root.xmas[data-cg="mobile"]:not(#cg) header p{display:inline-block;position:relative;max-width:min(92%,560px);margin:20px auto 0;padding:12px 20px 13px;border-radius:22px;background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 5px 0 var(--cg-ink);font-weight:400;letter-spacing:.01em;line-height:1.55;text-shadow:none;word-break:keep-all}
+:root.xmas[data-cg="mobile"]:not(#cg) header p:before{content:"";position:absolute;top:-10px;left:50%;width:16px;height:16px;background:var(--cg-cream);border-left:3px solid var(--cg-ink);border-top:3px solid var(--cg-ink);transform:translateX(-50%) rotate(45deg);border-radius:4px 0 0 0}
+
+/* 기종 탭 */
+:root.xmas[data-cg="mobile"]:not(#cg) .tabs{padding:5px;gap:4px;border:3px solid var(--cg-ink);background:var(--cg-cream);box-shadow:0 5px 0 var(--cg-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .tabs button{border:3px solid transparent;color:var(--cg-ink2);font:400 14px var(--cg-font);letter-spacing:.02em;padding:7px clamp(12px,3vw,20px)}
+:root.xmas[data-cg="mobile"]:not(#cg) .tabs button:hover{color:var(--cg-ink);background:rgba(255,210,63,.35)}
+:root.xmas[data-cg="mobile"]:not(#cg) .tabs button.on{color:#fff;text-shadow:var(--cg-ol-sm);border-color:var(--cg-ink);background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--cg-coral);box-shadow:0 3px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-coral-d)}
+
+/* 게임기 카드 : 아이템 슬롯 */
+:root.xmas[data-cg="mobile"]:not(#cg) .app{--rim:var(--cg-coral);border:3px solid var(--cg-ink);border-radius:26px;color:var(--cg-ink2);
+ background:linear-gradient(var(--rim) 0 9px,transparent 9px),linear-gradient(180deg,#fffaf0,var(--cg-cream2));
+ box-shadow:0 6px 0 var(--cg-ink),0 12px 18px rgba(10,6,40,.25);-webkit-backdrop-filter:none;backdrop-filter:none;padding-top:clamp(18px,2.6vw,26px)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:nth-child(6n+2){--rim:var(--cg-sky)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:nth-child(6n+3){--rim:var(--cg-mint)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:nth-child(6n+4){--rim:var(--cg-sun)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:nth-child(6n+5){--rim:var(--cg-grape)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:nth-child(6n+6){--rim:var(--cg-peach)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:hover{border-color:var(--cg-ink);box-shadow:0 9px 0 var(--cg-ink),0 16px 22px rgba(10,6,40,.28);transform:translateY(-3px)!important}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:active{transform:translateY(5px)!important;box-shadow:0 1px 0 var(--cg-ink)!important}
+:root.xmas[data-cg="mobile"]:not(#cg) .app:hover .ico{transform:scale(1.07) rotate(-2deg)}
+:root.xmas[data-cg="mobile"]:not(#cg) .app b{margin-top:12px;font:400 clamp(14px,2vw,16px) var(--cg-font);letter-spacing:.01em;color:var(--cg-ink2);text-shadow:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .app small{display:inline-block;margin-top:7px;padding:2px 11px 3px;border:2px solid var(--cg-ink);border-radius:99px;background:var(--rim);color:#fff;font:400 12px var(--cg-font);font-style:normal;letter-spacing:.03em;text-shadow:var(--cg-ol-sm)}
+:root.xmas[data-cg="mobile"]:not(#cg) .st{color:var(--cg-soft);font-family:var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .pb{height:10px;border:2px solid var(--cg-ink);background:#fff;border-radius:99px}
+:root.xmas[data-cg="mobile"]:not(#cg) .pb i{background:linear-gradient(90deg,var(--cg-mint),var(--cg-sun))}
+@media (hover:none){
+
+ :root.xmas[data-cg="mobile"]:not(#cg) .app:hover{box-shadow:0 6px 0 var(--cg-ink),0 12px 18px rgba(10,6,40,.25)!important;transform:none!important}
+
+}
+
+/* 구역 제목 : 리본 */
+:root.xmas[data-cg="mobile"]:not(#cg) .sec{display:table;margin:38px auto 24px;padding:8px 30px 10px;border:3px solid var(--cg-ink);border-radius:26px;color:#fff;text-shadow:var(--cg-ol);letter-spacing:.04em;font:400 clamp(20px,3.4vw,28px) var(--cg-font);
+ background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-sky);box-shadow:0 5px 0 var(--cg-ink),inset 0 -5px 0 var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .sec:nth-of-type(2){background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-mint);box-shadow:0 5px 0 var(--cg-ink),inset 0 -5px 0 var(--cg-mint-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .sec small{margin-top:3px;font:400 12px var(--cg-font);letter-spacing:.06em;color:#fff7c2;text-transform:none;text-shadow:var(--cg-ol-sm)}
+:root.xmas[data-cg="mobile"]:not(#cg) footer{color:#f0e4fa;border-top:3px dotted rgba(255,255,255,.4);font-weight:400;text-shadow:0 1px 6px rgba(10,6,40,.6)}
+
+/* 검색 · 상단 · 하단 바 (유리 → 크림 패널) */
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-glass{background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);-webkit-backdrop-filter:none;backdrop-filter:none;
+ box-shadow:0 5px 0 var(--cg-ink),0 12px 22px rgba(10,6,40,.32);font-family:var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-top{border-radius:22px;padding:6px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-clock{background:var(--cg-ink2);border:2px solid var(--cg-ink);color:#fff;border-radius:14px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-clock b{color:var(--cg-sun);font-family:var(--cg-font);font-weight:400}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-clock span{font-family:var(--cg-font);font-weight:400;font-size:15px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sf input{background:#fff;color:var(--cg-ink);border:3px solid var(--cg-ink);border-radius:14px;font-family:var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sf input::placeholder{color:var(--cg-soft)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sf input:focus{border-color:var(--cg-sky-d);box-shadow:0 0 0 3px rgba(77,179,255,.35)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sf .mm-x{background:var(--cg-cream2);color:var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-go{border:3px solid var(--cg-ink);border-radius:14px;color:#fff;text-shadow:var(--cg-ol-sm);font:400 14px var(--cg-font);
+ background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32)) top/100% 46% no-repeat,var(--cg-coral);box-shadow:0 3px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-go:active{transform:translateY(3px);box-shadow:0 0 0 var(--cg-ink),inset 0 -3px 0 var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res{border-radius:22px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res .it.on,
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res .it:active{background:rgba(255,210,63,.4);box-shadow:inset 0 0 0 2px var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res .nm{font-family:var(--cg-font);font-weight:400;font-size:15px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res .nm mark{color:var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-res .tg{border:2px solid var(--cg-ink);background:var(--cg-sky);color:#fff;text-shadow:var(--cg-ol-sm);font-family:var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-bot{border-radius:26px;padding:6px;gap:5px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tab{border:3px solid transparent;border-radius:18px;color:var(--cg-soft);font:400 12px/1 var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tab svg{stroke-width:2.4}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tab.on{color:#fff;text-shadow:var(--cg-ol-sm);border-color:var(--cg-ink);
+ background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--cg-coral);box-shadow:0 3px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tab.on:after{display:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tab.on svg{filter:drop-shadow(0 1.5px 0 var(--cg-ink))}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-back{background:rgba(24,12,48,.5);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sheet{border-radius:28px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-sh h2{font:400 22px var(--cg-font);color:var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-close{border:3px solid var(--cg-ink);background:var(--cg-coral);color:#fff;box-shadow:0 3px 0 var(--cg-ink);line-height:26px;text-shadow:var(--cg-ol-sm)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tabs{border:3px solid var(--cg-ink);background:#fff;border-radius:18px;padding:4px;gap:4px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tabs button{border-radius:12px;color:var(--cg-ink2);font:400 14px var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tabs button.on{color:#fff;text-shadow:var(--cg-ol-sm);border:2px solid var(--cg-ink);background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--cg-sky);box-shadow:0 2px 0 var(--cg-ink),inset 0 -3px 0 var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-tabs button.on:after{display:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-bd h3{font:400 14px var(--cg-font);letter-spacing:.04em;color:var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-bd p.sub{color:var(--cg-soft)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ol li b{color:var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ol li:before{border:2px solid var(--cg-ink);background:var(--cg-sun);color:var(--cg-ink);box-shadow:none;border-radius:50%;font-family:var(--cg-font);font-weight:400}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-note{border:3px solid var(--cg-ink);background:#fff;color:var(--cg-ink2);border-radius:16px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-dl a,
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-bd a{color:var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-btn{height:46px;border:3px solid var(--cg-ink);border-radius:16px;background:#fff;color:var(--cg-ink);font:400 15px var(--cg-font);box-shadow:0 4px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-btn.pri{color:#fff;text-shadow:var(--cg-ol-sm);background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32)) top/100% 46% no-repeat,var(--cg-sky);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ck{border:3px solid var(--cg-ink);background:#fff;border-radius:9px}
+:root.xmas[data-cg="mobile"]:not(#cg) .on>.mm-ck,
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ck.on{border-color:var(--cg-ink);background:var(--cg-mint);box-shadow:none}
+:root.xmas[data-cg="mobile"]:not(#cg) .on>.mm-ck:after,
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ck.on:after{filter:none;left:6px;top:2px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-wall{border:3px solid var(--cg-ink);border-radius:18px;box-shadow:0 3px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-wall span{font-family:var(--cg-font);font-weight:400;font-size:12px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-wall.on{border-color:var(--cg-ink);box-shadow:0 0 0 3px var(--cg-sun),0 3px 0 3px var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-wall.on:after{background:var(--cg-mint);color:#fff;border:2px solid var(--cg-ink);border-radius:9px}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-wall.none{background:var(--cg-cream2);color:var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-row{border:3px solid var(--cg-ink);border-radius:18px;background:#fff;color:var(--cg-ink2);box-shadow:0 3px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-row:active{background:var(--cg-cream2)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-row.on{border-color:var(--cg-ink);background:#fff3b8;box-shadow:0 3px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-row .tx b{font:400 15px var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-row .tx small{color:var(--cg-soft)}
+:root.xmas[data-cg="mobile"]:not(#cg) .mm-ph{color:var(--cg-soft)}
+
+/* 게임 실행 화면 위 메뉴 */
+:root.xmas[data-cg="mobile"]:not(#cg) #bar,
+:root[data-cg="emu"]:not(#cg) #bar,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar,
+:root[data-cg="emu"]:not(#cg) #pbar{background:var(--cg-ink2);border-bottom:4px solid var(--cg-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) #bar .t,
+:root[data-cg="emu"]:not(#cg) #bar .t,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar .t,
+:root[data-cg="emu"]:not(#cg) #pbar .t{font:400 19px var(--cg-font);color:#fff;text-shadow:var(--cg-ol-sm);letter-spacing:.02em}
+:root.xmas[data-cg="mobile"]:not(#cg) #bar button,
+:root[data-cg="emu"]:not(#cg) #bar button,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar button,
+:root[data-cg="emu"]:not(#cg) #pbar button{border:3px solid var(--cg-ink);background:var(--cg-cream);color:var(--cg-ink2);font:400 13px var(--cg-font);letter-spacing:.01em;padding:6px 13px 7px;box-shadow:0 3px 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) #bar button:hover,
+:root[data-cg="emu"]:not(#cg) #bar button:hover,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar button:hover,
+:root[data-cg="emu"]:not(#cg) #pbar button:hover{border-color:var(--cg-ink);background:var(--cg-sun);color:var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) #bar button:active,
+:root[data-cg="emu"]:not(#cg) #bar button:active,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar button:active,
+:root[data-cg="emu"]:not(#cg) #pbar button:active{transform:translateY(3px);box-shadow:0 0 0 var(--cg-ink)}
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar button.on,
+:root[data-cg="emu"]:not(#cg) #pbar button.on{border-color:var(--cg-ink);background:var(--cg-mint);color:#fff;text-shadow:var(--cg-ol-sm)}
+:root.xmas[data-cg="mobile"]:not(#cg) #bar button:disabled,
+:root[data-cg="emu"]:not(#cg) #bar button:disabled,
+:root.xmas[data-cg="mobile"]:not(#cg) #pbar button:disabled,
+:root[data-cg="emu"]:not(#cg) #pbar button:disabled{opacity:.45}
+:root.xmas[data-cg="mobile"]:not(#cg) #fab,
+:root[data-cg="emu"]:not(#cg) #fab{border:3px solid var(--cg-ink);background:var(--cg-cream);color:var(--cg-ink2);box-shadow:0 3px 0 var(--cg-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) #drop,
+:root[data-cg="emu"]:not(#cg) #drop,
+:root.xmas[data-cg="mobile"]:not(#cg) #pmsg,
+:root[data-cg="emu"]:not(#cg) #pmsg{background:radial-gradient(circle at 50% 38%,#6a4a9a,#2a1b49 74%)}
+:root.xmas[data-cg="mobile"]:not(#cg) #drop h2,
+:root[data-cg="emu"]:not(#cg) #drop h2,
+:root.xmas[data-cg="mobile"]:not(#cg) #pmsg h2,
+:root[data-cg="emu"]:not(#cg) #pmsg h2{font:400 clamp(24px,4.4vw,36px) var(--cg-font);color:#fff;text-shadow:var(--cg-ol);letter-spacing:.02em}
+:root.xmas[data-cg="mobile"]:not(#cg) #drop p,
+:root[data-cg="emu"]:not(#cg) #drop p,
+:root.xmas[data-cg="mobile"]:not(#cg) #pmsg p,
+:root[data-cg="emu"]:not(#cg) #pmsg p{color:#eadcf7;font-weight:400}
+:root.xmas[data-cg="mobile"]:not(#cg) #pmsg b,
+:root[data-cg="emu"]:not(#cg) #pmsg b{color:var(--cg-sun);font-weight:400}
+:root.xmas[data-cg="mobile"]:not(#cg) #drop.over,
+:root[data-cg="emu"]:not(#cg) #drop.over{outline:3px dashed var(--cg-sun);outline-offset:-16px}
+:root.xmas[data-cg="mobile"]:not(#cg) .btn,
+:root[data-cg="emu"]:not(#cg) .btn{border:3px solid var(--cg-ink);border-radius:99px;padding:12px 30px 14px;color:#fff;text-shadow:var(--cg-ol);font:400 17px var(--cg-font);letter-spacing:.02em;
+ background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32)) top/100% 46% no-repeat,var(--cg-mint);box-shadow:0 6px 0 var(--cg-ink),inset 0 -5px 0 var(--cg-mint-d),inset 0 2px 0 rgba(255,255,255,.5);transition:transform .12s,box-shadow .12s}
+:root.xmas[data-cg="mobile"]:not(#cg) .btn:hover,
+:root[data-cg="emu"]:not(#cg) .btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 var(--cg-ink),inset 0 -5px 0 var(--cg-mint-d),inset 0 2px 0 rgba(255,255,255,.5)}
+:root.xmas[data-cg="mobile"]:not(#cg) .btn:active,
+:root[data-cg="emu"]:not(#cg) .btn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--cg-ink),inset 0 -3px 0 var(--cg-mint-d),inset 0 2px 0 rgba(255,255,255,.5)}
+:root.xmas[data-cg="mobile"]:not(#cg) #toast,
+:root[data-cg="emu"]:not(#cg) #toast{background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);box-shadow:0 4px 0 var(--cg-ink);font:400 14px var(--cg-font);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) #loadbox,
+:root[data-cg="emu"]:not(#cg) #loadbox,
+:root.xmas[data-cg="mobile"]:not(#cg) #dl,
+:root[data-cg="emu"]:not(#cg) #dl{background:var(--cg-cream);color:var(--cg-ink2);border:3px solid var(--cg-ink);border-radius:22px;box-shadow:0 5px 0 var(--cg-ink),0 14px 26px rgba(10,6,40,.4);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) #loadbox b,
+:root[data-cg="emu"]:not(#cg) #loadbox b,
+:root.xmas[data-cg="mobile"]:not(#cg) #dl b,
+:root[data-cg="emu"]:not(#cg) #dl b{color:var(--cg-coral-d);font:400 16px var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) #loadbox span,
+:root[data-cg="emu"]:not(#cg) #loadbox span,
+:root.xmas[data-cg="mobile"]:not(#cg) #dl span,
+:root[data-cg="emu"]:not(#cg) #dl span{color:var(--cg-soft)}
+:root.xmas[data-cg="mobile"]:not(#cg) #loadbox .loadbar,
+:root[data-cg="emu"]:not(#cg) #loadbox .loadbar{height:12px;border:2px solid var(--cg-ink);background:#fff;border-radius:99px}
+:root.xmas[data-cg="mobile"]:not(#cg) #loadbox .loadbar i,
+:root[data-cg="emu"]:not(#cg) #loadbox .loadbar i,
+:root.xmas[data-cg="mobile"]:not(#cg) #dl .pb i,
+:root[data-cg="emu"]:not(#cg) #dl .pb i{background:linear-gradient(90deg,var(--cg-mint),var(--cg-sun))}
+:root.xmas[data-cg="mobile"]:not(#cg) #dl .pb,
+:root[data-cg="emu"]:not(#cg) #dl .pb{height:12px}
+:root.xmas[data-cg="mobile"]:not(#cg) .loadspin,
+:root[data-cg="emu"]:not(#cg) .loadspin{border-color:rgba(53,34,79,.2);border-top-color:var(--cg-coral)}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa,
+:root[data-cg="emu"]:not(#cg) #ioa{background:rgba(24,12,48,.5);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa .ioa-box,
+:root[data-cg="emu"]:not(#cg) #ioa .ioa-box{width:min(300px,84vw);background:var(--cg-cream);color:var(--cg-ink2);border:4px solid var(--cg-ink);border-radius:26px;box-shadow:0 7px 0 var(--cg-ink),0 24px 40px rgba(10,6,40,.45);-webkit-backdrop-filter:none;backdrop-filter:none;font-family:var(--cg-font)}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa b,
+:root[data-cg="emu"]:not(#cg) #ioa b{font:400 20px var(--cg-font);color:var(--cg-coral-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa p,
+:root[data-cg="emu"]:not(#cg) #ioa p{color:var(--cg-ink2);font-size:14.5px}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa button,
+:root[data-cg="emu"]:not(#cg) #ioa button{border-top:4px solid var(--cg-ink);color:#fff;text-shadow:var(--cg-ol);font:400 18px var(--cg-font);padding:12px 0 13px;background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-sky);box-shadow:inset 0 -5px 0 var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) #ioa button:active,
+:root[data-cg="emu"]:not(#cg) #ioa button:active{background:var(--cg-sky-d)}
+:root.xmas[data-cg="mobile"]:not(#cg) #rot button,
+:root[data-cg="emu"]:not(#cg) #rot button,
+:root.xmas[data-cg="mobile"]:not(#cg) #prot button,
+:root[data-cg="emu"]:not(#cg) #prot button,
+:root.xmas[data-cg="mobile"]:not(#cg) #rhint button,
+:root[data-cg="emu"]:not(#cg) #rhint button{background:var(--cg-sun);color:var(--cg-ink);border:2px solid var(--cg-ink);font-family:var(--cg-font);font-weight:400}
+
+/* ─────────────────────────────────────────────────────────────
+   emulator.html  ·  Retro PC Web Emulator 홈 (#rp)
+   ───────────────────────────────────────────────────────────── */
+:root[data-cg="emu"]:not(#cg){--bg:#2a1b49;--fg:#fff7ec;--mut:#e6d8f0;--acc:var(--cg-sun);--acc2:#fff2b5;--line:rgba(255,255,255,.4);--serif:var(--cg-font);font-synthesis:none}
+:root[data-cg="emu"]:not(#cg) #rp{font-family:var(--cg-font);--ink:var(--cg-ink2);--ink2:var(--cg-ink2)}
+:root[data-cg="emu"]:not(#cg) .rp-top{gap:18px 10px}
+:root[data-cg="emu"]:not(#cg) .rp-nav{--c:var(--cg-sky);--cd:var(--cg-sky-d);border:3px solid var(--cg-ink);border-radius:14px;color:#fff;text-shadow:var(--cg-ol-sm);font:400 13.5px var(--cg-font);letter-spacing:.01em;padding:7px 12px 9px;
+ background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--c);
+ box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.5);-webkit-backdrop-filter:none;backdrop-filter:none;transition:transform .12s,box-shadow .12s}
+:root[data-cg="emu"]:not(#cg) .rp-side.r .rp-nav{--c:var(--cg-mint);--cd:var(--cg-mint-d)}
+:root[data-cg="emu"]:not(#cg) #rCache{--c:var(--cg-peach);--cd:var(--cg-peach-d)}
+:root[data-cg="emu"]:not(#cg) .rp-nav b{opacity:1}
+:root[data-cg="emu"]:not(#cg) .rp-nav:hover{background:linear-gradient(rgba(255,255,255,.34),rgba(255,255,255,.34)) top/100% 46% no-repeat,var(--c);filter:brightness(1.06);transform:translateY(-2px);box-shadow:0 6px 0 var(--cg-ink),inset 0 -4px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.5)}
+:root[data-cg="emu"]:not(#cg) .rp-nav:active{transform:translateY(3px);box-shadow:0 1px 0 var(--cg-ink),inset 0 -3px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.5)}
+:root[data-cg="emu"]:not(#cg) .rp-title{font-family:var(--cg-font);font-weight:400;letter-spacing:.02em;background:none;-webkit-text-fill-color:#fff;color:#fff;opacity:1;filter:none;animation:cgPop .7s cubic-bezier(.2,1.4,.4,1) both;
+ text-shadow:var(--cg-ol-big);padding:10px 0 12px}
+:root[data-cg="emu"]:not(#cg) .rp-sec{display:table;margin:40px 4px 20px;padding:6px 24px 8px;border:3px solid var(--cg-ink);border-radius:99px;color:#fff;text-shadow:var(--cg-ol);font:400 16px var(--cg-font);letter-spacing:.05em;
+ background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-coral);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-coral-d)}
+:root[data-cg="emu"]:not(#cg) .rp-sec:nth-of-type(3){background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-sky);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-sky-d)}
+:root[data-cg="emu"]:not(#cg) .rp-sec:nth-of-type(5){background:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)) top/100% 46% no-repeat,var(--cg-mint);box-shadow:0 4px 0 var(--cg-ink),inset 0 -4px 0 var(--cg-mint-d)}
+:root[data-cg="emu"]:not(#cg) .rp-sec:after{display:none}
+:root[data-cg="emu"]:not(#cg) .rp-grid{gap:26px 18px}
+:root[data-cg="emu"]:not(#cg) .rp-it{--rim:var(--cg-coral);gap:12px}
+:root[data-cg="emu"]:not(#cg) .rp-it:nth-child(6n+2){--rim:var(--cg-sky)}
+:root[data-cg="emu"]:not(#cg) .rp-it:nth-child(6n+3){--rim:var(--cg-mint)}
+:root[data-cg="emu"]:not(#cg) .rp-it:nth-child(6n+4){--rim:var(--cg-sun)}
+:root[data-cg="emu"]:not(#cg) .rp-it:nth-child(6n+5){--rim:var(--cg-grape)}
+:root[data-cg="emu"]:not(#cg) .rp-it:nth-child(6n+6){--rim:var(--cg-peach)}
+:root[data-cg="emu"]:not(#cg) .rp-box{border:3px solid var(--cg-ink);border-radius:26px;
+ background:linear-gradient(var(--rim) 0 9px,transparent 9px),linear-gradient(180deg,#fffaf0,var(--cg-cream2));
+ box-shadow:0 6px 0 var(--cg-ink),0 12px 18px rgba(10,6,40,.22);-webkit-backdrop-filter:none;backdrop-filter:none;padding-top:6px;transition:transform .12s,box-shadow .12s}
+:root[data-cg="emu"]:not(#cg) .rp-box svg{stroke:var(--cg-ink2);stroke-width:2.4}
+:root[data-cg="emu"]:not(#cg) .rp-it:hover .rp-box,
+:root[data-cg="emu"]:not(#cg) .rp-it:focus-visible .rp-box{background:linear-gradient(var(--rim) 0 9px,transparent 9px),linear-gradient(180deg,#fff,#fff0d2);transform:translateY(-3px);box-shadow:0 9px 0 var(--cg-ink),0 16px 22px rgba(10,6,40,.26)}
+:root[data-cg="emu"]:not(#cg) .rp-it:active .rp-box{transform:translateY(5px);box-shadow:0 1px 0 var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) .rp-it:focus-visible .rp-box{outline:3px solid var(--cg-sun);outline-offset:3px}
+:root[data-cg="emu"]:not(#cg) .rp-nm{color:#fff;text-shadow:var(--cg-ol-sm);font:400 14.5px/1.25 var(--cg-font);letter-spacing:.01em}
+:root[data-cg="emu"]:not(#cg) .rp-ft{color:#fff;text-shadow:var(--cg-ol-sm);font-family:var(--cg-font);font-size:12.5px}
+
+/* 공지 · 안내 · 배경/아이콘 선택 창 */
+:root[data-cg="emu"]:not(#cg) #rpm{background:rgba(24,12,48,.5);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-cg="emu"]:not(#cg) #rpm .m{border:4px solid var(--cg-ink);border-radius:28px;background:var(--cg-cream);color:var(--cg-ink2);box-shadow:0 8px 0 var(--cg-ink),0 26px 50px rgba(10,6,40,.5);font-family:var(--cg-font)}
+:root[data-cg="emu"]:not(#cg) #rpm .mh{background:linear-gradient(rgba(255,255,255,.28),rgba(255,255,255,.28)) top/100% 46% no-repeat,var(--cg-coral);border-bottom:4px solid var(--cg-ink);border-radius:24px 24px 0 0;color:#fff;text-shadow:var(--cg-ol);font:400 20px var(--cg-font);padding:12px 16px 12px 22px}
+:root[data-cg="emu"]:not(#cg) #rpm .mh button{border:3px solid var(--cg-ink);background:var(--cg-cream);color:var(--cg-ink2);border-radius:99px;box-shadow:0 3px 0 var(--cg-ink);padding:4px 14px 5px;font:400 14px var(--cg-font);text-shadow:none}
+:root[data-cg="emu"]:not(#cg) #rpm .mh button:active{transform:translateY(3px);box-shadow:none}
+:root[data-cg="emu"]:not(#cg) #rpm .mb{color:var(--cg-ink2);font-family:var(--cg-font);font-size:15px}
+:root[data-cg="emu"]:not(#cg) .rp-bgs button{border:3px solid var(--cg-ink);border-radius:16px;box-shadow:0 3px 0 var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) .rp-bgs button.cur{border-color:var(--cg-ink);box-shadow:0 0 0 3px var(--cg-sun),0 3px 0 3px var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) .rp-sub{font:400 15px var(--cg-font);color:var(--cg-coral-d)}
+:root[data-cg="emu"]:not(#cg) .rp-ics button{border:3px solid var(--cg-ink);border-radius:18px;background:#fff;color:var(--cg-ink2);box-shadow:0 3px 0 var(--cg-ink);font:400 14px var(--cg-font)}
+:root[data-cg="emu"]:not(#cg) .rp-ics button.cur{border-color:var(--cg-ink);background:#fff3b8;box-shadow:0 0 0 3px var(--cg-sun),0 3px 0 3px var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) .rp-ics svg{stroke:var(--cg-ink2)}
+
+/* 기능 창 · 해상도 선택 */
+:root[data-cg="emu"]:not(#cg) #win{background:rgba(24,12,48,.55);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-cg="emu"]:not(#cg) #win .w{border:4px solid var(--cg-ink);border-radius:30px;background:var(--cg-cream);box-shadow:0 8px 0 var(--cg-ink),0 30px 60px rgba(10,6,40,.55)}
+:root[data-cg="emu"]:not(#cg) #win .wh{background:linear-gradient(rgba(255,255,255,.28),rgba(255,255,255,.28)) top/100% 46% no-repeat,var(--cg-coral);border-bottom:4px solid var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #win .wh b{font:400 21px var(--cg-font);color:#fff;text-shadow:var(--cg-ol);letter-spacing:.02em}
+:root[data-cg="emu"]:not(#cg) #win .wh button{border:3px solid var(--cg-ink);background:var(--cg-cream);color:var(--cg-ink2);font:400 14px var(--cg-font);box-shadow:0 3px 0 var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #win .wh button:hover{background:var(--cg-sun);color:var(--cg-ink);border-color:var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #resdlg{background:rgba(24,12,48,.6);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-cg="emu"]:not(#cg) #resdlg .rbox{border:4px solid var(--cg-ink);border-radius:28px;background:var(--cg-cream);color:var(--cg-ink2);box-shadow:0 8px 0 var(--cg-ink),0 26px 50px rgba(10,6,40,.5);font-family:var(--cg-font)}
+:root[data-cg="emu"]:not(#cg) #resdlg h3{font:400 22px var(--cg-font);color:var(--cg-coral-d)}
+:root[data-cg="emu"]:not(#cg) #resdlg p{color:var(--cg-soft)}
+:root[data-cg="emu"]:not(#cg) #resdlg .ropt{border:3px solid var(--cg-ink);border-radius:16px;background:#fff;color:var(--cg-ink2);font:400 16px var(--cg-font);box-shadow:0 4px 0 var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #resdlg .ropt small{color:var(--cg-soft);font-family:var(--cg-font)}
+:root[data-cg="emu"]:not(#cg) #resdlg .ropt:hover,
+:root[data-cg="emu"]:not(#cg) #resdlg .ropt.cur{border-color:var(--cg-ink);background:#fff3b8;color:var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #resdlg .ropt:active{transform:translateY(3px);box-shadow:0 1px 0 var(--cg-ink)}
+:root[data-cg="emu"]:not(#cg) #resdlg label.rskip,
+:root[data-cg="emu"]:not(#cg) #resdlg .rclose{color:var(--cg-soft);font-family:var(--cg-font)}
+:root[data-cg="emu"]:not(#cg) #resdlg .rback{border:3px solid var(--cg-ink);background:#fff;color:var(--cg-ink2);font-family:var(--cg-font);font-weight:400;box-shadow:0 3px 0 var(--cg-ink)}
