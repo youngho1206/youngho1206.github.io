@@ -9,7 +9,7 @@ A static GitHub Pages game catalog with a browser-based game registration panel.
 - External HTTPS game-file URL mode for large files (stores the URL in the catalog instead of uploading the binary)
 - Title image can be uploaded or referenced by an HTTPS image URL
 - Library cards show a `GET GAME FILE` link for externally hosted files
-- Folder-relative file paths and ZIP-internal folder paths are retained under `games/files/<platform>/<game-id>/`\n- ZIP archives are extracted in the browser before upload; the original ZIP is not stored as one archive\n- If an uploaded archive contains a `.jsdos` file, it is automatically selected as the DOS player bundle\n- The player page lists and links extracted files when no runnable `.jsdos` bundle is available
+- Folder-relative file paths and ZIP-internal folder paths are retained under `games/files/<platform>/<game-id>/` - ZIP archives are extracted in the browser before upload; the original ZIP is not stored as one archive - If an uploaded archive contains a `.jsdos` file, it is automatically selected as the DOS player bundle - The player page lists and links extracted files when no runnable `.jsdos` bundle is available
 - Catalog metadata is written to `games/games.json`
 - Existing JS-DOS player path remains available for games with a prepared `.jsdos` bundle
 
@@ -32,3 +32,6 @@ The token is kept only in the current page's JavaScript memory and is not saved 
 
 ## GitHub Pages
 Keep the site files at the repository's published root (or configure Pages to use the correct folder). After upload, allow GitHub Pages a short time to rebuild, then refresh the site.
+
+## DOS games run directly (no Windows)
+When a game is registered with platform MS-DOS and no `.jsdos` file, admin.js automatically builds a `.jsdos` bundle in the browser (all files + a generated `dosbox.conf` that launches the chosen EXE/COM/BAT) and the library card shows PLAY NOW. Windows 95/98 games still need a Windows 9x environment.
