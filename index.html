@@ -5,16 +5,16 @@
 <script src="noads.js"></script>
 <script src="saver.js"></script>
 <script>
-/* PC·태블릿 = 새 메인화면(pcmain). 스마트폰은 기존 화면 그대로. */
+/* 새 메인화면: PC·태블릿(pcmain) / 스마트폰(phmain). 첫 접속 알림·기기표시·방문자 집계는 모든 기기에서 사용 안 함 */
 (function(){var u=navigator.userAgent||'';
 var phone=/iPhone|iPod/.test(u)||(/Android/.test(u)&&/Mobile/.test(u))||/Windows Phone|IEMobile|BlackBerry/.test(u);
-if(!phone){window.__pcmain=1;window.__dsBar=1;document.documentElement.classList.add('pcmain')}
-if(!window.__pcmain){var a=document.createElement('script');a.src='adnotice.js';a.defer=true;document.head.appendChild(a)}
+window.__pcmain=1;window.__dsBar=1;
+document.documentElement.classList.add('newmain',phone?'phmain':'pcmain');
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050138">
-<script>if(window.__pcmain)document.querySelector('meta[name=theme-color]').setAttribute('content','#ffffff')</script>
+<script>document.querySelector('meta[name=theme-color]').setAttribute('content',document.documentElement.classList.contains('phmain')?'#1f7bff':'#ffffff')</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/app-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -162,51 +162,63 @@ body:has(#bNotice.new) .mwrap .dot{display:block}
 #instBn button{border:0;cursor:pointer;font:700 13px var(--kr);border-radius:99px;padding:8px 14px;color:#04123a;background:linear-gradient(135deg,#35e6ff,#3b6bff)}
 #instBn #instNo{background:none;color:#b9c3ff;padding:6px}
 
-/* ───────── PC·태블릿 새 메인화면 ───────── */
-.pcm{display:none}
+/* ───────── 새 메인화면 ───────── */
+.pcm,.mob{display:none}
+html.newmain .poster,html.newmain #skyBg,html.newmain #instBn,html.newmain #mp,html.newmain #ds-bar,html.newmain #ds-sv{display:none!important}
 html.pcmain{background:#fff}
 html.pcmain body{background:#fff;color:#0d1b4d;overflow-x:hidden}
-html.pcmain .poster,html.pcmain #skyBg,html.pcmain #instBn,html.pcmain #mp,html.pcmain #ds-bar,html.pcmain #ds-sv{display:none!important}
-html.pcmain .pcm{display:block;position:relative;min-height:100vh;min-height:100dvh;overflow:hidden;background:#fff;
+html.pcmain .pcm{position:relative;min-height:100vh;min-height:100dvh;overflow:hidden;background:#fff;
  --u:calc(min(100vw,177.68vh)/1672);font-family:var(--kr);display:flex;align-items:center;justify-content:center}
 .pcm .wv{position:absolute;top:0;display:block;pointer-events:none}
 .pcm .wl{left:0;width:calc(var(--u)*600);height:calc(var(--u)*200)}
 .pcm .wr{right:0;width:calc(var(--u)*470);height:calc(var(--u)*60)}
 .pcm-in{position:relative;width:calc(var(--u)*1672);height:calc(var(--u)*941);flex:none}
-.pcm-t{position:absolute;left:0;right:0;top:calc(var(--u)*92);margin:0;text-align:center;white-space:nowrap;font:900 calc(var(--u)*142)/calc(var(--u)*146) var(--kr);letter-spacing:-.02em}
-.pcm-t .a{color:#0a5ff0}.pcm-t .b{color:#0b1a4d}
-.pcm-s{position:absolute;left:0;right:0;top:calc(var(--u)*258);margin:0;text-align:center;font:500 calc(var(--u)*40)/calc(var(--u)*50) var(--kr);color:#6f7c9a}
-.pcm-c a{position:absolute;top:calc(var(--u)*357);width:calc(var(--u)*332);height:calc(var(--u)*333);border-radius:calc(var(--u)*86);overflow:hidden;
- border:calc(var(--u)*5) solid var(--bd);background:var(--bg);color:#fff;display:block;transition:transform .18s,filter .2s;
- box-shadow:0 calc(var(--u)*28) calc(var(--u)*34) calc(var(--u)*-10) var(--sh),inset 0 calc(var(--u)*3) calc(var(--u)*4) rgba(255,255,255,.5),inset 0 calc(var(--u)*-12) calc(var(--u)*20) rgba(0,0,0,.1)}
-.pcm-c a:before{content:"";position:absolute;left:-12%;top:-34%;width:62%;height:92%;background:linear-gradient(135deg,rgba(255,255,255,.34),rgba(255,255,255,0) 62%);transform:rotate(-24deg)}
-.pcm-c a:hover,.pcm-c a:focus-visible{transform:translateY(calc(var(--u)*-8));filter:brightness(1.06);outline:none}
-.pcm-c a:active{transform:scale(.98)}
-.pcm-c svg{position:absolute;left:50%;top:calc(var(--u)*36);width:calc(var(--u)*200);height:calc(var(--u)*200);margin-left:calc(var(--u)*-100);filter:drop-shadow(0 calc(var(--u)*5) calc(var(--u)*5) rgba(0,0,40,.22))}
-.pcm-c b{position:absolute;left:0;right:0;top:calc(var(--u)*240);text-align:center;font:900 calc(var(--u)*52)/calc(var(--u)*64) var(--kr);color:#fff;text-shadow:0 calc(var(--u)*3) calc(var(--u)*4) rgba(0,0,60,.22)}
-.pcm-c .c1{left:calc(var(--u)*85);--bg:linear-gradient(165deg,#1fa8ff 0%,#0a62f6 52%,#0a3fe2 100%);--bd:#1d52e0;--sh:rgba(20,110,255,.5)}
-.pcm-c .c2{left:calc(var(--u)*478);--bg:linear-gradient(165deg,#93f78c 0%,#25d535 48%,#0fb91f 100%);--bd:#1dc92f;--sh:rgba(40,200,60,.42)}
-.pcm-c .c3{left:calc(var(--u)*870);--bg:linear-gradient(165deg,#c47bff 0%,#8b2cff 50%,#5a14e8 100%);--bd:#7d34f2;--sh:rgba(140,60,255,.48)}
-.pcm-c .c4{left:calc(var(--u)*1258);--bg:linear-gradient(165deg,#ff7cb8 0%,#fa2391 50%,#ee0575 100%);--bd:#f24592;--sh:rgba(255,60,150,.42)}
+.pcm-t{position:absolute;left:0;right:0;top:calc(var(--u)*66);margin:0;line-height:0;text-align:center}
+.pcm-t img{display:inline-block;width:calc(var(--u)*1010);height:auto}
+.pcm-s{position:absolute;left:0;right:0;top:calc(var(--u)*262);margin:0;text-align:center;font:500 calc(var(--u)*40)/calc(var(--u)*50) var(--kr);color:#6f7c9a}
+.pcm-c a{position:absolute;top:calc(var(--u)*533);width:calc(var(--u)*372);transform:translate(-50%,-50%);display:block;transition:transform .18s,filter .2s}
+.pcm-c a img{display:block;width:100%;height:auto}
+.pcm-c a:hover,.pcm-c a:focus-visible{transform:translate(-50%,calc(-50% - var(--u)*8));filter:brightness(1.06);outline:none}
+.pcm-c a:active{transform:translate(-50%,-50%) scale(.98)}
+.pcm-c .c1{left:calc(var(--u)*251)}.pcm-c .c2{left:calc(var(--u)*644)}.pcm-c .c3{left:calc(var(--u)*1037)}.pcm-c .c4{left:calc(var(--u)*1424)}
 .pcm-hr{position:absolute;left:calc(var(--u)*43);top:calc(var(--u)*796);width:calc(var(--u)*1585);height:calc(var(--u)*2);margin:0;border:0;background:#c9cfe2}
 .pcm-l{position:absolute;left:0;right:0;top:calc(var(--u)*822);height:calc(var(--u)*70);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*40)}
 .pcm-l button{appearance:none;background:none;border:0;padding:0;cursor:pointer;color:#55668c;font:500 calc(var(--u)*34)/calc(var(--u)*50) var(--kr);white-space:nowrap}
 .pcm-l button:hover,.pcm-l button:focus-visible{color:#0a5ff0;outline:none}
 .pcm-l i{font-style:normal;color:#7d89a6;font:400 calc(var(--u)*34)/calc(var(--u)*50) var(--kr)}
-/* 세로로 긴 화면(태블릿 세로 등) */
 @media (max-aspect-ratio:1/1){
- html.pcmain .pcm{--u:calc(min(100vw,860px)*.455/332);align-items:flex-start}
- .pcm-in{width:min(100vw,860px);height:auto;padding:calc(var(--u)*60) 0 calc(var(--u)*50)}
+ html.pcmain .pcm{align-items:flex-start}
+ .pcm-in{width:min(100vw,860px);height:auto;padding:5vw 0 5vw}
  .pcm .wl{width:42vw;height:14vw}.pcm .wr{width:30vw;height:4vw}
- .pcm-t,.pcm-s,.pcm-c a,.pcm-hr,.pcm-l{position:static}
- .pcm-t{font-size:min(11.6vw,100px);line-height:1.25;margin-top:calc(var(--u)*16)}
- .pcm-s{font-size:min(3.6vw,30px);line-height:1.5;margin:calc(var(--u)*8) 4vw calc(var(--u)*50)}
- .pcm-c{display:grid;grid-template-columns:repeat(2,calc(var(--u)*332));gap:calc(var(--u)*34) calc(var(--u)*20);justify-content:center}
- .pcm-c a,.pcm-c .c1,.pcm-c .c2,.pcm-c .c3,.pcm-c .c4{position:relative;top:auto;left:auto}
- .pcm-hr{width:92%;margin:calc(var(--u)*56) auto calc(var(--u)*24)}
- .pcm-l{height:auto;flex-wrap:wrap;gap:8px calc(var(--u)*22);padding:0 3vw}
+ .pcm-t,.pcm-s,.pcm-hr,.pcm-l{position:static}
+ .pcm-t{margin-top:4vw}.pcm-t img{width:min(92vw,800px)}
+ .pcm-s{font-size:min(3.6vw,30px);line-height:1.5;margin:1vw 4vw 5vw}
+ .pcm-c{display:grid;grid-template-columns:repeat(2,1fr);gap:2vw 3vw;width:min(92vw,800px);margin:0 auto}
+ .pcm-c a,.pcm-c .c1,.pcm-c .c2,.pcm-c .c3,.pcm-c .c4{position:relative;top:auto;left:auto;width:auto;transform:none}
+ .pcm-c a:hover,.pcm-c a:focus-visible,.pcm-c a:active{transform:none}
+ .pcm-hr{width:92%;margin:6vw auto 3vw;height:2px}
+ .pcm-l{height:auto;flex-wrap:wrap;gap:8px 3vw;padding:0 3vw}
  .pcm-l button,.pcm-l i{font-size:min(3.6vw,28px);line-height:1.8}
 }
+/* 스마트폰 */
+html.phmain{background:#2b8cff}
+html.phmain body{background:#2b8cff url(mainimg/m-bg.jpg) center/cover no-repeat fixed;overflow-x:hidden}
+html.phmain .mob{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;font-family:var(--kr);
+ --m:calc(min(100vw,560px)/941);padding:max(8px,env(safe-area-inset-top)) 0 max(8px,env(safe-area-inset-bottom))}
+.mob-in{width:calc(var(--m)*941);display:flex;flex-direction:column;align-items:center}
+.mob-t{margin:0;line-height:0}.mob-t img{display:block;width:calc(var(--m)*830);height:auto}
+.mob-b{display:block;width:calc(var(--m)*840);height:auto;margin-top:calc(var(--m)*20)}
+.mob-c{display:flex;gap:calc(var(--m)*14);margin-top:calc(var(--m)*36);width:calc(var(--m)*905);justify-content:center}
+.mob-c a{display:block;width:50%;transition:transform .18s,filter .2s}
+.mob-c a img{display:block;width:100%;height:auto;filter:drop-shadow(0 calc(var(--m)*10) calc(var(--m)*14) rgba(0,30,120,.3))}
+.mob-c a:active{transform:scale(.96)}
+.mob-bar{margin-top:calc(var(--m)*54);width:calc(var(--m)*890);display:grid;grid-template-columns:repeat(4,1fr);padding:calc(var(--m)*22) 0;border-radius:calc(var(--m)*46);
+ background:rgba(255,255,255,.26);border:calc(var(--m)*3) solid rgba(255,255,255,.65);box-shadow:inset 0 0 calc(var(--m)*30) rgba(255,255,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mob-bar button{appearance:none;background:none;border:0;padding:calc(var(--m)*8) 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:calc(var(--m)*12);color:#fff;
+ font:800 calc(var(--m)*31)/1.2 var(--kr);white-space:nowrap;-webkit-text-stroke:calc(var(--m)*7) #14409e;paint-order:stroke fill;-webkit-tap-highlight-color:transparent}
+.mob-bar button+button{border-left:calc(var(--m)*3) solid rgba(30,70,170,.35)}
+.mob-bar svg{width:calc(var(--m)*112);height:calc(var(--m)*112);filter:drop-shadow(0 calc(var(--m)*4) calc(var(--m)*4) rgba(0,20,100,.35))}
+.mob-bar button:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -217,16 +229,32 @@ html.pcmain .pcm{display:block;position:relative;min-height:100vh;min-height:100
   <svg class="wv wl" viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H600C520 20 380 46 240 92C140 125 60 160 0 196Z" fill="#dae7fa"/></svg>
   <svg class="wv wr" viewBox="0 0 470 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H470V52C405 60 310 50 230 27C150 6 70 2 0 0Z" fill="#dee9fb"/></svg>
   <div class="pcm-in">
-    <h1 class="pcm-t"><span class="a">영호의</span> <span class="b">게임실행기</span></h1>
+    <h1 class="pcm-t"><img src="mainimg/pc-title.webp" alt="영호의 게임실행기"></h1>
     <p class="pcm-s">이 사이트에서는 게임을 제공하는 사이트가 아닙니다.</p>
     <nav class="pcm-c" aria-label="기종 선택">
-      <a class="c1" href="emulator.html" data-k="e"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f86ff"/><stop offset="1" stop-color="#0b3fe0"/></linearGradient></defs><rect x="8" y="22" width="184" height="128" rx="14" fill="#fff"/><rect x="19" y="33" width="162" height="92" rx="4" fill="url(#gm)"/><path d="M19 33h70L40 125H19z" fill="#fff" opacity=".12"/><circle cx="100" cy="138" r="4.2" fill="#1a56f0"/><path d="M82 150h36l8 22H74z" fill="#fff"/><rect x="48" y="171" width="104" height="13" rx="6.5" fill="#fff"/></svg><b>컴퓨터</b></a>
-      <a class="c2" href="tablet.html" data-k="t"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="gt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#20d62e"/><stop offset="1" stop-color="#0cb51c"/></linearGradient></defs><rect x="14" y="10" width="172" height="180" rx="24" fill="#fff"/><rect x="28" y="24" width="144" height="134" rx="6" fill="url(#gt)"/><path d="M28 24h66L48 158H28z" fill="#fff" opacity=".1"/><circle cx="100" cy="175" r="7.5" fill="#19c32a"/></svg><b>태블릿</b></a>
-      <a class="c3" href="mobile.html" data-k="m"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b58cff"/><stop offset="1" stop-color="#6a2cf0"/></linearGradient></defs><rect x="56" y="6" width="88" height="188" rx="18" fill="#fff"/><rect x="63" y="13" width="74" height="174" rx="12" fill="url(#gg)"/><path d="M63 13h40L72 187H63z" fill="#fff" opacity=".12"/><circle cx="100" cy="27" r="4.6" fill="#1b0b4a"/><rect x="86" y="176" width="28" height="3.5" rx="1.75" fill="#fff" opacity=".5"/></svg><b>갤럭시</b></a>
-      <a class="c4" href="mobile.html" data-k="m"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="gi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6aa8"/><stop offset="1" stop-color="#f00677"/></linearGradient></defs><rect x="56" y="6" width="88" height="188" rx="18" fill="#fff"/><rect x="63" y="13" width="74" height="174" rx="12" fill="url(#gi)"/><rect x="82" y="13" width="36" height="10" rx="5" fill="#fff"/><g transform="translate(79.5 70) scale(1.7)" fill="#fff"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></g><rect x="86" y="176" width="28" height="3.5" rx="1.75" fill="#fff" opacity=".7"/></svg><b>아이폰</b></a>
+      <a class="c1" href="emulator.html" data-k="e"><img src="mainimg/pc-computer.webp" alt="컴퓨터"></a>
+      <a class="c2" href="tablet.html" data-k="t"><img src="mainimg/pc-tablet.webp" alt="태블릿"></a>
+      <a class="c3" href="mobile.html" data-k="m"><img src="mainimg/pc-galaxy.webp" alt="갤럭시"></a>
+      <a class="c4" href="mobile.html" data-k="m"><img src="mainimg/pc-iphone.webp" alt="아이폰"></a>
     </nav>
     <hr class="pcm-hr">
     <div class="pcm-l"><button type="button" data-pcl="ins">앱 설치방법</button><i>|</i><button type="button" data-pcl="sav">세이브 방법</button><i>|</i><button type="button" data-pcl="how">에뮬레이터 사용방법</button><i>|</i><button type="button" data-pcl="not">공지사항</button></div>
+  </div>
+</main>
+<main class="mob" id="mob" aria-label="영호의 게임실행기 모바일">
+  <div class="mob-in">
+    <h1 class="mob-t"><img src="mainimg/m-title.webp" alt="영호의 게임실행기 (모바일)"></h1>
+    <img class="mob-b" src="mainimg/m-banner.webp" alt="접속하신 기종을 선택">
+    <nav class="mob-c" aria-label="기종 선택">
+      <a href="mobile.html" data-k="m"><img src="mainimg/m-galaxy.webp" alt="갤럭시"></a>
+      <a href="mobile.html" data-k="m"><img src="mainimg/m-iphone.webp" alt="아이폰"></a>
+    </nav>
+    <div class="mob-bar">
+      <button type="button" data-pcl="not"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M14 40l40-18v56L14 60z" fill="#e8283c"/><path d="M14 40l40-18v14L14 52z" fill="#ff6a78"/><rect x="10" y="38" width="12" height="24" rx="5" fill="#fff"/><path d="M26 62l8 22h12l-6-20z" fill="#fff"/><rect x="54" y="26" width="9" height="48" rx="4.5" fill="#f3f3f8"/><path d="M72 30l12-9M74 48h15M72 66l12 9" stroke="#ffc400" stroke-width="6" stroke-linecap="round"/></svg>공지사항</button>
+      <button type="button" data-pcl="ins"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M40 8h20v28h14L50 62 26 36h14z" fill="#3fd23f" stroke="#1d8f2c" stroke-width="3" stroke-linejoin="round"/><path d="M12 62h14v10h48V62h14v24H12z" fill="#9aa6c4" stroke="#5f6b8a" stroke-width="3" stroke-linejoin="round"/></svg>앱설치안내</button>
+      <button type="button" data-pcl="sav"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="10" width="76" height="80" rx="9" fill="#2f5cf0" stroke="#173aa8" stroke-width="3"/><rect x="28" y="12" width="42" height="26" rx="3" fill="#e8eeff"/><rect x="58" y="16" width="8" height="16" rx="2" fill="#2f5cf0"/><rect x="22" y="50" width="56" height="36" rx="3" fill="#f0f3ff"/><path d="M30 60h40M30 68h40M30 76h28" stroke="#9aa8d8" stroke-width="3.5" stroke-linecap="round"/></svg>세이브방법</button>
+      <button type="button" data-pcl="how"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="27" fill="#8f9ab6"/><circle cx="50" cy="50" r="36" fill="none" stroke="#8f9ab6" stroke-width="13" stroke-dasharray="11.2 17.1" transform="rotate(-10 50 50)"/><circle cx="50" cy="50" r="12" fill="#d5dcef"/><circle cx="50" cy="50" r="27" fill="none" stroke="#6c7898" stroke-width="3"/></svg>실행기 실행법</button>
+    </div>
   </div>
 </main>
 <canvas id="skyBg" aria-hidden="true"></canvas>
