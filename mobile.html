@@ -269,7 +269,8 @@ html.emuopen,html.emuopen body{overflow:hidden;overscroll-behavior:none}
 #ioa button:active{background:rgba(255,255,255,.12)}
 
 /* ===== PC 홈 화면과 같은 아이콘 스타일 ===== */
-#grid{grid-template-columns:repeat(auto-fill,minmax(clamp(148px,44vw,230px),1fr));align-items:start}
+#grid{grid-template-columns:repeat(auto-fill,minmax(clamp(104px,28vw,230px),1fr));align-items:start}
+@media (max-width:560px){#grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}}
 .app.tile{background:none;border:0;box-shadow:none;padding:0;border-radius:clamp(14px,4vw,22px);filter:drop-shadow(0 5px 8px rgba(30,90,190,.4));transition:transform .2s,filter .2s}
 .app.tile img{display:block;width:100%;height:auto}
 .app.tile:hover{border:0;box-shadow:none;transform:translateY(-4px);filter:brightness(1.07) drop-shadow(0 8px 12px rgba(30,90,190,.5))}
